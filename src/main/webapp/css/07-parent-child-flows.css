@@ -1,0 +1,270 @@
+/* 부모/아이의 미션, 제출, 인벤토리, 기록, 보상 흐름 화면 스타일입니다. */
+
+.profile-setup-card,
+.profile-full-card {
+  display: grid;
+  gap: 12px;
+}
+
+.pet-select-card,
+.child-manage-card,
+.history-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.pet-select-card strong,
+.child-manage-card strong,
+.history-card strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.pet-select-card p,
+.child-manage-card p,
+.history-card p {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.history-list,
+.child-card-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.history-card {
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.history-card span {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.history-card.approved {
+  background: rgba(66, 213, 176, 0.14);
+}
+
+.history-card.rejected {
+  background: rgba(255, 134, 162, 0.13);
+}
+
+.history-card.reward {
+  background: rgba(255, 211, 107, 0.17);
+}
+
+.profile-full-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-full-head h2 {
+  margin: 0;
+}
+
+.profile-full-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.entry-choice-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.capture-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.capture-stage {
+  min-height: 220px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 22px;
+  color: white;
+  background: linear-gradient(145deg, #1c293b, #111c2b);
+}
+
+.capture-stage.photo-mode {
+  background: linear-gradient(145deg, #26324a, #172233);
+}
+
+.capture-stage video,
+.capture-stage img {
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  display: block;
+  object-fit: cover;
+}
+
+.capture-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 950;
+  background: rgba(12, 18, 28, 0.52);
+}
+
+.capture-stage.has-media .capture-placeholder {
+  display: none;
+}
+
+/* 1. hidden 속성 보정 (촬영 전 미리보기 img/video가 엑박처럼 보이지 않게 숨기는 단계) */
+.capture-stage video[hidden],
+.capture-stage img[hidden],
+.capture-stage canvas[hidden],
+#photoCapturePreview:not([src]) {
+  display: none !important;
+}
+
+/* 2. 촬영 안내문을 미리보기 요소보다 위에 배치하기 (촬영 전 안내가 깨지지 않게 보이는 단계) */
+.capture-placeholder {
+  z-index: 2;
+}
+
+.capture-stage video,
+.capture-stage img {
+  position: relative;
+  z-index: 1;
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.panel-head h2 {
+  margin: 0;
+}
+
+.btn.compact {
+  width: auto;
+  min-height: 34px;
+  padding: 7px 13px;
+  margin-top: 0;
+  font-size: 12px;
+}
+
+.flow-panel,
+.form-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.mission-grade-list,
+.progress-list,
+.inventory-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.mission-grade-card,
+.submission-card,
+.inventory-grid button {
+  width: 100%;
+  min-height: 70px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(166, 126, 76, 0.22);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  text-align: left;
+  font-weight: 950;
+}
+
+.mission-grade-card strong,
+.submission-card strong {
+  display: block;
+  font-size: 15px;
+}
+
+.mission-grade-card span,
+.submission-card span,
+.reward-rule span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 850;
+}
+
+.mission-grade-card.low,
+.reward-rule.low {
+  background: rgba(66, 213, 176, 0.13);
+}
+
+.mission-grade-card.middle,
+.reward-rule.middle {
+  background: rgba(255, 211, 107, 0.18);
+}
+
+.mission-grade-card.high,
+.reward-rule.high {
+  background: rgba(255, 134, 162, 0.14);
+}
+
+.reward-rule,
+.notice-card,
+.progress-list > div {
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(166, 126, 76, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.progress-list > div {
+  display: grid;
+  gap: 8px;
+}
+
+.flow-note {
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.reward-box-visual {
+  min-height: 150px;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  color: #8a5700;
+  background: linear-gradient(135deg, #fff1bd, #eaffff);
+  border: 1px dashed rgba(166, 126, 76, 0.3);
+  font-size: 28px;
+  font-weight: 950;
+  letter-spacing: 2px;
+}
+
+.frame-preview {

@@ -1,0 +1,175 @@
+/* 모바일에서 모달/촬영/프로필이 깨지지 않도록 마지막에 덮어쓰는 스타일입니다. */
+
+  .capture-tabs,
+  .verify-mode-tabs.capture-tabs {
+    gap: 7px;
+  }
+
+  .capture-tabs .mode-btn,
+  .verify-mode-tabs.capture-tabs .mode-btn {
+    min-height: 42px;
+    font-size: 13px;
+  }
+}
+
+
+/* =========================
+   Profile crop fix v6
+   - 프로필 수정 모달의 원 크롭을 홈/마이페이지 아바타에 즉시 반영
+   ========================= */
+.profile-avatar.profile-photo {
+  overflow: visible !important;
+}
+
+.profile-avatar-inner.profile-frame-mask {
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  clip-path: circle(50% at 50% 50%) !important;
+}
+
+.profile-avatar-inner .profile-avatar-crop {
+  left: var(--avatar-left, 0) !important;
+  top: var(--avatar-top, 0) !important;
+  width: var(--avatar-width, 100%) !important;
+  height: var(--avatar-height, 100%) !important;
+  max-width: none !important;
+  object-fit: fill !important;
+  object-position: center center !important;
+}
+
+.profile-crop-view {
+  aspect-ratio: 1 / 1;
+}
+@media (max-width: 480px) {
+  .profile-crop-card {
+    height: calc(100dvh - 8px);
+    max-height: calc(100dvh - 8px);
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .profile-crop-view {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(100dvh - 116px);
+  }
+
+  .profile-crop-guide {
+    margin: 7px 4px 2px;
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .profile-size-controls {
+    grid-template-columns: 58px minmax(0, 1fr) 58px;
+    gap: 6px;
+    margin-top: 7px;
+    padding-bottom: max(2px, env(safe-area-inset-bottom));
+  }
+
+  .profile-size-btn {
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  .profile-size-range {
+    gap: 3px;
+    font-size: 11px;
+  }
+
+  .profile-size-range input {
+    height: 24px;
+  }
+}
+.profile-crop-view img {
+  pointer-events: none;
+}
+
+/* =========================
+   Profile crop modal overlay fix v7
+   - 하단 네비가 프로필 크롭 조정 영역을 덮지 않게 모달 레이어만 상향
+   - entry-panel / screen display 구조는 건드리지 않음
+   ========================= */
+.modal {
+  z-index: 10000 !important;
+}
+
+.modal.active {
+  z-index: 10000 !important;
+}
+
+.modal.active .profile-crop-card {
+  position: relative;
+  z-index: 10001;
+}
+
+@media (max-width: 480px) {
+  .profile-crop-card {
+    height: calc(100dvh - 8px);
+    max-height: calc(100dvh - 8px);
+    padding: 8px;
+    overflow: hidden;
+  }
+
+  .profile-crop-view {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: calc(100dvh - 116px);
+  }
+
+  .profile-crop-guide {
+    flex: 0 0 auto;
+    margin: 7px 4px 2px;
+    font-size: 11px;
+    line-height: 1.25;
+  }
+
+  .profile-size-controls {
+    flex: 0 0 auto;
+    grid-template-columns: 58px minmax(0, 1fr) 58px;
+    gap: 6px;
+    margin-top: 7px;
+    padding-bottom: max(2px, env(safe-area-inset-bottom));
+  }
+
+  .profile-size-btn {
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  .profile-size-range {
+    gap: 3px;
+    font-size: 11px;
+  }
+
+  .profile-size-range input {
+    height: 24px;
+  }
+}
+body.profile-modal-open .bottom-nav {
+  display: none !important;
+}
+
+body.profile-modal-open .modal {
+  z-index: 10000 !important;
+}
+
+/* =========================
+   Profile modal bottom nav hide final
+   ========================= */
+body.profile-modal-open .bottom-nav {
+  display: none !important;
+}
+
+body.profile-modal-open .modal {
+  z-index: 10000 !important;
+}
+
+body.profile-modal-open .modal.active {
+  z-index: 10000 !important;
+}
+
+body.profile-modal-open .profile-crop-card {
+  position: relative;
+  z-index: 10001 !important;
+}

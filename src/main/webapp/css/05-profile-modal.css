@@ -1,0 +1,317 @@
+/* 프로필 수정 모달과 원형 크롭 조작 UI입니다. 저장은 나중에 ChildSetupServlet과 연결합니다. */
+
+.effect-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  font-size: var(--size);
+  animation: particleFloat 0.88s ease-out forwards;
+}
+
+@keyframes particleFloat {
+  0% { opacity: 0; transform: translateY(8px) scale(0.7) rotate(0deg); }
+  14% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-36px) scale(1.14) rotate(12deg); }
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 60;
+  overflow-y: auto;
+  padding: 4px 0 max(4px, env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal.active {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(38, 28, 20, 0.28);
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  position: relative;
+  width: min(calc(100% - 28px), 402px);
+  max-height: calc(100dvh - 8px);
+  margin: 0;
+  padding: 18px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.profile-crop-card {
+  width: min(calc(100% - 8px), 430px);
+  height: calc(100dvh - 8px);
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+  border-radius: 24px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 4;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #fff3dd;
+  color: var(--ink);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.profile-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 16px;
+}
+
+.profile-modal-head h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.profile-modal-head p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.profile-crop-view {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  margin: 0 auto;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 22px;
+  position: relative;
+  background: #fff5e7;
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+}
+
+.profile-crop-view.dragging .profile-crop-selector {
+  cursor: grabbing;
+}
+
+.profile-crop-view img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  transform-origin: 50% 50%;
+  transition: transform 0.12s ease;
+  user-select: none;
+}
+
+.profile-crop-selector {
+  position: absolute;
+  z-index: 2;
+  left: var(--selector-x, 50%);
+  top: var(--selector-y, 50%);
+  width: var(--selector-size, 68%);
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  box-shadow:
+    0 0 0 999px rgba(34, 26, 19, 0.36),
+    0 10px 28px rgba(34, 26, 19, 0.2);
+  cursor: grab;
+  touch-action: none;
+}
+
+.profile-crop-selector::before,
+.profile-crop-selector::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+}
+
+.profile-crop-selector::after {
+  inset: auto;
+  right: 12%;
+  bottom: 12%;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #ffffff;
+  background: var(--pink);
+}
+
+.profile-crop-guide {
+  flex: 0 0 auto;
+  margin: 10px 4px 2px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.profile-size-controls {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.profile-size-btn {
+  min-height: 42px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #fff9ef;
+  border: 1px solid rgba(218, 189, 146, 0.86);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 950;
+  box-shadow: 0 8px 18px rgba(111, 78, 34, 0.08);
+}
+
+.profile-size-range {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.profile-size-range input {
+  width: 100%;
+  accent-color: var(--pink);
+}
+
+.profile-crop-section {
+  padding: 13px;
+  margin-bottom: 14px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(234, 255, 255, 0.88), rgba(255, 244, 215, 0.88));
+  border: 1px solid rgba(255, 196, 77, 0.28);
+}
+
+.profile-crop-stage {
+  display: grid;
+  place-items: center;
+}
+
+.profile-crop-preview {
+  width: 128px;
+  height: 128px;
+  position: relative;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #fffdf8;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.9), 0 10px 24px rgba(111, 78, 34, 0.1);
+}
+
+.profile-crop-art {
+  --profile-x: 50%;
+  --profile-y: 48%;
+  --profile-scale: 1.08;
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  left: var(--profile-x);
+  top: var(--profile-y);
+  transform: translate(-50%, -50%) scale(var(--profile-scale));
+  display: grid;
+  place-items: center;
+  border-radius: 42%;
+  color: white;
+  background:
+    radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.54), transparent 19%),
+    radial-gradient(circle at 68% 72%, rgba(255, 213, 108, 0.72), transparent 24%),
+    linear-gradient(135deg, var(--pink), var(--yellow));
+  font-size: 38px;
+  font-weight: 950;
+}
+
+.profile-crop-help {
+  margin: 9px 0 10px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.profile-crop-controls {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-crop-controls label {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  color: #59483a;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.profile-crop-controls input {
+  width: 100%;
+  accent-color: var(--pink);
+}
+
+.profile-detail {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-detail div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.profile-detail div:last-child {
+  border-bottom: 0;
+}
+
+.profile-detail span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-detail strong {
+  font-size: 14px;
+  font-weight: 950;
+}
+

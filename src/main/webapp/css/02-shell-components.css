@@ -1,0 +1,207 @@
+/* 상단바, 프로필 기본 모양, screen/card처럼 여러 화면에서 같이 쓰는 껍데기 컴포넌트입니다. */
+
+.topbar {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+
+.topbar-copy {
+  grid-column: 3;
+  min-width: 0;
+}
+
+.topbar h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.16;
+  letter-spacing: 0;
+}
+
+.topbar p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-open,
+.profile-avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  font-weight: 950;
+}
+
+.page-back-btn,
+.entry-back-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 50%;
+  color: #5f5143;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(166, 126, 76, 0.22);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 950;
+  box-shadow: 0 6px 14px rgba(111, 78, 34, 0.06);
+}
+
+.page-back-btn:active,
+.entry-back-btn:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+.page-back-btn[hidden],
+.entry-back-btn[hidden] {
+  display: none;
+}
+
+.entry-back-btn {
+  margin-bottom: 8px;
+}
+
+.page-back-btn {
+  grid-column: 1;
+}
+
+.profile-open {
+  grid-column: 2;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  box-shadow: none;
+}
+
+body.parent-mode .profile-open {
+  display: none;
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  color: white;
+  background: linear-gradient(135deg, var(--pink), var(--yellow));
+}
+
+.profile-avatar.profile-photo {
+  position: relative;
+  overflow: hidden;
+  background: transparent;
+  color: transparent;
+}
+
+.profile-avatar-crop {
+  position: absolute;
+  left: var(--avatar-left, 0);
+  top: var(--avatar-top, 0);
+  display: block;
+  width: var(--avatar-width, 100%);
+  height: var(--avatar-height, 100%);
+  max-width: none;
+  border-radius: 0;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+}
+
+.profile-avatar.large {
+  width: 42px;
+  height: 42px;
+  font-size: 16px;
+}
+
+.profile-avatar.xl {
+  width: 64px;
+  height: 64px;
+  font-size: 22px;
+}
+
+.exit-btn {
+  grid-column: 4;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: #795000;
+  background: #fff3c6;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.screen {
+  display: none;
+  animation: screenIn 0.18s ease both;
+}
+
+.screen.active {
+  display: block;
+}
+
+@keyframes screenIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-bottom: 9px;
+}
+
+.profile-card-button {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+}
+
+.profile-card strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.profile-card em {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.level-pill {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: #fff6d8;
+  color: #8a5700;
+  font-size: 12px;
+  font-weight: 950;
+}
+
