@@ -84,3 +84,4 @@ http://localhost:8090/back/
 ```
 
 Oracle XE가 `8080`을 사용하므로 Tomcat은 `8090` 포트를 사용합니다.
+test - soo
