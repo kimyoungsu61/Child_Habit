@@ -20,10 +20,6 @@
                 <p class="entry-message"><c:out value="${error}"/></p>
             </c:if>
             <form method="post" action="${pageContext.request.contextPath}/join">
-                <label class="entry-field" for="name">
-                    <span>이름</span>
-                    <input id="name" name="name" type="text" value="<c:out value='${name}'/>" autocomplete="name" required>
-                </label>
                 <label class="entry-field" for="email">
                     <span>이메일</span>
                     <input id="email" name="email" type="email" value="<c:out value='${email}'/>" autocomplete="username" required>
@@ -35,6 +31,10 @@
                 <label class="entry-field" for="passwordConfirm">
                     <span>비밀번호 확인</span>
                     <input id="passwordConfirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="8" required>
+                </label>
+                <label class="entry-field" for="name">
+                    <span>이름</span>
+                    <input id="name" name="name" type="text" value="<c:out value='${name}'/>" autocomplete="name" required>
                 </label>
                 <button class="btn primary full" type="submit">가입 완료</button>
             </form>
