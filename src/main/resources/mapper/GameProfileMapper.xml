@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.genai.mapper.GameProfileMapper">
+    <resultMap id="childPetMap" type="com.genai.model.ChildPet">
+        <id property="childPetId" column="child_pet_id"/>
+        <result property="childId" column="child_id"/>
+        <result property="petId" column="pet_id"/>
+        <result property="currentLevel" column="current_level"/>
+        <result property="currentExp" column="current_exp"/>
+        <result property="isActive" column="is_active"/>
+        <result property="isMaxed" column="is_maxed"/>
+        <result property="badgeAcquired" column="badge_acquired"/>
+        <result property="badgeAcquiredAt" column="badge_acquired_at"/>
+        <result property="acquiredAt" column="acquired_at"/>
+        <association property="pet" javaType="com.genai.model.Pet">
+            <id property="petId" column="pet_id"/>
+            <result property="petName" column="pet_name"/>
+            <result property="petImageUrl" column="pet_image_url"/>
+            <result property="acquisitionType" column="acquisition_type"/>
+            <result property="maxLevel" column="max_level"/>
+            <result property="badgeName" column="badge_name"/>
+            <result property="badgeImageUrl" column="badge_image_url"/>
+            <result property="description" column="description"/>
+        </association>
+    </resultMap>
+
+    <select id="findStarterPets" resultType="com.genai.model.Pet">
+        SELECT pet_id, pet_name, pet_image_url, acquisition_type, max_level,
+               badge_name, badge_image_url, description
+        FROM PET
+        WHERE acquisition_type = 'default'
+        ORDER BY pet_id
+    </select>
+
+    <select id="findStarterPetById" parameterType="long" resultType="com.genai.model.Pet">
+        SELECT pet_id, pet_name, pet_image_url, acquisition_type, max_level,
+               badge_name, badge_image_url, description
+        FROM PET
+        WHERE pet_id = #{petId}
+          AND acquisition_type = 'default'
+    </select>
+
+    <update id="updateNickname">
+        UPDATE CHILD
+        SET nickname = #{nickname}
+        WHERE child_id = #{childId}
+    </update>
+
+    <update id="updateCharacterImage">
+        UPDATE CHILD
+        SET character_image_url = #{characterImageUrl}
+        WHERE child_id = #{childId}
+    </update>
+
+    <select id="countOwnedPet" resultType="int">
+        SELECT COUNT(*)
+        FROM CHILD_PET
+        WHERE child_id = #{childId}
+          AND pet_id = #{petId}
+    </select>
+
+    <insert id="insertChildPet" parameterType="com.genai.model.ChildPet">
+        <selectKey keyProperty="childPetId" resultType="long" order="BEFORE">
+            SELECT seq_child_pet.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO CHILD_PET (
+            child_pet_id, child_id, pet_id, current_level, current_exp, is_active
+        ) VALUES (
+            #{childPetId}, #{childId}, #{petId}, 1, 0, 'N'
+        )
+    </insert>
+
+    <update id="deactivateChildPets" parameterType="long">
+        UPDATE CHILD_PET
+        SET is_active = 'N'
+        WHERE child_id = #{childId}
+    </update>
+
+    <update id="activateChildPet">
+        UPDATE CHILD_PET
+        SET is_active = 'Y'
+        WHERE child_id = #{childId}
+          AND pet_id = #{petId}
+    </update>
+
+    <select id="findActivePet" parameterType="long" resultMap="childPetMap">
+        SELECT cp.child_pet_id, cp.child_id, cp.pet_id, cp.current_level, cp.current_exp,
+               cp.is_active, cp.is_maxed, cp.badge_acquired, cp.badge_acquired_at,
+               cp.acquired_at, p.pet_name, p.pet_image_url, p.acquisition_type,
+               p.max_level, p.badge_name, p.badge_image_url, p.description
+        FROM CHILD_PET cp
+        JOIN PET p ON p.pet_id = cp.pet_id
+        WHERE cp.child_id = #{childId}
+          AND cp.is_active = 'Y'
+    </select>
+
+    <update id="addExpToActivePet">
+        UPDATE CHILD_PET cp
+        SET cp.current_exp = cp.current_exp + #{expAmount},
+            cp.current_level = LEAST(
+                (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                FLOOR((cp.current_exp + #{expAmount}) / 300) + 1
+            ),
+            cp.is_maxed =
+                CASE
+                    WHEN LEAST(
+                        (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                        FLOOR((cp.current_exp + #{expAmount}) / 300) + 1
+                    ) = (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id)
+                    THEN 'Y'
+                    ELSE cp.is_maxed
+                END
+        WHERE cp.child_id = #{childId}
+          AND cp.is_active = 'Y'
+    </update>
+</mapper>

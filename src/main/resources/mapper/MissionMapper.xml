@@ -1,0 +1,582 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.genai.mapper.MissionMapper">
+    <select id="findDefaultMissionIdByChildId" parameterType="long" resultType="long">
+        SELECT mission_id
+        FROM MISSION
+        WHERE child_id = #{childId}
+          AND mission_title = 'default_media_mission'
+          AND is_active = 'Y'
+          AND ROWNUM = 1
+    </select>
+
+    <insert id="insertDefaultMission" parameterType="long">
+        INSERT INTO MISSION (
+            mission_id,
+            parent_id,
+            child_id,
+            mission_title,
+            mission_description,
+            mission_grade,
+            media_type,
+            is_active
+        )
+        SELECT seq_mission.NEXTVAL,
+               c.parent_id,
+               c.child_id,
+               'default_media_mission',
+               'Temporary media mission for upload/review flow',
+               'low',
+               'video',
+               'Y'
+        FROM CHILD c
+        WHERE c.child_id = #{childId}
+    </insert>
+
+    <insert id="insertMission" parameterType="com.genai.model.Mission">
+        <selectKey keyProperty="missionId" resultType="long" order="BEFORE">
+            SELECT seq_mission.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO MISSION (
+            mission_id,
+            parent_id,
+            child_id,
+            mission_title,
+            mission_description,
+            mission_grade,
+            media_type,
+            is_active
+        ) VALUES (
+            #{missionId},
+            #{parentId},
+            #{childId},
+            #{missionTitle},
+            #{missionDescription},
+            #{missionGrade},
+            #{mediaType},
+            'Y'
+        )
+    </insert>
+
+    <insert id="insertMissionAssignedNotification" parameterType="com.genai.model.Mission">
+        INSERT INTO NOTIFICATION (
+            notification_id,
+            child_id,
+            mission_id,
+            notification_type,
+            title,
+            content,
+            is_read
+        ) VALUES (
+            seq_notification.NEXTVAL,
+            #{childId},
+            #{missionId},
+            'mission_assigned',
+            'New mission assigned',
+            #{missionTitle} || ' mission was assigned.',
+            'N'
+        )
+    </insert>
+
+    <update id="updateMission" parameterType="com.genai.model.Mission">
+        UPDATE MISSION
+        SET child_id = #{childId},
+            mission_title = #{missionTitle},
+            mission_description = #{missionDescription},
+            mission_grade = #{missionGrade},
+            media_type = #{mediaType}
+        WHERE mission_id = #{missionId}
+          AND parent_id = #{parentId}
+          AND is_active = 'Y'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM MISSION_SUBMISSION ms
+              WHERE ms.mission_id = MISSION.mission_id
+          )
+    </update>
+
+    <update id="deactivateMission">
+        UPDATE MISSION
+        SET is_active = 'N'
+        WHERE mission_id = #{missionId}
+          AND parent_id = #{parentId}
+          AND is_active = 'Y'
+    </update>
+
+    <select id="findMissionsForParent" parameterType="long" resultType="com.genai.model.Mission">
+        SELECT m.mission_id,
+               m.parent_id,
+               m.child_id,
+               m.mission_title,
+               m.mission_description,
+               m.mission_grade,
+               m.media_type,
+               m.is_active,
+               m.created_at,
+               c.nickname child_nickname
+        FROM MISSION m
+        JOIN CHILD c ON c.child_id = m.child_id
+        WHERE m.parent_id = #{parentId}
+          AND m.is_active = 'Y'
+        ORDER BY m.mission_id DESC
+    </select>
+
+    <select id="findMissionsForChild" parameterType="long" resultType="com.genai.model.Mission">
+        SELECT mission_id,
+               parent_id,
+               child_id,
+               mission_title,
+               mission_description,
+               mission_grade,
+               media_type,
+               is_active,
+               created_at
+        FROM MISSION
+        WHERE child_id = #{childId}
+          AND is_active = 'Y'
+        ORDER BY mission_id DESC
+    </select>
+
+    <select id="findMissionForParent" resultType="com.genai.model.Mission">
+        SELECT m.mission_id,
+               m.parent_id,
+               m.child_id,
+               m.mission_title,
+               m.mission_description,
+               m.mission_grade,
+               m.media_type,
+               m.is_active,
+               m.created_at,
+               c.nickname child_nickname
+        FROM MISSION m
+        JOIN CHILD c ON c.child_id = m.child_id
+        WHERE m.mission_id = #{missionId}
+          AND m.parent_id = #{parentId}
+          AND m.is_active = 'Y'
+    </select>
+
+    <select id="findMissionForChild" resultType="com.genai.model.Mission">
+        SELECT mission_id,
+               parent_id,
+               child_id,
+               mission_title,
+               mission_description,
+               mission_grade,
+               media_type,
+               is_active,
+               created_at
+        FROM MISSION
+        WHERE mission_id = #{missionId}
+          AND child_id = #{childId}
+          AND is_active = 'Y'
+    </select>
+
+    <insert id="insertSubmission" parameterType="com.genai.model.MissionSubmission">
+        <selectKey keyProperty="submissionId" resultType="long" order="BEFORE">
+            SELECT seq_mission_submission.NEXTVAL FROM dual
+        </selectKey>
+        INSERT INTO MISSION_SUBMISSION (
+            submission_id,
+            mission_id,
+            child_id,
+            mission_date,
+            media_type,
+            media_url,
+            status,
+            reward_given
+        ) VALUES (
+            #{submissionId},
+            #{missionId},
+            #{childId},
+            TRUNC(SYSDATE),
+            #{mediaType},
+            #{mediaUrl},
+            'pending',
+            'N'
+        )
+    </insert>
+
+    <insert id="insertRewardRequestNotification"
+            parameterType="com.genai.model.MissionSubmission">
+        INSERT INTO NOTIFICATION (
+            notification_id,
+            parent_id,
+            mission_id,
+            submission_id,
+            notification_type,
+            title,
+            content,
+            is_read
+        )
+        SELECT seq_notification.NEXTVAL,
+               c.parent_id,
+               #{missionId},
+               #{submissionId},
+               'reward_request',
+               'New media review request',
+               'A child submitted mission media for review.',
+               'N'
+        FROM CHILD c
+        WHERE c.child_id = #{childId}
+    </insert>
+
+    <select id="findByChildId" parameterType="long"
+            resultType="com.genai.model.MissionSubmission">
+        SELECT submission_id,
+               mission_id,
+               child_id,
+               mission_date,
+               box_grade,
+               media_type,
+               media_url,
+               status,
+               submitted_at,
+               reviewed_at,
+               reward_given,
+               media_deleted_at
+        FROM MISSION_SUBMISSION
+        WHERE child_id = #{childId}
+        ORDER BY submission_id DESC
+    </select>
+
+    <select id="countTodaySubmissionsByChild" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION_SUBMISSION
+        WHERE child_id = #{childId}
+          AND mission_date = TRUNC(SYSDATE)
+          AND status IN ('pending', 'approved')
+    </select>
+
+    <select id="countOpenSubmissionForMissionToday" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION_SUBMISSION
+        WHERE child_id = #{childId}
+          AND mission_id = #{missionId}
+          AND mission_date = TRUNC(SYSDATE)
+          AND status IN ('pending', 'approved')
+    </select>
+
+    <select id="countMediaAccessForParent" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION_SUBMISSION ms
+        JOIN CHILD c ON c.child_id = ms.child_id
+        WHERE ms.media_url = #{mediaUrl}
+          AND c.parent_id = #{parentId}
+          AND ms.media_deleted_at IS NULL
+    </select>
+
+    <select id="countMediaAccessForChild" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION_SUBMISSION
+        WHERE media_url = #{mediaUrl}
+          AND child_id = #{childId}
+          AND media_deleted_at IS NULL
+    </select>
+
+    <select id="findPendingByParentId" parameterType="long"
+            resultType="com.genai.model.MissionSubmission">
+        SELECT ms.submission_id,
+               ms.mission_id,
+               ms.child_id,
+               ms.mission_date,
+               ms.box_grade,
+               ms.media_type,
+               ms.media_url,
+               ms.status,
+               ms.submitted_at,
+               ms.reviewed_at,
+               ms.reward_given,
+               ms.media_deleted_at,
+               c.nickname child_nickname
+        FROM MISSION_SUBMISSION ms
+        JOIN CHILD c ON c.child_id = ms.child_id
+        WHERE c.parent_id = #{parentId}
+          AND ms.status = 'pending'
+        ORDER BY ms.submission_id
+    </select>
+
+    <select id="findRewardBoxes" resultType="com.genai.model.RewardBox">
+        SELECT box_grade, box_name, min_exp, max_exp, pet_drop_rate
+        FROM REWARD_BOX
+        ORDER BY CASE box_grade WHEN 'low' THEN 1 WHEN 'middle' THEN 2 ELSE 3 END
+    </select>
+
+    <select id="findRewardBoxByGrade" parameterType="string" resultType="com.genai.model.RewardBox">
+        SELECT box_grade, box_name, min_exp, max_exp, pet_drop_rate
+        FROM REWARD_BOX
+        WHERE box_grade = #{boxGrade}
+    </select>
+
+    <select id="findPendingForReview" resultType="com.genai.model.MissionSubmission">
+        SELECT ms.submission_id,
+               ms.mission_id,
+               ms.child_id,
+               ms.mission_date,
+               NVL(ms.box_grade, m.mission_grade) box_grade,
+               ms.media_type,
+               ms.media_url,
+               ms.status,
+               ms.submitted_at,
+               ms.reviewed_at,
+               ms.reward_given,
+               ms.media_deleted_at,
+               c.nickname child_nickname
+        FROM MISSION_SUBMISSION ms
+        JOIN CHILD c ON c.child_id = ms.child_id
+        JOIN MISSION m ON m.mission_id = ms.mission_id
+        WHERE ms.submission_id = #{submissionId}
+          AND c.parent_id = #{parentId}
+          AND ms.status = 'pending'
+    </select>
+
+    <select id="findApprovedRewardForChild" resultType="com.genai.model.MissionSubmission">
+        SELECT submission_id,
+               mission_id,
+               child_id,
+               mission_date,
+               box_grade,
+               media_type,
+               media_url,
+               status,
+               submitted_at,
+               reviewed_at,
+               reward_given,
+               media_deleted_at
+        FROM MISSION_SUBMISSION
+        WHERE submission_id = #{submissionId}
+          AND child_id = #{childId}
+          AND status = 'approved'
+          AND reward_given = 'N'
+          AND box_grade IS NOT NULL
+    </select>
+
+    <update id="reviewSubmission">
+        UPDATE MISSION_SUBMISSION
+        SET status = #{status},
+            box_grade = #{boxGrade,jdbcType=VARCHAR},
+            reviewed_at = SYSTIMESTAMP,
+            media_deleted_at =
+                CASE WHEN #{deleteMedia} = 1 THEN SYSTIMESTAMP ELSE media_deleted_at END
+        WHERE submission_id = #{submissionId}
+          AND status = 'pending'
+          AND child_id IN (
+              SELECT child_id FROM CHILD WHERE parent_id = #{parentId}
+          )
+    </update>
+
+    <insert id="insertReviewNotification">
+        INSERT INTO NOTIFICATION (
+            notification_id,
+            child_id,
+            mission_id,
+            submission_id,
+            notification_type,
+            title,
+            content,
+            is_read
+        ) VALUES (
+            seq_notification.NEXTVAL,
+            #{childId},
+            #{missionId},
+            #{submissionId},
+            CASE WHEN #{status} = 'approved'
+                 THEN 'mission_approved'
+                 ELSE 'mission_rejected'
+            END,
+            CASE WHEN #{status} = 'approved'
+                 THEN 'Mission approved'
+                 ELSE 'Mission needs another submission'
+            END,
+            CASE WHEN #{status} = 'approved'
+                 THEN 'Your mission was approved and a ' || #{boxGrade} || ' box is ready.'
+                 ELSE 'Please submit the mission again.'
+            END,
+            'N'
+        )
+    </insert>
+
+    <update id="markRewardGiven">
+        UPDATE MISSION_SUBMISSION
+        SET reward_given = 'Y'
+        WHERE submission_id = #{submissionId}
+          AND child_id = #{childId}
+          AND status = 'approved'
+          AND reward_given = 'N'
+    </update>
+
+    <insert id="insertExpRewardHistory">
+        INSERT INTO REWARD_HISTORY (
+            reward_id,
+            child_id,
+            submission_id,
+            box_grade,
+            reward_type,
+            reward_source,
+            exp_amount
+        ) VALUES (
+            seq_reward_history.NEXTVAL,
+            #{childId},
+            #{submissionId},
+            #{boxGrade},
+            'exp',
+            'box',
+            #{expAmount}
+        )
+    </insert>
+
+    <insert id="insertRewardPaidNotification">
+        INSERT INTO NOTIFICATION (
+            notification_id,
+            child_id,
+            submission_id,
+            reward_id,
+            notification_type,
+            title,
+            content,
+            is_read
+        ) VALUES (
+            seq_notification.NEXTVAL,
+            #{childId},
+            #{submissionId},
+            #{rewardId,jdbcType=NUMERIC},
+            'reward_paid',
+            'Reward box opened',
+            'You gained ' || #{expAmount} || ' EXP from a reward box.',
+            'N'
+        )
+    </insert>
+
+    <select id="findNotificationsForParent" parameterType="long" resultType="com.genai.model.Notification">
+        SELECT notification_id,
+               parent_id,
+               child_id,
+               mission_id,
+               submission_id,
+               reward_id,
+               notification_type,
+               title,
+               content,
+               is_read,
+               created_at,
+               read_at
+        FROM NOTIFICATION
+        WHERE parent_id = #{parentId}
+        ORDER BY notification_id DESC
+    </select>
+
+    <select id="findNotificationsForChild" parameterType="long" resultType="com.genai.model.Notification">
+        SELECT notification_id,
+               parent_id,
+               child_id,
+               mission_id,
+               submission_id,
+               reward_id,
+               notification_type,
+               title,
+               content,
+               is_read,
+               created_at,
+               read_at
+        FROM NOTIFICATION
+        WHERE child_id = #{childId}
+        ORDER BY notification_id DESC
+    </select>
+
+    <update id="markParentNotificationRead">
+        UPDATE NOTIFICATION
+        SET is_read = 'Y',
+            read_at = SYSTIMESTAMP
+        WHERE notification_id = #{notificationId}
+          AND parent_id = #{parentId}
+          AND is_read = 'N'
+    </update>
+
+    <update id="markChildNotificationRead">
+        UPDATE NOTIFICATION
+        SET is_read = 'Y',
+            read_at = SYSTIMESTAMP
+        WHERE notification_id = #{notificationId}
+          AND child_id = #{childId}
+          AND is_read = 'N'
+    </update>
+
+    <select id="findTodayProgressForParent" parameterType="long"
+            resultType="com.genai.model.ChildMissionProgress">
+        SELECT c.child_id,
+               c.nickname child_nickname,
+               (SELECT COUNT(*)
+                  FROM MISSION m
+                 WHERE m.child_id = c.child_id
+                   AND m.parent_id = c.parent_id
+                   AND m.is_active = 'Y') assigned_count,
+               (SELECT COUNT(*)
+                  FROM MISSION_SUBMISSION ms
+                 WHERE ms.child_id = c.child_id
+                   AND ms.mission_date = TRUNC(SYSDATE)
+                   AND ms.status = 'pending') pending_count,
+               (SELECT COUNT(*)
+                  FROM MISSION_SUBMISSION ms
+                 WHERE ms.child_id = c.child_id
+                   AND ms.mission_date = TRUNC(SYSDATE)
+                   AND ms.status = 'approved') approved_count,
+               (SELECT COUNT(*)
+                  FROM MISSION_SUBMISSION ms
+                 WHERE ms.child_id = c.child_id
+                   AND ms.mission_date = TRUNC(SYSDATE)
+                   AND ms.status = 'rejected') rejected_count
+        FROM CHILD c
+        WHERE c.parent_id = #{parentId}
+        ORDER BY c.child_id
+    </select>
+
+    <select id="findRewardInventoryForChild" parameterType="long"
+            resultType="com.genai.model.RewardInventoryItem">
+        SELECT rb.box_grade,
+               rb.box_name,
+               COUNT(ms.submission_id) quantity
+        FROM REWARD_BOX rb
+        LEFT JOIN MISSION_SUBMISSION ms
+          ON ms.box_grade = rb.box_grade
+         AND ms.child_id = #{childId}
+         AND ms.status = 'approved'
+         AND ms.reward_given = 'N'
+        GROUP BY rb.box_grade, rb.box_name
+        ORDER BY CASE rb.box_grade WHEN 'low' THEN 1 WHEN 'middle' THEN 2 ELSE 3 END
+    </select>
+
+    <select id="findActivityHistoryForChild" parameterType="long"
+            resultType="com.genai.model.ActivityRecord">
+        SELECT activity_type,
+               title,
+               description,
+               status,
+               reference_id,
+               event_at
+        FROM (
+            SELECT 'submission' activity_type,
+                   m.mission_title title,
+                   CASE ms.media_type
+                       WHEN 'photo' THEN 'Photo mission submitted'
+                       ELSE 'Video mission submitted'
+                   END description,
+                   ms.status status,
+                   ms.submission_id reference_id,
+                   ms.submitted_at event_at
+            FROM MISSION_SUBMISSION ms
+            JOIN MISSION m ON m.mission_id = ms.mission_id
+            WHERE ms.child_id = #{childId}
+            UNION ALL
+            SELECT 'reward' activity_type,
+                   'Reward box opened' title,
+                   rh.box_grade || ' box: +' || rh.exp_amount || ' EXP' description,
+                   'completed' status,
+                   rh.reward_id reference_id,
+                   rh.created_at event_at
+            FROM REWARD_HISTORY rh
+            WHERE rh.child_id = #{childId}
+        )
+        ORDER BY event_at DESC
+    </select>
+</mapper>
