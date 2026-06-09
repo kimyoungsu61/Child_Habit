@@ -51,19 +51,19 @@
         <h2>보호자 회원가입</h2>
         <label class="entry-field" for="joinParentName">
           <span>보호자 이름</span>
-          <input id="joinParentName" type="text" placeholder="김보호자" autocomplete="off" />
+          <input id="joinParentName" type="text" placeholder="김보호자" autocomplete="name" />
         </label>
         <label class="entry-field" for="joinParentEmail">
           <span>이메일</span>
-          <input id="joinParentEmail" type="email" placeholder="parent@test.com" autocomplete="off" />
+          <input id="joinParentEmail" type="email" placeholder="parent@test.com" autocomplete="email" />
         </label>
         <label class="entry-field" for="joinParentPassword">
           <span>비밀번호</span>
-          <input id="joinParentPassword" type="password" placeholder="비밀번호 입력" autocomplete="off" />
+          <input id="joinParentPassword" type="password" placeholder="비밀번호 입력" autocomplete="new-password" />
         </label>
         <label class="entry-field" for="joinParentPasswordCheck">
           <span>비밀번호 확인</span>
-          <input id="joinParentPasswordCheck" type="password" placeholder="비밀번호 재입력" autocomplete="off" />
+          <input id="joinParentPasswordCheck" type="password" placeholder="비밀번호 재입력" autocomplete="new-password" />
         </label>
         <button class="btn primary full" id="parentJoinBtn" type="button">가입 완료</button>
         <p class="entry-message" id="joinMessage"></p>
@@ -214,7 +214,7 @@
         <h2>보호자 대시보드</h2>
         <p>연결된 아이와 오늘 인증 상태를 빠르게 확인해요.</p>
         <div class="summary-grid">
-          <div><span>연결 아이</span><strong id="parentChildCount">1명</strong></div>
+          <div><span>연결 아이</span><strong id="parentChildCount">0명</strong></div>
           <div><span>인증 상태</span><strong id="parentMissionSummary">대기 전</strong></div>
           <div><span>보유 상자</span><strong id="parentBoxSummary">0개</strong></div>
         </div>

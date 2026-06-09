@@ -152,13 +152,10 @@ function renderCharacterSummary(characterData) {
 
 async function requestCharacterImage(options) {
   const prompt = buildCharacterPrompt(options);
-  console.log("Character prompt:", prompt);
-  // TODO: Colab 이미지 생성 API 또는 서버 엔드포인트 연결하기
-  // TODO: 선택값 기반 prompt를 Colab으로 전송하기
-  // TODO: Colab에서 생성된 imageUrl/base64를 받아 화면에 표시하기
   await new Promise(resolve => setTimeout(resolve, 450));
+  const variant = `${options.expression}-${options.glasses}`;
   return {
-    imageUrl: mockCharacterImageUrl,
+    imageUrl: `./assets/characters/avatar-${variant}.svg`,
     prompt
   };
 }

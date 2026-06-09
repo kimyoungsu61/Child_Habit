@@ -27,11 +27,18 @@ public class GameProfileService {
 
     public void completeInitialSetup(
             Long childId, String nickname, String characterPreset, Long petId) {
+        completeInitialSetup(childId, nickname, characterPreset, null, petId);
+    }
+
+    public void completeInitialSetup(Long childId, String nickname,
+            String characterPreset, String characterImageUrl, Long petId) {
         validateNickname(nickname);
         if (!CHARACTER_PRESETS.contains(characterPreset)) {
             throw new IllegalArgumentException("선택할 수 없는 캐릭터입니다.");
         }
-        String imageUrl = "/images/characters/" + characterPreset + ".png";
+        String imageUrl = validateCharacterImageUrl(characterImageUrl)
+                ? characterImageUrl
+                : "/assets/characters/avatar-smile-none.svg";
         gameProfileDAO.completeInitialSetup(childId, nickname.trim(), imageUrl, petId);
     }
 
@@ -43,5 +50,10 @@ public class GameProfileService {
         if (nickname == null || nickname.trim().isBlank() || nickname.trim().length() > 50) {
             throw new IllegalArgumentException("아이 닉네임을 1자 이상 50자 이하로 입력해 주세요.");
         }
+    }
+
+    private boolean validateCharacterImageUrl(String imageUrl) {
+        return imageUrl != null
+                && imageUrl.matches("/assets/characters/avatar-(smile|focus|curious)-(wear|none)\\.svg");
     }
 }

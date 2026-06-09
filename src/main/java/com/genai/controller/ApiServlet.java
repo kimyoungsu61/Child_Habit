@@ -316,9 +316,11 @@ public class ApiServlet extends HttpServlet {
             petId = starterPets.get(0).getPetId();
         }
         String preset = value(request.getParameter("characterPreset"));
+        String characterImageUrl = value(request.getParameter("characterImageUrl"));
         gameProfileService.completeInitialSetup(child.getChildId(),
                 request.getParameter("nickname"),
                 preset.isBlank() ? "forest" : preset,
+                characterImageUrl,
                 petId);
         ChildProfile refreshed = childAccountService.findById(child.getChildId());
         request.getSession(false).setAttribute(SessionKeys.CHILD, refreshed);

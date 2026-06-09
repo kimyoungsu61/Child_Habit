@@ -141,7 +141,9 @@ function renderPet() {
     const totalBoxes = Object.values(appState.rewardBoxCounts).reduce((sum, count) => sum + count, 0);
     parentBoxSummary.textContent = `${totalBoxes}개`;
   }
-  if (parentChildCount) parentChildCount.textContent = "1명";
+  if (parentChildCount && !window.__serverDashboardLoaded) {
+    parentChildCount.textContent = "0명";
+  }
   renderProfile();
   syncProfileFrames();
   renderMyPage();
@@ -212,7 +214,9 @@ function renderMission() {
     const totalBoxes = Object.values(appState.rewardBoxCounts).reduce((sum, count) => sum + count, 0);
     parentBoxSummary.textContent = `${totalBoxes}개`;
   }
-  if (parentChildCount) parentChildCount.textContent = "1명";
+  if (parentChildCount && !window.__serverDashboardLoaded) {
+    parentChildCount.textContent = "0명";
+  }
   recText.textContent = appState.missionStatus === "recording"
     ? (isPhotoMode ? "PHOTO 완료" : "REC 진행 중")
     : (isPhotoMode ? "PHOTO" : "REC 00:00");
