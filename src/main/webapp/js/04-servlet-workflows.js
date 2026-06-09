@@ -166,14 +166,80 @@ function getMissionType(missionId = appState.currentMissionId) {
   return missionTypes[missionId] || "low";
 }
 
+function normalizeCameraError(error) {
+  const name = error?.name || "";
+  const message = String(error?.message || "");
+  if (name === "NotAllowedError" || name === "SecurityError") {
+    return CAMERA_MESSAGES.permission;
+  }
+  if (name === "NotFoundError" || /requested device not found|device not found|not found/i.test(message)) {
+    return CAMERA_MESSAGES.notFound;
+  }
+  if (name === "NotReadableError" || name === "AbortError") {
+    return CAMERA_MESSAGES.unavailable;
+  }
+  return CAMERA_MESSAGES.unavailable;
+}
+
+function setCaptureNotice(message = "") {
+  if (cameraPermissionMessage) cameraPermissionMessage.textContent = message;
+}
+
+function setCapturePlaceholder(text) {
+  if (capturePlaceholder) capturePlaceholder.textContent = text;
+}
+
+function stopCaptureStream(stream) {
+  stream?.getTracks?.().forEach(track => track.stop());
+}
+
+function clearCaptureStreams() {
+  if (typeof videoRecorder !== "undefined" && videoRecorder?.state === "recording") {
+    discardVideoRecording = true;
+    videoRecorder.stop();
+  }
+  stopCaptureStream(captureState.stream);
+  captureState.stream = null;
+  if (photoStream) {
+    stopCaptureStream(photoStream);
+    photoStream = null;
+  }
+  if (typeof videoStream !== "undefined" && videoStream) {
+    stopCaptureStream(videoStream);
+    videoStream = null;
+  }
+  if (photoCameraPreview) {
+    photoCameraPreview.pause();
+    photoCameraPreview.srcObject = null;
+    photoCameraPreview.hidden = true;
+  }
+  const videoPreview = document.getElementById("videoCameraPreview");
+  if (videoPreview) {
+    videoPreview.pause();
+    videoPreview.srcObject = null;
+    videoPreview.hidden = true;
+  }
+}
+
+function syncCaptureState() {
+  captureState.mediaType = appState.captureMode;
+  captureState.isRecording = isVideoRecording;
+  captureState.hasVideo = videoRecordingReady;
+  captureState.hasPhoto = Boolean(capturedPhotoDataUrl);
+  captureState.recorder = typeof videoRecorder === "undefined" ? captureState.recorder : videoRecorder;
+}
+
 // 촬영 화면에서 제출 버튼을 켜도 되는지 판단하는 데 필요한 상태를 모읍니다.
 function getCaptureState() {
+  syncCaptureState();
   return {
     missionType: getMissionType(appState.currentMissionId),
-    mediaType: appState.captureMode,
-    isRecording: isVideoRecording,
-    hasVideo: videoRecordingReady,
-    hasPhoto: Boolean(capturedPhotoDataUrl),
+    mediaType: captureState.mediaType,
+    isRecording: captureState.isRecording,
+    hasVideo: captureState.hasVideo,
+    hasPhoto: captureState.hasPhoto,
+    stream: captureState.stream,
+    recorder: captureState.recorder,
     status: appState.missionStatus === "submitted" ? "pending" : appState.missionStatus
   };
 }
@@ -201,78 +267,86 @@ function updateCaptureSubmitState() {
 
 // 촬영 방식을 사진/영상 중 하나로 바꾸고 관련 UI를 초기화합니다.
 function setCaptureMode(mode) {
+  clearCaptureStreams();
   appState.captureMode = mode === "video" ? "video" : "photo";
+  captureState.mediaType = appState.captureMode;
   capturedPhotoDataUrl = "";
   videoRecordingReady = false;
   isVideoRecording = false;
+  captureState.hasPhoto = false;
+  captureState.hasVideo = false;
+  captureState.isRecording = false;
+  captureState.recorder = null;
   document.querySelectorAll("[data-capture-mode]").forEach(button => {
+    button.disabled = false;
     button.classList.toggle("active", button.dataset.captureMode === appState.captureMode);
   });
   if (photoCaptureActions) photoCaptureActions.hidden = appState.captureMode !== "photo";
   if (videoCaptureActions) videoCaptureActions.hidden = appState.captureMode !== "video";
   if (stopMockVideoBtn) stopMockVideoBtn.hidden = true;
-  if (capturePlaceholder) {
-    capturePlaceholder.textContent = appState.captureMode === "photo"
-      ? "📷\n아직 촬영 전이에요\n사진 찍기 버튼을 눌러요"
-      : "🎥\n아직 녹화 전이에요\n녹화 시작 버튼을 눌러요";
-  }
+  setCapturePlaceholder(appState.captureMode === "photo"
+    ? "📷\n아직 사진 촬영 전이에요\n사진 찍기 버튼을 눌러요"
+    : "🎥\n아직 녹화 전이에요\n녹화 시작 버튼을 눌러요");
   hidePhotoCapturePreview();
   if (childCaptureStage) {
     childCaptureStage.classList.toggle("photo-mode", appState.captureMode === "photo");
     childCaptureStage.classList.remove("has-media");
   }
-  if (cameraPermissionMessage) cameraPermissionMessage.textContent = "";
-  if (appState.captureMode === "photo") {
-    startPhotoCamera();
-  } else {
-    stopPhotoCamera();
-  }
+  setCaptureNotice("");
   updateCaptureSubmitState();
 }
 
 async function startPhotoCamera() {
-  if (!photoCameraPreview) return;
+  if (!photoCameraPreview) return false;
   if (!navigator.mediaDevices?.getUserMedia) {
-    if (cameraPermissionMessage) cameraPermissionMessage.textContent = "카메라 권한을 허용해 주세요.";
-    if (capturePlaceholder) capturePlaceholder.textContent = "📷\n사진 촬영을 지원하지 않는 환경입니다.";
-    return;
+    setCaptureNotice(CAMERA_MESSAGES.notSupported);
+    setCapturePlaceholder("📷\n카메라를 사용할 수 없습니다\n잠시 후 다시 시도해 주세요");
+    return false;
   }
   try {
     if (!photoStream) {
       photoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     }
+    captureState.stream = photoStream;
     photoCameraPreview.srcObject = photoStream;
     photoCameraPreview.hidden = false;
-    if (cameraPermissionMessage) cameraPermissionMessage.textContent = "";
+    setCaptureNotice("");
     childCaptureStage?.classList.add("has-media");
+    return true;
   } catch (error) {
-    if (cameraPermissionMessage) cameraPermissionMessage.textContent = "카메라 권한을 허용해 주세요.";
-    if (capturePlaceholder) capturePlaceholder.textContent = "📷\n카메라 권한을 허용해 주세요.";
+    const message = normalizeCameraError(error);
+    setCaptureNotice(message);
+    setCapturePlaceholder(`📷\n${message === CAMERA_MESSAGES.notFound ? "카메라 장치를 찾을 수 없습니다" : message}`);
     childCaptureStage?.classList.remove("has-media");
+    return false;
   }
 }
 
 function stopPhotoCamera() {
   if (photoStream) {
-    photoStream.getTracks().forEach(track => track.stop());
+    stopCaptureStream(photoStream);
     photoStream = null;
   }
+  if (captureState.stream && appState.captureMode === "photo") captureState.stream = null;
   if (photoCameraPreview) {
     photoCameraPreview.pause();
     photoCameraPreview.srcObject = null;
-    photoCameraPreview.hidden = appState.captureMode !== "photo";
+    photoCameraPreview.hidden = true;
   }
 }
 
-function takePhoto() {
+async function takePhoto() {
+  appState.captureMode = "photo";
+  captureState.mediaType = "photo";
   if (!photoCameraPreview || !photoCaptureCanvas || !photoCapturePreview) return;
+  const hasCamera = await startPhotoCamera();
   const width = photoCameraPreview.videoWidth || 640;
   const height = photoCameraPreview.videoHeight || 480;
   photoCaptureCanvas.width = width;
   photoCaptureCanvas.height = height;
   const context = photoCaptureCanvas.getContext("2d");
   try {
-    if (photoCameraPreview.readyState >= 2 && photoCameraPreview.videoWidth) {
+    if (hasCamera && photoCameraPreview.readyState >= 2 && photoCameraPreview.videoWidth) {
       context.drawImage(photoCameraPreview, 0, 0, width, height);
     } else {
       context.fillStyle = "#172233";
@@ -280,8 +354,8 @@ function takePhoto() {
       context.fillStyle = "#ffffff";
       context.font = "bold 28px system-ui, sans-serif";
       context.textAlign = "center";
-      context.fillText("사진 인증 placeholder", width / 2, height / 2);
-      if (cameraPermissionMessage) cameraPermissionMessage.textContent = "카메라 권한을 허용해 주세요.";
+      context.fillText("사진 인증 테스트 이미지", width / 2, height / 2);
+      if (!hasCamera) setCaptureNotice(CAMERA_MESSAGES.notFound);
     }
   } catch (error) {
     context.fillStyle = "#172233";
@@ -289,24 +363,27 @@ function takePhoto() {
     context.fillStyle = "#ffffff";
     context.font = "bold 28px system-ui, sans-serif";
     context.textAlign = "center";
-    context.fillText("사진 인증 placeholder", width / 2, height / 2);
-    if (cameraPermissionMessage) cameraPermissionMessage.textContent = "카메라 권한을 허용해 주세요.";
+    context.fillText("사진 인증 테스트 이미지", width / 2, height / 2);
+    setCaptureNotice(normalizeCameraError(error));
   }
   capturedPhotoDataUrl = photoCaptureCanvas.toDataURL("image/png");
+  captureState.hasPhoto = true;
   showPhotoCapturePreview(capturedPhotoDataUrl);
   photoCameraPreview.hidden = true;
   childCaptureStage?.classList.add("has-media");
-  if (capturePlaceholder) capturePlaceholder.textContent = "";
+  setCapturePlaceholder("✅\n사진 촬영이 완료되었어요");
   updateCaptureSubmitState();
 }
 
 function retakePhoto() {
   capturedPhotoDataUrl = "";
+  captureState.hasPhoto = false;
   hidePhotoCapturePreview();
-  if (photoCameraPreview) photoCameraPreview.hidden = false;
+  if (photoCameraPreview) photoCameraPreview.hidden = true;
   childCaptureStage?.classList.remove("has-media");
+  setCapturePlaceholder("📷\n아직 사진 촬영 전이에요\n사진 찍기 버튼을 눌러요");
   updateCaptureSubmitState();
-  startPhotoCamera();
+  setCaptureNotice("");
 }
 
 function submitCapture() {
@@ -334,6 +411,7 @@ function submitCapture() {
   renderParentSubmissions();
   renderSubmissionWaiting();
   stopPhotoCamera();
+  clearCaptureStreams();
   updateCaptureSubmitState();
   switchTab("childSubmissionWaitingScreen");
 }

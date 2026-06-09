@@ -179,7 +179,7 @@ function switchTab(screenId, options = {}) {
   if (screenId === "childCameraScreen") {
     setCaptureMode(appState.captureMode || "photo");
   } else {
-    stopPhotoCamera();
+    clearCaptureStreams();
   }
   if (screenId === "childSubmissionWaitingScreen") renderSubmissionWaiting();
   if (screenId === "parentSubmissionsScreen") renderParentSubmissions();

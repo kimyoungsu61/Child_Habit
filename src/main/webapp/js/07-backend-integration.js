@@ -482,8 +482,8 @@ document.addEventListener("click", event => {
     appState.currentMissionId = Number(missionButton.dataset.serverMission);
     appState.captureMode = missionButton.dataset.serverMedia;
     document.querySelectorAll("[data-capture-mode]").forEach(button => {
-      button.disabled = button.dataset.captureMode !== appState.captureMode;
-      button.title = button.disabled ? "이 미션에서 선택할 수 없는 인증 방식입니다." : "";
+      button.disabled = false;
+      button.title = "";
     });
     switchTab("childCameraScreen");
     setCaptureMode(appState.captureMode);
@@ -529,53 +529,118 @@ async function stopVideoCamera() {
     videoRecorder.stop();
   }
   if (videoStream) {
-    videoStream.getTracks().forEach(track => track.stop());
+    stopCaptureStream(videoStream);
     videoStream = null;
   }
+  if (captureState.stream) captureState.stream = null;
+  captureState.recorder = null;
   const preview = document.getElementById("videoCameraPreview");
   if (preview) {
+    preview.pause();
     preview.srcObject = null;
     preview.hidden = true;
   }
 }
 
 async function startVideoRecording() {
+  appState.captureMode = "video";
+  captureState.mediaType = "video";
+  if (videoRecorder?.state === "recording") {
+    videoRecorder.stop();
+    return;
+  }
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
-    throw new Error("이 브라우저에서는 영상 녹화를 지원하지 않습니다.");
+    const message = typeof MediaRecorder === "undefined"
+      ? "이 브라우저에서는 영상 녹화를 지원하지 않습니다."
+      : CAMERA_MESSAGES.notSupported;
+    setCaptureNotice(message);
+    setCapturePlaceholder("🎥\n카메라를 사용할 수 없습니다\n잠시 후 다시 시도해 주세요");
+    showToast(message);
+    updateCaptureSubmitState();
+    return;
   }
   await stopVideoCamera();
+  discardVideoRecording = false;
   capturedVideoBlob = null;
   videoChunks = [];
-  videoStream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { ideal: "environment" } },
-    audio: true
-  });
+  try {
+    videoStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio: false
+    });
+  } catch (error) {
+    const message = normalizeCameraError(error);
+    capturedVideoBlob = null;
+    videoRecordingReady = false;
+    isVideoRecording = false;
+    captureState.hasVideo = false;
+    captureState.isRecording = false;
+    setCaptureNotice(message);
+    setCapturePlaceholder(`🎥\n${message === CAMERA_MESSAGES.notFound ? "카메라 장치를 찾을 수 없습니다" : message}`);
+    childCaptureStage?.classList.remove("has-media");
+    showToast(message);
+    updateCaptureSubmitState();
+    return;
+  }
+  captureState.stream = videoStream;
   const preview = document.getElementById("videoCameraPreview");
   preview.srcObject = videoStream;
   preview.hidden = false;
   if (photoCameraPreview) photoCameraPreview.hidden = true;
   const candidates = ["video/webm;codecs=vp8,opus", "video/webm", "video/mp4"];
   const mimeType = candidates.find(type => MediaRecorder.isTypeSupported(type)) || "";
-  videoRecorder = mimeType
-    ? new MediaRecorder(videoStream, { mimeType })
-    : new MediaRecorder(videoStream);
+  try {
+    videoRecorder = mimeType
+      ? new MediaRecorder(videoStream, { mimeType })
+      : new MediaRecorder(videoStream);
+  } catch (error) {
+    const message = normalizeCameraError(error);
+    await stopVideoCamera();
+    setCaptureNotice(message);
+    setCapturePlaceholder("🎥\n카메라를 사용할 수 없습니다\n잠시 후 다시 시도해 주세요");
+    showToast(message);
+    updateCaptureSubmitState();
+    return;
+  }
+  captureState.recorder = videoRecorder;
   videoRecorder.ondataavailable = event => {
     if (event.data.size) videoChunks.push(event.data);
   };
   videoRecorder.onstop = () => {
+    if (discardVideoRecording) {
+      discardVideoRecording = false;
+      capturedVideoBlob = null;
+      videoRecordingReady = false;
+      isVideoRecording = false;
+      captureState.hasVideo = false;
+      captureState.isRecording = false;
+      stopVideoCamera();
+      updateCaptureSubmitState();
+      return;
+    }
     capturedVideoBlob = new Blob(videoChunks, {
       type: videoRecorder.mimeType || "video/webm"
     });
     videoRecordingReady = capturedVideoBlob.size > 0;
     isVideoRecording = false;
+    captureState.hasVideo = videoRecordingReady;
+    captureState.isRecording = false;
     stopVideoCamera();
-    if (capturePlaceholder) capturePlaceholder.textContent = "✅\n영상 촬영 완료\n이제 인증 제출을 눌러요";
+    setCaptureNotice("");
+    setCapturePlaceholder(videoRecordingReady
+      ? "✅\n녹화가 완료되었어요"
+      : "🎥\n아직 녹화 전이에요\n녹화 시작 버튼을 눌러요");
+    childCaptureStage?.classList.toggle("has-media", videoRecordingReady);
     updateCaptureSubmitState();
   };
   videoRecorder.start();
   isVideoRecording = true;
   videoRecordingReady = false;
-  if (capturePlaceholder) capturePlaceholder.textContent = "🔴\n녹화 중이에요\n최대 30초까지 촬영해요";
+  captureState.isRecording = true;
+  captureState.hasVideo = false;
+  setCaptureNotice("");
+  setCapturePlaceholder("🔴\n녹화 중이에요");
+  childCaptureStage?.classList.add("has-media");
   updateCaptureSubmitState();
   window.setTimeout(() => {
     if (videoRecorder?.state === "recording") videoRecorder.stop();
@@ -585,6 +650,7 @@ async function startVideoRecording() {
 interceptClick("#startMockVideoBtn", startVideoRecording);
 interceptClick("#stopMockVideoBtn", () => {
   if (videoRecorder?.state === "recording") videoRecorder.stop();
+  // TODO: 개발/테스트 전용 mock 영상 Blob이 필요하면 여기에서 별도 버튼으로 분리해 추가합니다.
 });
 
 interceptClick("#submitCaptureBtn", async () => {
