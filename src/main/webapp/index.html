@@ -51,11 +51,11 @@
         <h2>보호자 회원가입</h2>
         <label class="entry-field" for="joinParentName">
           <span>보호자 이름</span>
-          <input id="joinParentName" type="text" placeholder="김보호자" autocomplete="name" />
+          <input id="joinParentName" type="text" placeholder="김보호자" autocomplete="off" />
         </label>
         <label class="entry-field" for="joinParentEmail">
           <span>이메일</span>
-          <input id="joinParentEmail" type="email" placeholder="parent@test.com" autocomplete="email" />
+          <input id="joinParentEmail" type="email" placeholder="parent@test.com" autocomplete="off" />
         </label>
         <label class="entry-field" for="joinParentPassword">
           <span>비밀번호</span>
@@ -82,13 +82,13 @@
       <button class="exit-btn" id="backToEntryBtn" type="button">나가기</button>
     </header>
 
-    <section class="screen" id="childProfileScreen" data-title="아이 프로필 만들기" data-subtitle="닉네임과 대표 펫을 정하고 시작해요">
+    <section class="screen" id="childProfileScreen" data-title="닉네임 설정" data-subtitle="친구들이 볼 이름을 정해주세요.">
       <article class="card panel profile-setup-card">
-        <h2>아이 프로필 만들기</h2>
-        <p>초대코드 확인이 완료됐어요. 아이가 사용할 이름과 대표 펫을 설정해요.</p>
+        <h2>닉네임 설정</h2>
+        <p>친구들이 볼 이름을 정해주세요.</p>
         <label class="entry-field" for="childNicknameInput">
-          <span>아이 닉네임</span>
-          <input id="childNicknameInput" type="text" value="토리" maxlength="10" autocomplete="off" />
+          <span>닉네임 입력</span>
+          <input id="childNicknameInput" type="text" placeholder="닉네임 입력" maxlength="10" autocomplete="off" />
         </label>
         <div class="pet-select-card">
           <div class="dex-thumb"><img class="dex-image" src="./assets/pets/mongle/idle/frame_0001.webp" alt="몽글이" /></div>
@@ -97,7 +97,7 @@
             <p>좋은 습관을 함께 키우는 기본 펫</p>
           </div>
         </div>
-        <button class="btn primary full" id="completeChildProfileBtn" type="button">아이 홈 시작하기</button>
+        <button class="btn primary full" id="completeChildProfileBtn" type="button">완료</button>
       </article>
     </section>
 

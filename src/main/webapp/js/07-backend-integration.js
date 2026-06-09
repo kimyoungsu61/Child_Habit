@@ -8,6 +8,14 @@ let videoStream = null;
 let videoRecorder = null;
 let videoChunks = [];
 let capturedVideoBlob = null;
+const JOIN_DRAFT_STORAGE_KEYS = [
+  "joinParentName",
+  "joinParentEmail",
+  "joinParentPassword",
+  "joinParentPasswordCheck",
+  "parentJoinDraft"
+];
+const LOCAL_CHILD_PROFILES_KEY = "childProfiles";
 
 async function apiRequest(path, options = {}) {
   const response = await fetch(`${API_ROOT}${path}`, {
@@ -49,13 +57,112 @@ function setEntryMessage(element, message) {
   if (element) element.textContent = message || "";
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function getCompletedChildren(children = []) {
+  return children.filter(child => {
+    const nickname = String(child.nickname || "").trim();
+    return Boolean(child.childId)
+      && nickname
+      && nickname !== "미설정 아이"
+      && Boolean(getChildProfileImageSource(child, { allowPlaceholder: false }));
+  });
+}
+
+function getChildProfileImageSource(child, options = {}) {
+  const generatedCharacter = getGeneratedCharacter(child?.inviteCode);
+  const generatedSource = getCharacterProfileImageSource(generatedCharacter);
+  const serverSource = child?.characterImageUrl || child?.profileImage || "";
+  if (generatedSource) return generatedSource;
+  if (serverSource) return appAssetUrl(serverSource);
+  return options.allowPlaceholder === false ? "" : DEFAULT_PROFILE_IMAGE;
+}
+
+function readLocalChildProfiles() {
+  try {
+    const rawProfiles = localStorage.getItem(LOCAL_CHILD_PROFILES_KEY);
+    const profiles = rawProfiles ? JSON.parse(rawProfiles) : [];
+    return Array.isArray(profiles) ? profiles : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveChildProfile(profile) {
+  const profiles = readLocalChildProfiles();
+  const nextProfile = {
+    childId: profile.childId,
+    inviteCode: normalizeInviteCode(profile.inviteCode),
+    nickname: profile.nickname,
+    profileImage: profile.profileImage,
+    generatedCharacter: profile.generatedCharacter || null,
+    createdAt: profile.createdAt || new Date().toISOString()
+  };
+  const index = profiles.findIndex(item =>
+    String(item.childId) === String(nextProfile.childId)
+      || normalizeInviteCode(item.inviteCode) === nextProfile.inviteCode);
+  if (index >= 0) {
+    profiles[index] = { ...profiles[index], ...nextProfile };
+  } else {
+    profiles.push(nextProfile);
+  }
+  try {
+    localStorage.setItem(LOCAL_CHILD_PROFILES_KEY, JSON.stringify(profiles));
+  } catch (error) {
+    // 저장소 제한이 있어도 서버 저장 흐름은 그대로 진행합니다.
+  }
+  return nextProfile;
+}
+
+function clearJoinDraftStorage() {
+  try {
+    JOIN_DRAFT_STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
+  } catch (error) {
+    // localStorage 사용이 막힌 브라우저에서는 입력창 초기화만 수행합니다.
+  }
+}
+
+async function buildProfileCharacterData(characterData) {
+  const originalImageUrl = characterData.originalImageUrl
+    || characterData.imageUrl
+    || mockCharacterImageUrl;
+  let croppedImageUrl = characterData.croppedImageUrl || "";
+
+  try {
+    if (characterPreviewImage && characterPreviewImage.src) {
+      await characterPreviewImage.decode?.();
+      croppedImageUrl = createCroppedImageDataUrl(characterPreviewImage, {
+        x: 50,
+        y: 50,
+        size: 1,
+        outputSize: 512
+      }) || croppedImageUrl;
+    }
+  } catch (error) {
+    croppedImageUrl = croppedImageUrl || originalImageUrl;
+  }
+
+  return {
+    ...characterData,
+    imageUrl: originalImageUrl,
+    originalImageUrl,
+    croppedImageUrl: croppedImageUrl || originalImageUrl
+  };
+}
+
 async function loadParentDashboard() {
   serverDashboard = await apiRequest("/parent/dashboard");
   window.__serverDashboardLoaded = true;
   appState.parent.name = serverDashboard.parent.name;
   appState.parent.email = serverDashboard.parent.email;
-  const primaryChild = serverDashboard.children.find(child =>
-    child.nickname !== "미설정 아이" && child.characterImageUrl);
+  const primaryChild = getCompletedChildren(serverDashboard.children)[0];
   if (primaryChild) {
     appState.child.nickname = primaryChild.nickname;
   }
@@ -67,36 +174,39 @@ async function loadParentDashboard() {
     grade: gradeLabel(item.boxGrade || "low")
   }));
   appState.currentSubmission = appState.submissions[0] || null;
+  renderMyPage();
   renderParentDashboardData();
   renderInvite();
   renderParentSubmissions();
-  renderMyPage();
 }
 
 function renderParentDashboardData() {
   if (!serverDashboard) return;
-  const connectedChildren = serverDashboard.children.filter(child =>
-    child.nickname !== "미설정 아이" && child.characterImageUrl);
+  const connectedChildren = getCompletedChildren(serverDashboard.children);
   if (parentNameText) parentNameText.textContent = serverDashboard.parent.name;
   if (parentChildCount) parentChildCount.textContent = `${connectedChildren.length}명`;
   const childList = document.getElementById("parentChildList");
   if (childList) {
-    childList.innerHTML = serverDashboard.children.length
-      ? serverDashboard.children.map(child => `
+    childList.innerHTML = connectedChildren.length
+      ? connectedChildren.map(child => {
+        const nickname = escapeHtml(child.nickname);
+        const profileImage = getChildProfileImageSource(child);
+        return `
         <article class="child-manage-card">
           <span class="profile-avatar large">
-            ${child.characterImageUrl
-              ? `<img class="profile-character-img" src="${appAssetUrl(child.characterImageUrl)}" alt="${child.nickname} 프로필">`
-              : child.nickname.slice(0, 1)}
+            ${profileImage
+              ? `<img class="profile-character-img" src="${escapeHtml(profileImage)}" alt="${nickname} 프로필">`
+              : escapeHtml(nickname.slice(0, 1))}
           </span>
           <div>
-            <strong>${child.nickname}</strong>
-            <p>${child.nickname === "미설정 아이" ? "아이 초기 설정 대기 중" : "프로필 등록 완료"}</p>
-            <p>초대코드: ${child.inviteCode}</p>
-            <p>프로필 프레임: ${child.frameType}</p>
+            <strong>${nickname}</strong>
+            <p>프로필 등록 완료</p>
+            <p>초대코드: ${escapeHtml(child.inviteCode)}</p>
+            <p>프로필 프레임: ${escapeHtml(child.frameType)}</p>
           </div>
         </article>
-      `).join("")
+      `;
+      }).join("")
       : '<div class="empty-dex">연결된 아이가 없습니다.</div>';
   }
 
@@ -168,13 +278,15 @@ async function loadChildHome() {
   if (child.inviteCode) setCurrentInviteCode(child.inviteCode);
   if (child.characterImageUrl) {
     const imageUrl = appAssetUrl(child.characterImageUrl);
+    const savedCharacter = getGeneratedCharacter(child.inviteCode);
     saveGeneratedCharacter(child.inviteCode, {
       imageUrl,
-      originalImageUrl: imageUrl,
-      croppedImageUrl: imageUrl,
-      expression: "smile",
-      background: "city",
-      glasses: "none"
+      originalImageUrl: savedCharacter?.originalImageUrl || imageUrl,
+      croppedImageUrl: savedCharacter?.croppedImageUrl || savedCharacter?.originalImageUrl || imageUrl,
+      expression: savedCharacter?.expression || "smile",
+      background: savedCharacter?.background || "city",
+      glasses: savedCharacter?.glasses || "none",
+      prompt: savedCharacter?.prompt || ""
     });
   }
   if (serverChildHome.activePet) {
@@ -188,6 +300,7 @@ async function loadChildHome() {
   renderChildMissionData();
   renderInventoryData();
   renderPet();
+  renderHomeProfileCharacter();
   renderMyPage();
 }
 
@@ -256,9 +369,12 @@ function backendCharacterPath(path) {
 }
 
 function clearJoinForm() {
+  clearJoinDraftStorage();
   [joinParentName, joinParentEmail, joinParentPassword, joinParentPasswordCheck]
     .forEach(input => {
-      if (input) input.value = "";
+      if (!input) return;
+      input.value = "";
+      input.defaultValue = "";
     });
 }
 
@@ -548,7 +664,8 @@ interceptClick(startWithCharacterBtn, async () => {
     throw new Error("먼저 캐릭터를 생성해 주세요.");
   }
   const inviteCode = getCurrentInviteCode();
-  saveGeneratedCharacter(inviteCode, characterData);
+  const profileCharacterData = await buildProfileCharacterData(characterData);
+  saveGeneratedCharacter(inviteCode, profileCharacterData);
   renderHomeProfileCharacter();
   childNicknameInput.value = "";
   switchTab("childProfileScreen");
@@ -561,18 +678,36 @@ interceptClick(completeChildProfileBtn, async () => {
   const characterData = pendingGeneratedCharacter || getGeneratedCharacter();
   if (!characterData) throw new Error("캐릭터를 먼저 생성해 주세요.");
 
-  await apiRequest("/child/setup", {
+  const profileCharacterData = await buildProfileCharacterData(characterData);
+  const setupData = await apiRequest("/child/setup", {
     method: "POST",
     body: formData({
       nickname,
       characterPreset: "forest",
       characterImageUrl: backendCharacterPath(
-        characterData.originalImageUrl || characterData.imageUrl)
+        profileCharacterData.originalImageUrl || profileCharacterData.imageUrl)
     })
+  });
+  const refreshedCharacter = saveGeneratedCharacter(getCurrentInviteCode(), {
+    ...profileCharacterData
+  });
+  saveChildProfile({
+    childId: setupData?.child?.childId || serverChildHome?.child?.childId || getCurrentInviteCode(),
+    inviteCode: getCurrentInviteCode(),
+    nickname,
+    profileImage: getCharacterProfileImageSource(refreshedCharacter),
+    generatedCharacter: refreshedCharacter
   });
   await loadChildHome();
   enterChild("homeScreen");
   showToast("아이 프로필이 등록되었습니다.");
+});
+
+window.addEventListener("pageshow", () => {
+  if (parentJoinCard?.classList.contains("active")) {
+    clearJoinForm();
+    setEntryMessage(joinMessage, "");
+  }
 });
 
 window.addEventListener("pagehide", stopVideoCamera);
