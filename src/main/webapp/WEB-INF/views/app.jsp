@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=jsp-view" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=reward-flow-20260610" />
   </head>
 
   <body>
@@ -238,7 +238,7 @@
           <h2>빠른 이동</h2>
           <div class="quick-grid">
             <button class="btn primary" type="button" data-quick-tab="parentInviteScreen">초대코드 생성</button>
-            <button class="btn mint" type="button" data-quick-tab="parentReviewScreen">인증 검토</button>
+            <button class="btn mint" type="button" data-quick-tab="parentSubmissionsScreen">인증 검토</button>
             <button class="btn" type="button" data-quick-tab="parentChildScreen">아이 관리</button>
             <button class="btn" type="button" data-quick-tab="parentMissionsScreen">미션 목록</button>
             <button class="btn" type="button" data-quick-tab="parentChildProgressScreen">진행 현황</button>
@@ -258,23 +258,6 @@
           </div>
           <div class="qr-placeholder">QR</div>
           <button class="btn primary full" id="generateInviteBtn" type="button">초대코드 생성</button>
-        </article>
-      </section>
-
-      <section class="screen parent-screen" id="parentReviewScreen" data-title="인증 검토"
-        data-subtitle="아이가 제출한 인증을 확인하고 승인해요">
-        <article class="card panel review-card">
-          <h2>보호자 확인</h2>
-          <p>아이가 남긴 습관 인증을 확인하는 보호자 화면입니다.</p>
-          <div class="info-row"><span>보호자</span><span id="parentNameText">김보호자</span></div>
-          <div class="info-row"><span>인증 상태</span><span class="status-badge" id="reviewBadge">대기</span></div>
-          <div class="info-row"><span>인증 방식</span><span id="reviewMode">영상</span></div>
-          <div class="info-row"><span>오늘 미션</span><span>좋은 습관 인증</span></div>
-          <div class="review-preview">제출된 인증 미리보기 영역</div>
-          <div class="action-row">
-            <button class="btn mint" id="approveBtn">확인 완료</button>
-            <button class="btn" id="rejectBtn">다시 요청</button>
-          </div>
         </article>
       </section>
 
@@ -414,20 +397,10 @@
           <div class="info-row"><span>인증 유형</span><span id="parentSubmissionMediaType">영상 인증</span></div>
           <div class="info-row"><span>미션 등급</span><span id="parentSubmissionGrade">하급</span></div>
           <div class="action-row">
-            <button class="btn mint" type="button" data-quick-tab="parentRewardConfirmScreen"
-              data-mock-approve>승인</button>
+            <button class="btn mint" type="button" data-mock-approve>승인</button>
             <button class="btn" type="button" data-mock-reject>거절</button>
           </div>
           <p class="entry-message" id="parentSubmissionMessage"></p>
-        </article>
-      </section>
-
-      <section class="screen parent-screen" id="parentRewardConfirmScreen" data-title="상자 지급 확인"
-        data-subtitle="미션 등급에 맞는 상자를 지급해요">
-        <article class="card panel reward-card">
-          <h2>상자 지급 확인</h2>
-          <div class="reward-rule low"><strong>지급 상자</strong><span>하급 상자 1개</span></div>
-          <button class="btn primary full" type="button" data-quick-tab="parentHistoryScreen">지급 완료</button>
         </article>
       </section>
 
@@ -540,55 +513,126 @@
         data-subtitle="부모 승인 대기 상태입니다">
         <article class="card panel flow-panel">
           <h2>제출 완료</h2>
-          <div class="status-badge waiting">pending</div>
+          <div class="status-badge waiting">승인 대기</div>
           <p id="submissionWaitingMessage">사진 인증이 제출되었습니다. 보호자 승인 대기 중입니다.</p>
-          <button class="btn primary full" type="button" data-quick-tab="childMissionResultScreen">승인 결과 보기</button>
+          <button class="btn primary full" type="button" id="checkSubmissionResultBtn">승인 결과 보기</button>
         </article>
       </section>
 
-      <section class="screen" id="childMissionResultScreen" data-title="미션 승인 결과" data-subtitle="임시 승인 결과를 보여줘요">
+      <section class="screen" id="childMissionResultScreen" data-title="미션 승인 결과" data-subtitle="보호자의 확인 결과를 보여줘요">
         <article class="card panel flow-panel">
-          <h2>승인 완료</h2>
-          <div class="status-badge approved">approved</div>
-          <p>하급 미션이 승인되어 하급 상자 1개를 받았어요.</p>
-          <button class="btn primary full" type="button" data-quick-tab="childRewardBoxScreen">상자 받기</button>
+          <h2 id="missionResultTitle">확인 결과</h2>
+          <div class="status-badge waiting" id="missionResultBadge">확인 중</div>
+          <p id="missionResultMessage">보호자의 확인 결과를 불러오고 있어요.</p>
+          <button class="btn primary full" type="button" id="missionResultActionBtn">확인</button>
         </article>
       </section>
 
       <section class="screen" id="childRewardBoxScreen" data-title="상자 획득" data-subtitle="미션 등급에 맞는 상자를 획득해요">
         <article class="card panel reward-card">
-          <h2>하급 상자 획득</h2>
-          <div class="reward-box-visual">BOX</div>
-          <button class="btn primary full" type="button" data-quick-tab="childRewardOpenScreen">상자 개봉</button>
+          <h2 id="rewardBoxTitle">보상 상자 획득</h2>
+          <div class="reward-box-visual" id="rewardBoxVisual">BOX</div>
+          <p id="rewardBoxMessage">승인된 미션의 보상 상자입니다.</p>
+          <button class="btn primary full" type="button" id="claimRewardBoxBtn">상자 개봉</button>
         </article>
       </section>
 
       <section class="screen" id="childRewardOpenScreen" data-title="상자 개봉" data-subtitle="보상 내용을 확인해요">
-        <article class="card panel reward-card">
-          <h2>상자 개봉</h2>
-          <div class="reward-rule low"><strong>획득</strong><span>EXP 25 · 첫 인증 뱃지</span></div>
-          <button class="btn primary full" type="button" data-quick-tab="childExpResultScreen">경험치 결과</button>
+        <article class="card panel reward-card box-open-panel">
+          <div class="panel-head compact-head">
+            <div>
+              <h2 id="boxOpenTitle">하급 상자 개봉</h2>
+              <p id="boxOpenGuide">상자를 눌러 개봉 연출을 확인해요.</p>
+            </div>
+            <span class="state-chip" id="boxOpenGradeChip">하급</span>
+          </div>
+          <div class="box-video-stage" id="boxVideoStage">
+            <video id="boxOpeningVideo" class="box-opening-video" muted playsinline preload="metadata" hidden></video>
+            <div class="box-video-placeholder" id="boxVideoPlaceholder">
+              <span class="box-video-icon" id="boxVideoIcon">BOX</span>
+              <strong>보상 상자</strong>
+              <em>상자를 열어 경험치를 확인하세요</em>
+            </div>
+          </div>
+          <div class="reward-rule low" id="boxOpenResult" hidden>
+            <strong>획득 결과</strong>
+            <span id="boxOpenResultText">EXP를 획득했어요.</span>
+          </div>
+          <button class="btn primary full" type="button" id="playBoxOpenBtn">상자 열기</button>
+          <button class="btn mint full" type="button" id="goExpResultBtn" data-quick-tab="childExpResultScreen"
+            hidden>경험치 결과 보기</button>
         </article>
       </section>
 
       <section class="screen" id="childExpResultScreen" data-title="경험치 획득 결과" data-subtitle="펫 성장 결과를 보여줘요">
         <article class="card panel flow-panel">
-          <h2>EXP +25</h2>
+          <h2 id="expResultTitle">EXP 획득</h2>
           <div class="progress-track">
-            <div class="progress-fill" style="width: 88%"></div>
+            <div class="progress-fill" id="expResultProgress" style="width: 0%"></div>
           </div>
-          <p>몽글이가 조금 더 성장했어요.</p>
+          <p id="expResultMessage">펫이 성장했어요.</p>
           <button class="btn primary full" type="button" data-quick-tab="petScreen">펫 상태 보기</button>
         </article>
       </section>
 
       <section class="screen" id="childInventoryScreen" data-title="보상함 / 인벤토리" data-subtitle="보유 상자와 프레임을 확인해요">
-        <article class="card panel flow-panel">
+        <article class="card panel flow-panel inventory-panel">
           <h2>보상함</h2>
-          <div class="inventory-grid">
-            <button type="button" data-quick-tab="childRewardOpenScreen">하급 상자 1개</button>
-            <button type="button" data-quick-tab="childFrameScreen">무지개 프레임</button>
-            <button type="button" data-quick-tab="childCharacterCreateScreen">AI 캐릭터 티켓</button>
+          <div class="inventory-tabs" role="tablist" aria-label="보상함 카테고리">
+            <button class="inventory-tab active" type="button" data-inventory-tab="boxes">리워드 상자</button>
+            <button class="inventory-tab" type="button" data-inventory-tab="badges">뱃지</button>
+            <button class="inventory-tab" type="button" data-inventory-tab="frames">액자</button>
+          </div>
+
+          <div class="inventory-tab-panel active" id="inventoryBoxesPanel" data-inventory-panel="boxes">
+            <div class="inventory-section-head">
+              <strong>보유 상자</strong>
+              <span>상자를 누르면 개봉 화면으로 이동합니다</span>
+            </div>
+            <div class="reward-box-list">
+              <button class="reward-box-card low" type="button" data-open-box="beginner">
+                <span class="reward-box-emoji">LOW</span>
+                <strong>하급 상자</strong>
+                <em><b data-inventory-count="beginner">0</b>개 보유</em>
+              </button>
+              <button class="reward-box-card middle" type="button" data-open-box="middle">
+                <span class="reward-box-emoji">MID</span>
+                <strong>중급 상자</strong>
+                <em><b data-inventory-count="middle">0</b>개 보유</em>
+              </button>
+              <button class="reward-box-card high" type="button" data-open-box="premium">
+                <span class="reward-box-emoji">HIGH</span>
+                <strong>상급 상자</strong>
+                <em><b data-inventory-count="premium">0</b>개 보유</em>
+              </button>
+            </div>
+          </div>
+
+          <div class="inventory-tab-panel" id="inventoryBadgesPanel" data-inventory-panel="badges">
+            <div class="inventory-section-head">
+              <strong>뱃지</strong>
+              <span>펫 만렙 달성 시 뱃지가 지급됩니다</span>
+            </div>
+            <div class="badge-dex-grid">
+              <article class="badge-card locked">
+                <div class="badge-visual">?</div>
+                <strong>몽글이 뱃지</strong>
+                <span>몽글이 만렙 달성 필요</span>
+              </article>
+              <article class="badge-card locked">
+                <div class="badge-visual">?</div>
+                <strong>포근이 뱃지</strong>
+                <span>추후 펫 추가 후 해금</span>
+              </article>
+            </div>
+          </div>
+
+          <div class="inventory-tab-panel" id="inventoryFramesPanel" data-inventory-panel="frames">
+            <div class="inventory-section-head">
+              <strong>액자 도감</strong>
+              <span>획득 조건을 달성하면 잠금이 풀립니다</span>
+            </div>
+            <div class="frame-dex-grid"></div>
           </div>
         </article>
       </section>
@@ -695,14 +739,14 @@
     PDF의 Servlet 흐름에 맞춰 프론트 JS를 기능별로 나눴습니다.
     아래 순서가 중요합니다. 뒤 파일은 앞 파일에서 만든 상수와 함수를 사용합니다.
   -->
-    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=servlet-split"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=servlet-split"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=servlet-split"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=servlet-split"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=servlet-split"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=servlet-split"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=servlet-split"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=api-integration"></script>
+    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=reward-flow-20260610"></script>
   </body>
 
   </html>

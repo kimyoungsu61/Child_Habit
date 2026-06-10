@@ -371,7 +371,10 @@ public class ApiServlet extends HttpServlet {
             return;
         }
         success(response, Map.of("submissionId", submissionId,
-                "status", approve ? "approved" : "rejected"));
+                "status", approve ? "approved" : "rejected",
+                "boxGrade", approve
+                        ? valueOrEmpty(request.getParameter("boxGrade"))
+                        : ""));
     }
 
     private void openBox(HttpServletRequest request, HttpServletResponse response,
@@ -504,8 +507,13 @@ public class ApiServlet extends HttpServlet {
         map.put("mediaUrl", submission.getMediaUrl());
         map.put("status", submission.getStatus());
         map.put("submittedAt", string(submission.getSubmittedAt()));
+        map.put("reviewedAt", string(submission.getReviewedAt()));
         map.put("rewardGiven", submission.getRewardGiven());
         return map;
+    }
+
+    private String valueOrEmpty(String value) {
+        return value == null ? "" : value;
     }
 
     private Map<String, Object> childPetMap(ChildPet childPet) {
@@ -576,13 +584,35 @@ public class ApiServlet extends HttpServlet {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("notificationId", item.getNotificationId());
             map.put("type", item.getNotificationType());
-            map.put("title", item.getTitle());
-            map.put("content", item.getContent());
+            map.put("title", notificationTitle(item));
+            map.put("content", notificationContent(item));
             map.put("isRead", item.getIsRead());
             map.put("createdAt", string(item.getCreatedAt()));
             result.add(map);
         }
         return result;
+    }
+
+    private String notificationTitle(Notification notification) {
+        return switch (notification.getNotificationType()) {
+            case "mission_assigned" -> "새 미션이 도착했어요";
+            case "reward_request" -> "새 인증이 도착했어요";
+            case "mission_approved" -> "미션이 승인되었어요";
+            case "mission_rejected" -> "인증을 다시 제출해 주세요";
+            case "reward_paid" -> "보상 상자를 열었어요";
+            default -> notification.getTitle();
+        };
+    }
+
+    private String notificationContent(Notification notification) {
+        return switch (notification.getNotificationType()) {
+            case "mission_assigned" -> "보호자가 새로운 미션을 배정했어요.";
+            case "reward_request" -> "아이가 미션 인증을 제출했어요. 확인해 주세요.";
+            case "mission_approved" -> "보호자가 미션을 승인했어요. 보상함에서 상자를 확인해 주세요.";
+            case "mission_rejected" -> "보호자가 인증을 다시 요청했어요. 미션 인증을 다시 제출해 주세요.";
+            case "reward_paid" -> "보상 상자를 열어 경험치를 획득했어요.";
+            default -> notification.getContent();
+        };
     }
 
     private List<Map<String, Object>> activityMaps(List<ActivityRecord> activities) {

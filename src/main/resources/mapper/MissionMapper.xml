@@ -74,8 +74,8 @@
             #{childId},
             #{missionId},
             'mission_assigned',
-            'New mission assigned',
-            #{missionTitle} || ' mission was assigned.',
+               '새 미션이 도착했어요',
+               #{missionTitle} || ' 미션이 배정되었어요.',
             'N'
         )
     </insert>
@@ -215,8 +215,8 @@
                #{missionId},
                #{submissionId},
                'reward_request',
-               'New media review request',
-               'A child submitted mission media for review.',
+               '새 인증이 도착했어요',
+               '아이가 미션 인증을 제출했어요. 확인해 주세요.',
                'N'
         FROM CHILD c
         WHERE c.child_id = #{childId}
@@ -387,12 +387,18 @@
                  ELSE 'mission_rejected'
             END,
             CASE WHEN #{status} = 'approved'
-                 THEN 'Mission approved'
-                 ELSE 'Mission needs another submission'
+                 THEN '미션이 승인되었어요'
+                 ELSE '인증을 다시 제출해 주세요'
             END,
             CASE WHEN #{status} = 'approved'
-                 THEN 'Your mission was approved and a ' || #{boxGrade} || ' box is ready.'
-                 ELSE 'Please submit the mission again.'
+                 THEN '보호자가 미션을 승인했어요. ' ||
+                      CASE #{boxGrade}
+                          WHEN 'low' THEN '하급'
+                          WHEN 'middle' THEN '중급'
+                          WHEN 'high' THEN '상급'
+                          ELSE #{boxGrade}
+                      END || ' 상자를 열 수 있어요.'
+                 ELSE '보호자가 인증을 다시 요청했어요. 미션 인증을 다시 제출해 주세요.'
             END,
             'N'
         )
@@ -443,8 +449,8 @@
             #{submissionId},
             #{rewardId,jdbcType=NUMERIC},
             'reward_paid',
-            'Reward box opened',
-            'You gained ' || #{expAmount} || ' EXP from a reward box.',
+            '보상 상자를 열었어요',
+            '보상 상자에서 EXP ' || #{expAmount} || '를 획득했어요.',
             'N'
         )
     </insert>
@@ -559,8 +565,8 @@
             SELECT 'submission' activity_type,
                    m.mission_title title,
                    CASE ms.media_type
-                       WHEN 'photo' THEN 'Photo mission submitted'
-                       ELSE 'Video mission submitted'
+                       WHEN 'photo' THEN '사진 미션을 제출했어요'
+                       ELSE '영상 미션을 제출했어요'
                    END description,
                    ms.status status,
                    ms.submission_id reference_id,
@@ -570,8 +576,13 @@
             WHERE ms.child_id = #{childId}
             UNION ALL
             SELECT 'reward' activity_type,
-                   'Reward box opened' title,
-                   rh.box_grade || ' box: +' || rh.exp_amount || ' EXP' description,
+                   '보상 상자를 열었어요' title,
+                   CASE rh.box_grade
+                       WHEN 'low' THEN '하급'
+                       WHEN 'middle' THEN '중급'
+                       WHEN 'high' THEN '상급'
+                       ELSE rh.box_grade
+                   END || ' 상자: EXP +' || rh.exp_amount description,
                    'completed' status,
                    rh.reward_id reference_id,
                    rh.created_at event_at

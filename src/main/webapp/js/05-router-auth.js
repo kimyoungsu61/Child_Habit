@@ -129,7 +129,6 @@ function getNavActiveTab(screenId) {
     const parentNavGroups = {
       parentInviteScreen: "parentScreen",
       parentHistoryScreen: "parentScreen",
-      parentReviewScreen: "parentSubmissionsScreen",
       parentMissionsScreen: "parentMissionsScreen",
       parentMissionNewScreen: "parentMissionsScreen",
       parentMissionEditScreen: "parentMissionsScreen",
@@ -139,7 +138,6 @@ function getNavActiveTab(screenId) {
       parentChildProgressScreen: "parentChildScreen",
       parentSubmissionsScreen: "parentSubmissionsScreen",
       parentSubmissionDetailScreen: "parentSubmissionsScreen",
-      parentRewardConfirmScreen: "parentSubmissionsScreen",
       parentNotificationsScreen: "parentNotificationsScreen"
     };
     return parentNavGroups[screenId] || screenId;

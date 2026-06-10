@@ -53,6 +53,91 @@ function gradeLabel(grade) {
   return ({ low: "하급", middle: "중급", high: "상급" })[grade] || grade;
 }
 
+function boxTypeForGrade(grade) {
+  return ({ low: "beginner", middle: "middle", high: "premium" })[grade] || "beginner";
+}
+
+function gradeForBoxType(boxType) {
+  return ({ beginner: "low", middle: "middle", premium: "high" })[boxType] || "low";
+}
+
+function findCurrentChildSubmission() {
+  if (!serverChildHome?.submissions?.length) return null;
+  const currentId = appState.currentSubmission?.submissionId;
+  return serverChildHome.submissions.find(item => item.submissionId === currentId)
+    || serverChildHome.submissions[0];
+}
+
+function renderChildSubmissionResult(submission) {
+  const title = document.getElementById("missionResultTitle");
+  const badge = document.getElementById("missionResultBadge");
+  const message = document.getElementById("missionResultMessage");
+  const action = document.getElementById("missionResultActionBtn");
+  if (!title || !badge || !message || !action) return;
+
+  badge.className = "status-badge";
+  action.hidden = false;
+  if (!submission || submission.status === "pending") {
+    title.textContent = "보호자 확인 대기 중";
+    badge.classList.add("waiting");
+    badge.textContent = "승인 대기";
+    message.textContent = "아직 보호자가 인증을 확인하지 않았어요. 잠시 후 다시 확인해 주세요.";
+    action.textContent = "미션 목록으로";
+    action.dataset.resultAction = "missions";
+    return;
+  }
+
+  if (submission.status === "rejected") {
+    title.textContent = "다시 인증해 주세요";
+    badge.classList.add("rejected");
+    badge.textContent = "다시 요청";
+    message.textContent = "보호자가 인증을 다시 요청했어요. 사진이나 영상을 다시 제출해 주세요.";
+    action.textContent = "다시 인증하기";
+    action.dataset.resultAction = "resubmit";
+    return;
+  }
+
+  const boxLabel = `${gradeLabel(submission.boxGrade)} 상자`;
+  badge.classList.add("approved");
+  badge.textContent = "승인 완료";
+  if (submission.rewardGiven === "Y") {
+    title.textContent = "보상 수령 완료";
+    message.textContent = `${boxLabel}를 이미 열었어요. 보상함에서 현재 보유 현황을 확인할 수 있어요.`;
+    action.textContent = "보상함 보기";
+    action.dataset.resultAction = "inventory";
+    return;
+  }
+
+  title.textContent = "미션 승인 완료";
+  message.textContent = `보호자가 미션을 승인했어요. ${boxLabel}를 열 수 있어요.`;
+  action.textContent = "상자 받기";
+  action.dataset.resultAction = "reward";
+}
+
+function renderRewardBoxScreen(submission) {
+  if (!submission) return;
+  const boxType = boxTypeForGrade(submission.boxGrade);
+  const meta = getBoxMeta(boxType);
+  appState.selectedBoxType = boxType;
+  const title = document.getElementById("rewardBoxTitle");
+  const visual = document.getElementById("rewardBoxVisual");
+  const message = document.getElementById("rewardBoxMessage");
+  if (title) title.textContent = `${meta.label} 획득`;
+  if (visual) visual.textContent = meta.icon;
+  if (message) message.textContent = `승인된 미션 보상으로 ${meta.label} 1개를 받았어요.`;
+}
+
+function renderExpResult(result) {
+  const title = document.getElementById("expResultTitle");
+  const progress = document.getElementById("expResultProgress");
+  const message = document.getElementById("expResultMessage");
+  if (title) title.textContent = `EXP +${result.expAmount}`;
+  if (progress) progress.style.width = `${Math.min(100, (result.currentExp % 300) / 3)}%`;
+  if (message) {
+    message.textContent = `${appState.pet.name}이(가) Lv.${result.currentLevel}, EXP ${result.currentExp}까지 성장했어요.`;
+  }
+}
+
 function setEntryMessage(element, message) {
   if (element) element.textContent = message || "";
 }
@@ -265,7 +350,7 @@ renderParentSubmissions = function renderServerParentSubmissions() {
     ? pending.map((item, index) => `
       <button class="submission-card" type="button" data-server-submission="${item.submissionId}" data-server-index="${index}">
         <strong>${item.childName} · ${item.missionTitle}</strong>
-        <span>${mediaTypeLabel(item.mediaType)} · pending · ${item.submittedAt || ""}</span>
+        <span>${mediaTypeLabel(item.mediaType)} · 승인 대기 · ${item.submittedAt || ""}</span>
       </button>
     `).join("")
     : '<div class="empty-dex">승인 대기 제출물이 없어요.</div>';
@@ -296,7 +381,10 @@ async function loadChildHome() {
     appState.pet.exp = activePet.currentExp % 300;
     appState.pet.maxExp = 300;
   }
+  const currentSubmissionId = appState.currentSubmission?.submissionId;
   appState.submissions = serverChildHome.submissions;
+  appState.currentSubmission = appState.submissions.find(
+    item => item.submissionId === currentSubmissionId) || appState.submissions[0] || null;
   renderChildMissionData();
   renderInventoryData();
   renderPet();
@@ -524,6 +612,25 @@ document.querySelectorAll("[data-tab='parentScreen'], [data-quick-tab='parentChi
     }, true);
   });
 
+document.querySelectorAll(
+  "[data-tab='parentSubmissionsScreen'], [data-quick-tab='parentSubmissionsScreen'], [data-tab='parentNotificationsScreen'], [data-quick-tab='parentNotificationsScreen']")
+  .forEach(button => {
+    button.addEventListener("click", () => {
+      if (appState.role === "parent") {
+        loadParentDashboard().catch(error => showToast(error.message));
+      }
+    }, true);
+  });
+
+document.querySelectorAll("[data-tab='childNotificationsScreen'], [data-tab='childInventoryScreen']")
+  .forEach(button => {
+    button.addEventListener("click", () => {
+      if (appState.role === "child") {
+        loadChildHome().catch(error => showToast(error.message));
+      }
+    }, true);
+  });
+
 async function stopVideoCamera() {
   if (videoRecorder && videoRecorder.state !== "inactive") {
     videoRecorder.stop();
@@ -676,6 +783,7 @@ interceptClick("#submitCaptureBtn", async () => {
     body: data
   });
   await loadChildHome();
+  appState.currentSubmission = serverChildHome.submissions[0] || null;
   appState.missionStatus = "submitted";
   renderSubmissionWaiting();
   switchTab("childSubmissionWaitingScreen");
@@ -705,6 +813,102 @@ document.querySelectorAll("[data-mock-reject]").forEach(button => {
     switchTab("parentSubmissionsScreen");
     showToast("다시 요청 상태로 변경했습니다.");
   });
+});
+
+interceptClick("#checkSubmissionResultBtn", async () => {
+  await loadChildHome();
+  const submission = findCurrentChildSubmission();
+  appState.currentSubmission = submission;
+  renderChildSubmissionResult(submission);
+  switchTab("childMissionResultScreen");
+});
+
+interceptClick("#missionResultActionBtn", () => {
+  const action = document.getElementById("missionResultActionBtn")?.dataset.resultAction;
+  const submission = findCurrentChildSubmission();
+  if (action === "resubmit" && submission) {
+    appState.currentMissionId = submission.missionId;
+    appState.captureMode = submission.mediaType;
+    switchTab("childCameraScreen");
+    setCaptureMode(submission.mediaType);
+    return;
+  }
+  if (action === "reward" && submission) {
+    appState.currentSubmission = submission;
+    renderRewardBoxScreen(submission);
+    switchTab("childRewardBoxScreen");
+    return;
+  }
+  if (action === "inventory") {
+    appState.selectedInventoryTab = "boxes";
+    renderInventoryTab();
+    switchTab("childInventoryScreen");
+    return;
+  }
+  switchTab("childTodayMissionsScreen");
+});
+
+interceptClick("#claimRewardBoxBtn", () => {
+  const submission = findCurrentChildSubmission();
+  if (!submission || submission.status !== "approved" || submission.rewardGiven !== "N") {
+    throw new Error("지금 열 수 있는 보상 상자가 없어요.");
+  }
+  appState.currentSubmission = submission;
+  appState.selectedBoxType = boxTypeForGrade(submission.boxGrade);
+  prepareBoxOpenScreen(appState.selectedBoxType);
+  switchTab("childRewardOpenScreen");
+});
+
+interceptClick("#playBoxOpenBtn", async () => {
+  if (!serverChildHome) await loadChildHome();
+  const grade = gradeForBoxType(appState.selectedBoxType);
+  const currentId = appState.currentSubmission?.submissionId;
+  const submission = serverChildHome.submissions.find(item =>
+    item.submissionId === currentId
+      && item.status === "approved"
+      && item.rewardGiven === "N")
+    || serverChildHome.submissions.find(item =>
+      item.status === "approved"
+        && item.rewardGiven === "N"
+        && item.boxGrade === grade);
+  if (!submission) throw new Error("열 수 있는 상자가 없어요.");
+
+  const openButton = document.getElementById("playBoxOpenBtn");
+  const expButton = document.getElementById("goExpResultBtn");
+  const resultBox = document.getElementById("boxOpenResult");
+  const resultText = document.getElementById("boxOpenResultText");
+  const stage = document.getElementById("boxVideoStage");
+  const guide = document.getElementById("boxOpenGuide");
+  if (openButton) {
+    openButton.disabled = true;
+    openButton.textContent = "개봉 중...";
+  }
+  if (stage) stage.classList.add("is-opening");
+
+  try {
+    const result = await apiRequest(`/child/boxes/${submission.submissionId}/open`, {
+      method: "POST"
+    });
+    appState.currentSubmission = submission;
+    appState.lastRewardExp = result.expAmount;
+    renderExpResult(result);
+    await loadChildHome();
+    await new Promise(resolve => window.setTimeout(resolve, 900));
+    if (guide) guide.textContent = "개봉 완료! 경험치 결과를 확인하세요.";
+    if (resultBox) resultBox.hidden = false;
+    if (resultText) resultText.textContent = `EXP ${result.expAmount}를 획득했어요.`;
+    if (openButton) openButton.hidden = true;
+    if (expButton) expButton.hidden = false;
+    if (stage) stage.classList.remove("is-opening");
+    showToast(`EXP ${result.expAmount}를 획득했어요!`);
+  } catch (error) {
+    if (openButton) {
+      openButton.disabled = false;
+      openButton.textContent = "상자 열기";
+    }
+    if (stage) stage.classList.remove("is-opening");
+    throw error;
+  }
 });
 
 document.querySelectorAll("[data-box]").forEach(button => {
@@ -778,3 +982,13 @@ window.addEventListener("pageshow", () => {
 
 window.addEventListener("pagehide", stopVideoCamera);
 restoreSession().catch(() => {});
+
+window.setInterval(() => {
+  const activeScreenId = getActiveScreenId();
+  if (appState.role === "child" && activeScreenId === "childNotificationsScreen") {
+    loadChildHome().catch(() => {});
+  }
+  if (appState.role === "parent" && activeScreenId === "parentNotificationsScreen") {
+    loadParentDashboard().catch(() => {});
+  }
+}, 10000);

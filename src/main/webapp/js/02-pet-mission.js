@@ -197,6 +197,7 @@ function createParticles(symbol, count = 10) {
 }
 
 function setStatusBadge(element, status) {
+  if (!element) return;
   element.className = "status-badge";
   if (status === "submitted" || status === "recording") element.classList.add("waiting");
   if (status === "approved") element.classList.add("approved");
@@ -209,8 +210,8 @@ function renderMission() {
   setStatusBadge(reviewBadge, appState.missionStatus);
   setStatusBadge(rewardBadge, appState.missionStatus);
   const isPhotoMode = appState.missionMode === "photo";
-  reviewMode.textContent = isPhotoMode ? "사진" : "영상";
-  rewardMessage.textContent = appState.rewardMessage;
+  if (reviewMode) reviewMode.textContent = isPhotoMode ? "사진" : "영상";
+  if (rewardMessage) rewardMessage.textContent = appState.rewardMessage;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);
   if (parentMissionSummary) parentMissionSummary.textContent = missionLabel(appState.missionStatus);
   if (parentBoxSummary) {

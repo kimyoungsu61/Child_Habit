@@ -220,33 +220,6 @@ stopMockVideoBtn?.addEventListener("click", () => {
 });
 submitCaptureBtn?.addEventListener("click", submitCapture);
 
-// 부모 제출물 상세 화면의 승인 임시 처리입니다.
-// 나중에는 SubmissionApproveServlet에 submissionId와 boxGrade를 POST하면 됩니다.
-document.querySelectorAll("[data-mock-approve]").forEach(button => {
-  button.addEventListener("click", () => {
-    appState.missionStatus = "approved";
-    if (appState.currentSubmission) appState.currentSubmission.status = "approved";
-    appState.rewardBoxCounts.beginner += 1;
-    addHistory("approved", "미션 승인", "하급 상자 1개 지급 대기 상태가 됐어요.");
-    renderMission();
-    renderParentSubmissions();
-  });
-});
-
-// 부모 제출물 상세 화면의 거절 임시 처리입니다.
-// 나중에는 SubmissionRejectServlet에 submissionId를 POST하면 됩니다.
-document.querySelectorAll("[data-mock-reject]").forEach(button => {
-  button.addEventListener("click", () => {
-    appState.missionStatus = "rejected";
-    if (appState.currentSubmission) appState.currentSubmission.status = "rejected";
-    const message = document.getElementById("parentSubmissionMessage");
-    if (message) message.textContent = "거절 상태로 변경됐어요. 아이에게 다시 요청 알림을 보냅니다.";
-    addHistory("rejected", "미션 거절", "제출물 재요청 임시 알림이 생성됐어요.");
-    renderMission();
-    renderParentSubmissions();
-  });
-});
-
 document.getElementById("goCertifyBtn")?.addEventListener("click", () => switchTab("certifyScreen"));
 document.getElementById("profileOpenBtn").addEventListener("click", openProfileModal);
 
@@ -348,25 +321,6 @@ submitBtn.addEventListener("click", () => {
   renderParentSubmissions();
   switchTab("rewardScreen");
   showToast(appState.missionMode === "photo" ? "사진 인증이 제출됐어요." : "영상 인증이 제출됐어요.");
-});
-
-document.getElementById("approveBtn").addEventListener("click", () => {
-  appState.missionStatus = "approved";
-  appState.rewardMessage = "확인 완료! 보상 상자를 골라요.";
-  appState.rewardBoxCounts.middle += 1;
-  addHistory("approved", "보호자 확인 완료", "중간 상자 1개가 지급됐어요.");
-  renderMission();
-  restartReactClass();
-  playFrameSequence("praise", { loop: false, onComplete: resetPet });
-  showToast("확인이 완료됐어요. 중간 상자 1개 지급!");
-});
-
-document.getElementById("rejectBtn").addEventListener("click", () => {
-  appState.missionStatus = "rejected";
-  appState.rewardMessage = "다시 인증하면 보상을 받을 수 있어요.";
-  addHistory("rejected", "보호자 다시 요청", "인증을 다시 제출해야 해요.");
-  renderMission();
-  showToast("다시 요청 상태로 바뀌었어요.");
 });
 
 document.querySelectorAll("[data-box]").forEach(button => {
