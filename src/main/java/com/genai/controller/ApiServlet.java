@@ -100,6 +100,10 @@ public class ApiServlet extends HttpServlet {
                 createMission(request, response);
             } else if (path.matches("/parent/missions/\\d+/cancel")) {
                 cancelMission(request, response, path);
+            } else if ("/parent/notifications/read".equals(path)) {
+                markParentNotificationsRead(request, response);
+            } else if ("/child/notifications/read".equals(path)) {
+                markChildNotificationsRead(request, response);
             } else if ("/child/setup".equals(path)) {
                 childSetup(request, response);
             } else if ("/child/submissions".equals(path)) {
@@ -321,6 +325,26 @@ public class ApiServlet extends HttpServlet {
         Long missionId = Long.valueOf(path.split("/")[3]);
         missionService.deleteMission(missionId, parent.getParentId());
         success(response, Map.of("deleted", true));
+    }
+
+    private void markParentNotificationsRead(HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        Parent parent = requireParent(request, response);
+        if (parent == null) {
+            return;
+        }
+        int updated = missionService.markAllParentNotificationsRead(parent.getParentId());
+        success(response, Map.of("updated", updated));
+    }
+
+    private void markChildNotificationsRead(HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        ChildProfile child = requireChild(request, response);
+        if (child == null) {
+            return;
+        }
+        int updated = missionService.markAllChildNotificationsRead(child.getChildId());
+        success(response, Map.of("updated", updated));
     }
 
     private void childSetup(HttpServletRequest request, HttpServletResponse response)

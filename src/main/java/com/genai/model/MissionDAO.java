@@ -260,6 +260,24 @@ public class MissionDAO {
         }
     }
 
+    public int markAllParentNotificationsRead(Long parentId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            int updated = session.getMapper(MissionMapper.class)
+                    .markAllParentNotificationsRead(parentId);
+            session.commit();
+            return updated;
+        }
+    }
+
+    public int markAllChildNotificationsRead(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            int updated = session.getMapper(MissionMapper.class)
+                    .markAllChildNotificationsRead(childId);
+            session.commit();
+            return updated;
+        }
+    }
+
     public List<ChildMissionProgress> findTodayProgressForParent(Long parentId) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
             return session.getMapper(MissionMapper.class).findTodayProgressForParent(parentId);

@@ -747,7 +747,12 @@ document.querySelectorAll(
   .forEach(button => {
     button.addEventListener("click", () => {
       if (appState.role === "parent") {
-        loadParentDashboard().catch(error => showToast(error.message));
+        const target = button.dataset.tab || button.dataset.quickTab;
+        const refresh = target === "parentNotificationsScreen"
+          ? apiRequest("/parent/notifications/read", { method: "POST" })
+              .then(loadParentDashboard)
+          : loadParentDashboard();
+        refresh.catch(error => showToast(error.message));
       }
     }, true);
   });
@@ -757,7 +762,11 @@ document.querySelectorAll(
   .forEach(button => {
     button.addEventListener("click", () => {
       if (appState.role === "child") {
-        loadChildHome().catch(error => showToast(error.message));
+        const refresh = button.dataset.tab === "childNotificationsScreen"
+          ? apiRequest("/child/notifications/read", { method: "POST" })
+              .then(loadChildHome)
+          : loadChildHome();
+        refresh.catch(error => showToast(error.message));
       }
     }, true);
   });

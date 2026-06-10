@@ -253,6 +253,14 @@ public class MissionService {
         return missionDAO.markChildNotificationRead(notificationId, childId);
     }
 
+    public int markAllParentNotificationsRead(Long parentId) {
+        return missionDAO.markAllParentNotificationsRead(parentId);
+    }
+
+    public int markAllChildNotificationsRead(Long childId) {
+        return missionDAO.markAllChildNotificationsRead(childId);
+    }
+
     public List<ChildMissionProgress> findTodayProgressForParent(Long parentId) {
         return missionDAO.findTodayProgressForParent(parentId);
     }

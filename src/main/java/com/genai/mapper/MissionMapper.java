@@ -110,6 +110,10 @@ public interface MissionMapper {
     int markChildNotificationRead(@Param("notificationId") Long notificationId,
             @Param("childId") Long childId);
 
+    int markAllParentNotificationsRead(Long parentId);
+
+    int markAllChildNotificationsRead(Long childId);
+
     List<ChildMissionProgress> findTodayProgressForParent(Long parentId);
 
     List<RewardInventoryItem> findRewardInventoryForChild(Long childId);

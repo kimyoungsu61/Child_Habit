@@ -568,6 +568,22 @@
           AND is_read = 'N'
     </update>
 
+    <update id="markAllParentNotificationsRead" parameterType="long">
+        UPDATE NOTIFICATION
+        SET is_read = 'Y',
+            read_at = SYSTIMESTAMP
+        WHERE parent_id = #{parentId}
+          AND is_read = 'N'
+    </update>
+
+    <update id="markAllChildNotificationsRead" parameterType="long">
+        UPDATE NOTIFICATION
+        SET is_read = 'Y',
+            read_at = SYSTIMESTAMP
+        WHERE child_id = #{childId}
+          AND is_read = 'N'
+    </update>
+
     <select id="findTodayProgressForParent" parameterType="long"
             resultType="com.genai.model.ChildMissionProgress">
         SELECT c.child_id,
