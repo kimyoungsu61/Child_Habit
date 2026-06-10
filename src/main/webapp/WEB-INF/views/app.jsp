@@ -409,7 +409,10 @@
       <section class="screen parent-screen" id="parentNotificationsScreen" data-title="부모 알림"
         data-subtitle="미션 제출과 보상 지급 알림을 확인해요">
         <article class="card panel flow-panel">
-          <h2>부모 알림</h2>
+          <div class="notice-panel-head">
+            <h2>부모 알림</h2>
+            <button class="notice-read-all-btn" type="button" data-mark-all-notifications="parent" disabled>전체 읽음</button>
+          </div>
           <div class="notice-card">유리가 양치하기 영상을 제출했어요.</div>
           <div class="notice-card">민준에게 중급 미션이 배정됐어요.</div>
           <div class="notice-card">유리에게 하급 상자 지급이 완료됐어요.</div>
@@ -653,7 +656,10 @@
 
       <section class="screen" id="childNotificationsScreen" data-title="아이 알림" data-subtitle="미션과 보상 알림을 확인해요">
         <article class="card panel flow-panel">
-          <h2>아이 알림</h2>
+          <div class="notice-panel-head">
+            <h2>아이 알림</h2>
+            <button class="notice-read-all-btn" type="button" data-mark-all-notifications="child" disabled>전체 읽음</button>
+          </div>
           <div class="notice-card">하급 미션이 배정됐어요.</div>
           <div class="notice-card">양치하기 미션이 승인됐어요.</div>
           <div class="notice-card">하급 상자가 보상함에 도착했어요.</div>

@@ -116,6 +116,19 @@ function notificationCard(item) {
   </button>`;
 }
 
+function notificationPanelHeader(title, role, notifications = []) {
+  const unreadCount = unreadNotificationCount(notifications);
+  return `<div class="notice-panel-head">
+    <h2>${escapeHtml(title)}</h2>
+    <button class="notice-read-all-btn" type="button"
+            data-mark-all-notifications="${role}"
+            ${unreadCount ? "" : "disabled"}
+            aria-label="${unreadCount ? `안 읽은 ${unreadCount}개 알림 전체 읽음` : "읽을 알림이 없습니다"}">
+      전체 읽음
+    </button>
+  </div>`;
+}
+
 function updateRelativeNotificationTimes() {
   document.querySelectorAll(".notice-time[data-created-at]").forEach(element => {
     element.textContent = formatRelativeNotificationTime(element.dataset.createdAt);
@@ -231,6 +244,26 @@ function markLocalNotificationRead(notification) {
   updateAppBadges();
 }
 
+function markLocalAllNotificationsRead(role = appState.role) {
+  notificationsForRole(role).forEach(item => {
+    item.isRead = "Y";
+  });
+  const screenSelector = role === "parent"
+    ? "#parentNotificationsScreen"
+    : "#childNotificationsScreen";
+  document.querySelectorAll(`${screenSelector} [data-notification-id]`).forEach(card => {
+    card.classList.remove("is-unread");
+    card.classList.add("is-read");
+  });
+  document
+    .querySelectorAll(`[data-mark-all-notifications="${role}"]`)
+    .forEach(button => {
+      button.disabled = true;
+      button.setAttribute("aria-label", "읽을 알림이 없습니다");
+    });
+  updateAppBadges();
+}
+
 async function markNotificationRead(notification) {
   const id = Number(notification.notificationId);
   if (!id || String(notification.isRead || "").toUpperCase() !== "N") return;
@@ -239,6 +272,14 @@ async function markNotificationRead(notification) {
     body: formData({ notificationId: id })
   });
   markLocalNotificationRead(notification);
+}
+
+async function markAllNotificationsRead(role = appState.role) {
+  const unreadCount = unreadNotificationCount(notificationsForRole(role));
+  if (!unreadCount) return;
+  await apiRequest(`/${role}/notifications/read`, { method: "POST" });
+  markLocalAllNotificationsRead(role);
+  showToast("모든 알림을 읽음 처리했어요.");
 }
 
 function getHeadsUpElement() {
@@ -670,7 +711,7 @@ function renderParentDashboardData() {
 
   const notifications = document.querySelector("#parentNotificationsScreen .flow-panel");
   if (notifications) {
-    notifications.innerHTML = `<h2>부모 알림</h2>${
+    notifications.innerHTML = `${notificationPanelHeader("부모 알림", "parent", serverDashboard.notifications)}${
       serverDashboard.notifications.length
         ? serverDashboard.notifications.map(notificationCard).join("")
         : '<div class="empty-dex">새 알림이 없습니다.</div>'
@@ -765,7 +806,7 @@ function renderChildMissionData() {
 
   const notifications = document.querySelector("#childNotificationsScreen .flow-panel");
   if (notifications) {
-    notifications.innerHTML = `<h2>아이 알림</h2>${
+    notifications.innerHTML = `${notificationPanelHeader("아이 알림", "child", serverChildHome.notifications)}${
       serverChildHome.notifications.length
         ? serverChildHome.notifications.map(notificationCard).join("")
         : '<div class="empty-dex">새 알림이 없습니다.</div>'
@@ -953,6 +994,19 @@ document.addEventListener("click", event => {
     event.stopImmediatePropagation();
     const notification = notificationFromElement(notificationButton);
     handleNotificationAction(notification).catch(error => showToast(error.message));
+    return;
+  }
+
+  const markAllButton = event.target.closest("[data-mark-all-notifications]");
+  if (markAllButton) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const role = markAllButton.dataset.markAllNotifications || appState.role;
+    markAllButton.disabled = true;
+    markAllNotificationsRead(role).catch(error => {
+      markAllButton.disabled = false;
+      showToast(error.message);
+    });
     return;
   }
 
