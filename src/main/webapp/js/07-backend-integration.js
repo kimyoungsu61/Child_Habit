@@ -5,10 +5,13 @@ const API_ROOT = new URL("api", document.baseURI).pathname.replace(/\/$/, "");
 let serverDashboard = null;
 let serverChildHome = null;
 let loadedServerDate = "";
+let headsUpTimer = null;
 let videoStream = null;
 let videoRecorder = null;
 let videoChunks = [];
 let capturedVideoBlob = null;
+const knownParentNotificationIds = new Set();
+const knownChildNotificationIds = new Set();
 const JOIN_DRAFT_STORAGE_KEYS = [
   "joinParentName",
   "joinParentEmail",
@@ -98,13 +101,19 @@ function formatRelativeNotificationTime(createdAt) {
 }
 
 function notificationCard(item) {
-  return `<div class="notice-card">
+  const unread = String(item.isRead || "").toUpperCase() === "N";
+  return `<button class="notice-card notice-button ${unread ? "is-unread" : "is-read"}" type="button"
+      data-notification-id="${escapeHtml(item.notificationId ?? "")}"
+      data-notification-type="${escapeHtml(item.type || "")}"
+      data-mission-id="${escapeHtml(item.missionId ?? "")}"
+      data-submission-id="${escapeHtml(item.submissionId ?? "")}"
+      data-reward-id="${escapeHtml(item.rewardId ?? "")}">
     <strong>${escapeHtml(item.title)}</strong>
     <p>${escapeHtml(item.content || "")}</p>
     <time class="notice-time" data-created-at="${escapeHtml(item.createdAt || "")}">
       ${formatRelativeNotificationTime(item.createdAt)}
     </time>
-  </div>`;
+  </button>`;
 }
 
 function updateRelativeNotificationTimes() {
@@ -113,9 +122,247 @@ function updateRelativeNotificationTimes() {
   });
 }
 
+function unreadNotificationCount(notifications = []) {
+  return notifications.filter(item => String(item.isRead || "").toUpperCase() === "N").length;
+}
+
+function pendingSubmissionCount(submissions = []) {
+  return submissions.filter(item => item.status === "pending").length;
+}
+
+function countBadgeLabel(target, badge) {
+  const navLabel = target.querySelector(".nav-label")?.textContent.trim();
+  if (navLabel) return navLabel;
+  const textLabel = Array.from(target.childNodes)
+    .filter(node => node !== badge && node.nodeType === Node.TEXT_NODE)
+    .map(node => node.textContent.trim())
+    .filter(Boolean)
+    .join(" ");
+  return textLabel || target.textContent.replace(badge.textContent || "", "").trim();
+}
+
+function setCountBadge(targets, count) {
+  const value = Number(count) || 0;
+  targets.forEach(target => {
+    if (!target) return;
+    target.classList.add("has-count-badge");
+    let badge = target.querySelector("[data-count-badge]");
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = "count-badge";
+      badge.dataset.countBadge = "";
+      target.append(badge);
+    }
+    const label = countBadgeLabel(target, badge);
+    badge.textContent = value > 99 ? "99+" : String(value);
+    badge.hidden = value <= 0;
+    target.setAttribute("aria-label", value > 0
+      ? `${label} ${value}개`
+      : label);
+  });
+}
+
+function updateAppBadges() {
+  const parentUnread = appState.role === "parent"
+    ? unreadNotificationCount(serverDashboard?.notifications)
+    : 0;
+  const childUnread = appState.role === "child"
+    ? unreadNotificationCount(serverChildHome?.notifications)
+    : 0;
+  const parentPending = appState.role === "parent"
+    ? pendingSubmissionCount(serverDashboard?.submissions || appState.submissions)
+    : 0;
+
+  setCountBadge(document.querySelectorAll("[data-tab='parentNotificationsScreen']"), parentUnread);
+  setCountBadge(document.querySelectorAll("[data-tab='childNotificationsScreen']"), childUnread);
+  setCountBadge(document.querySelectorAll("[data-quick-tab='parentSubmissionsScreen']"), parentPending);
+}
+
+function notificationSetForRole(role) {
+  return role === "parent" ? knownParentNotificationIds : knownChildNotificationIds;
+}
+
+function notificationsForRole(role) {
+  return role === "parent"
+    ? (serverDashboard?.notifications || [])
+    : (serverChildHome?.notifications || []);
+}
+
+function rememberKnownNotifications(role, notifications = [], showHeadsUp = false) {
+  const known = notificationSetForRole(role);
+  const freshUnread = [];
+  notifications.forEach(item => {
+    const id = Number(item.notificationId);
+    if (!id) return;
+    const unread = String(item.isRead || "").toUpperCase() === "N";
+    if (showHeadsUp && unread && !known.has(id)) freshUnread.push(item);
+    known.add(id);
+  });
+  if (freshUnread.length) showHeadsUpNotification(freshUnread[0]);
+}
+
+function notificationFromElement(element) {
+  const id = Number(element.dataset.notificationId);
+  const fromState = notificationsForRole(appState.role)
+    .find(item => Number(item.notificationId) === id);
+  return fromState || {
+    notificationId: id,
+    type: element.dataset.notificationType,
+    missionId: Number(element.dataset.missionId) || null,
+    submissionId: Number(element.dataset.submissionId) || null,
+    rewardId: Number(element.dataset.rewardId) || null,
+    title: element.querySelector("strong")?.textContent || "",
+    content: element.querySelector("p")?.textContent || "",
+    isRead: "Y"
+  };
+}
+
+function markLocalNotificationRead(notification) {
+  const id = Number(notification.notificationId);
+  notificationsForRole(appState.role).forEach(item => {
+    if (Number(item.notificationId) === id) item.isRead = "Y";
+  });
+  document
+    .querySelectorAll(`[data-notification-id="${id}"]`)
+    .forEach(card => {
+      card.classList.remove("is-unread");
+      card.classList.add("is-read");
+    });
+  updateAppBadges();
+}
+
+async function markNotificationRead(notification) {
+  const id = Number(notification.notificationId);
+  if (!id || String(notification.isRead || "").toUpperCase() !== "N") return;
+  await apiRequest(`/${appState.role}/notifications/read`, {
+    method: "POST",
+    body: formData({ notificationId: id })
+  });
+  markLocalNotificationRead(notification);
+}
+
+function getHeadsUpElement() {
+  let element = document.getElementById("headsUpNotification");
+  if (element) return element;
+  element = document.createElement("button");
+  element.id = "headsUpNotification";
+  element.className = "heads-up-notification";
+  element.type = "button";
+  element.hidden = true;
+  element.innerHTML = `
+    <strong></strong>
+    <span></span>
+  `;
+  element.addEventListener("click", () => {
+    const notification = element.__notification;
+    hideHeadsUpNotification();
+    if (notification) {
+      handleNotificationAction(notification).catch(error => showToast(error.message));
+    }
+  });
+  document.body.append(element);
+  return element;
+}
+
+function hideHeadsUpNotification() {
+  const element = document.getElementById("headsUpNotification");
+  if (!element) return;
+  element.classList.remove("show");
+  window.setTimeout(() => {
+    if (!element.classList.contains("show")) element.hidden = true;
+  }, 180);
+}
+
+function showHeadsUpNotification(notification) {
+  const element = getHeadsUpElement();
+  element.__notification = notification.notificationId || notification.type ? notification : null;
+  element.querySelector("strong").textContent = notification.title || "새 알림";
+  element.querySelector("span").textContent = notification.content || "";
+  element.hidden = false;
+  clearTimeout(headsUpTimer);
+  requestAnimationFrame(() => element.classList.add("show"));
+  headsUpTimer = setTimeout(hideHeadsUpNotification, 3600);
+}
+
+function renderParentSubmissionMedia() {
+  if (!parentSubmissionPreview || !appState.currentSubmission?.mediaUrl) return;
+  const media = appState.currentSubmission;
+  const mediaUrl = new URL(media.mediaUrl.replace(/^\//, ""), document.baseURI).pathname;
+  parentSubmissionPreview.innerHTML = media.mediaType === "photo"
+    ? `<img class="capture-preview-media is-visible" src="${mediaUrl}" alt="제출 사진">`
+    : `<video class="capture-preview-media is-visible" src="${mediaUrl}" controls playsinline></video>`;
+}
+
+function openParentSubmissionDetail(submission) {
+  if (!submission) {
+    switchTab("parentSubmissionsScreen");
+    return;
+  }
+  appState.currentSubmission = submission;
+  renderParentSubmissionDetail();
+  renderParentSubmissionMedia();
+  switchTab("parentSubmissionDetailScreen");
+}
+
+async function openNotificationTarget(notification) {
+  if (appState.role === "parent") {
+    if (!serverDashboard) await loadParentDashboard();
+    if (notification.type === "reward_request") {
+      const submissionId = Number(notification.submissionId);
+      const submission = appState.submissions.find(
+        item => Number(item.submissionId) === submissionId);
+      openParentSubmissionDetail(submission);
+      return;
+    }
+    switchTab("parentScreen");
+    return;
+  }
+
+  if (!serverChildHome) await loadChildHome();
+  const submissionId = Number(notification.submissionId);
+  const submission = serverChildHome.submissions.find(
+    item => Number(item.submissionId) === submissionId);
+
+  if (notification.type === "mission_assigned") {
+    switchTab("childTodayMissionsScreen");
+    return;
+  }
+  if (notification.type === "mission_approved") {
+    if (submission?.rewardGiven === "N") {
+      appState.currentSubmission = submission;
+      renderRewardBoxScreen(submission);
+      switchTab("childRewardBoxScreen");
+    } else {
+      appState.selectedInventoryTab = "boxes";
+      renderInventoryTab();
+      switchTab("childInventoryScreen");
+    }
+    return;
+  }
+  if (notification.type === "mission_rejected") {
+    appState.currentSubmission = submission || appState.currentSubmission;
+    renderChildSubmissionResult(appState.currentSubmission);
+    switchTab("childMissionResultScreen");
+    return;
+  }
+  if (notification.type === "reward_paid") {
+    appState.selectedInventoryTab = "boxes";
+    renderInventoryTab();
+    switchTab("childInventoryScreen");
+    return;
+  }
+  switchTab("childNotificationsScreen");
+}
+
+async function handleNotificationAction(notification) {
+  await markNotificationRead(notification);
+  await openNotificationTarget(notification);
+}
+
 function applyActivePetState(activePet) {
   if (!activePet) return;
-  appState.pet.name = activePet.pet?.name || appState.pet.name;
+  const petName = activePet.pet?.name || appState.pet.name;
+  appState.pet.name = petName === "토리" || petName === "tori" ? "몽글이" : petName;
   appState.pet.level = activePet.currentLevel;
   appState.pet.exp = Math.min(300, Math.max(
     0, activePet.currentExp - ((activePet.currentLevel - 1) * 300)));
@@ -305,8 +552,9 @@ async function buildProfileCharacterData(characterData) {
   };
 }
 
-async function loadParentDashboard() {
+async function loadParentDashboard(options = {}) {
   serverDashboard = await apiRequest("/parent/dashboard");
+  rememberKnownNotifications("parent", serverDashboard.notifications, options.showHeadsUp);
   window.__serverDashboardLoaded = true;
   appState.parent.name = serverDashboard.parent.name;
   appState.parent.email = serverDashboard.parent.email;
@@ -326,6 +574,7 @@ async function loadParentDashboard() {
   renderParentDashboardData();
   renderInvite();
   renderParentSubmissions();
+  updateAppBadges();
 }
 
 function renderParentDashboardData() {
@@ -442,8 +691,9 @@ renderParentSubmissions = function renderServerParentSubmissions() {
     : '<div class="empty-dex">승인 대기 제출물이 없어요.</div>';
 };
 
-async function loadChildHome() {
+async function loadChildHome(options = {}) {
   serverChildHome = await apiRequest("/child/home");
+  rememberKnownNotifications("child", serverChildHome.notifications, options.showHeadsUp);
   loadedServerDate = serverChildHome.serverDate || "";
   const child = serverChildHome.child;
   appState.child.nickname = child.nickname;
@@ -474,6 +724,7 @@ async function loadChildHome() {
   renderPet();
   renderHomeProfileCharacter();
   renderMyPage();
+  updateAppBadges();
 }
 
 function renderChildMissionData() {
@@ -644,6 +895,9 @@ interceptClick("#backToEntryBtn", async () => {
   window.__serverDashboardLoaded = false;
   serverDashboard = null;
   serverChildHome = null;
+  knownParentNotificationIds.clear();
+  knownChildNotificationIds.clear();
+  hideHeadsUpNotification();
   childInviteInput.value = "";
   document.getElementById("parentPassword").value = "";
   backToEntry();
@@ -693,6 +947,15 @@ document.addEventListener("click", event => {
     return;
   }
 
+  const notificationButton = event.target.closest("[data-notification-id]");
+  if (notificationButton) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const notification = notificationFromElement(notificationButton);
+    handleNotificationAction(notification).catch(error => showToast(error.message));
+    return;
+  }
+
   const missionButton = event.target.closest("[data-server-mission]");
   if (missionButton) {
     event.preventDefault();
@@ -713,16 +976,7 @@ document.addEventListener("click", event => {
     event.stopImmediatePropagation();
     appState.currentSubmission = appState.submissions.find(
       item => item.submissionId === Number(submissionButton.dataset.serverSubmission));
-    renderParentSubmissionDetail();
-    if (parentSubmissionPreview && appState.currentSubmission) {
-      const media = appState.currentSubmission;
-      const mediaUrl = new URL(
-        media.mediaUrl.replace(/^\//, ""), document.baseURI).pathname;
-      parentSubmissionPreview.innerHTML = media.mediaType === "photo"
-        ? `<img class="capture-preview-media is-visible" src="${mediaUrl}" alt="제출 사진">`
-        : `<video class="capture-preview-media is-visible" src="${mediaUrl}" controls playsinline></video>`;
-    }
-    switchTab("parentSubmissionDetailScreen");
+    openParentSubmissionDetail(appState.currentSubmission);
   }
 }, true);
 
@@ -747,12 +1001,7 @@ document.querySelectorAll(
   .forEach(button => {
     button.addEventListener("click", () => {
       if (appState.role === "parent") {
-        const target = button.dataset.tab || button.dataset.quickTab;
-        const refresh = target === "parentNotificationsScreen"
-          ? apiRequest("/parent/notifications/read", { method: "POST" })
-              .then(loadParentDashboard)
-          : loadParentDashboard();
-        refresh.catch(error => showToast(error.message));
+        loadParentDashboard().catch(error => showToast(error.message));
       }
     }, true);
   });
@@ -762,11 +1011,7 @@ document.querySelectorAll(
   .forEach(button => {
     button.addEventListener("click", () => {
       if (appState.role === "child") {
-        const refresh = button.dataset.tab === "childNotificationsScreen"
-          ? apiRequest("/child/notifications/read", { method: "POST" })
-              .then(loadChildHome)
-          : loadChildHome();
-        refresh.catch(error => showToast(error.message));
+        loadChildHome().catch(error => showToast(error.message));
       }
     }, true);
   });
@@ -962,6 +1207,10 @@ interceptClick("#submitCaptureBtn", async () => {
   appState.missionStatus = "submitted";
   renderSubmissionWaiting();
   switchTab("childSubmissionWaitingScreen");
+  showHeadsUpNotification({
+    title: "인증이 제출됐어요",
+    content: "보호자에게 검토 알림을 보냈어요."
+  });
   showToast("인증이 제출됐어요.");
 });
 
@@ -974,6 +1223,10 @@ document.querySelectorAll("[data-mock-approve]").forEach(button => {
     });
     await loadParentDashboard();
     switchTab("parentSubmissionsScreen");
+    showHeadsUpNotification({
+      title: "인증이 승인됐어요",
+      content: "아이에게 승인 알림을 보냈어요."
+    });
     showToast("미션을 승인했습니다.");
   });
 });
@@ -986,6 +1239,10 @@ document.querySelectorAll("[data-mock-reject]").forEach(button => {
     });
     await loadParentDashboard();
     switchTab("parentSubmissionsScreen");
+    showHeadsUpNotification({
+      title: "다시 요청을 보냈어요",
+      content: "아이에게 재인증 알림을 보냈어요."
+    });
     showToast("다시 요청 상태로 변경했습니다.");
   });
 });
@@ -1161,21 +1418,13 @@ restoreSession().catch(() => {});
 window.setInterval(() => {
   updateRelativeNotificationTimes();
   const activeScreenId = getActiveScreenId();
-  if (appState.role === "child" && activeScreenId === "childNotificationsScreen") {
-    loadChildHome().catch(() => {});
+  if (!appRoot.classList.contains("is-entered") || activeScreenId === "childCameraScreen") {
+    return;
   }
-  if (appState.role === "parent" && activeScreenId === "parentNotificationsScreen") {
-    loadParentDashboard().catch(() => {});
+  if (appState.role === "parent") {
+    loadParentDashboard({ showHeadsUp: true }).catch(() => {});
   }
-  if (appState.role === "child" && loadedServerDate) {
-    const seoulDate = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }).format(new Date());
-    if (seoulDate !== loadedServerDate) {
-      loadChildHome().catch(() => {});
-    }
+  if (appState.role === "child") {
+    loadChildHome({ showHeadsUp: true }).catch(() => {});
   }
 }, 10000);

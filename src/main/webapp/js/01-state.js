@@ -148,6 +148,7 @@ const petCard = document.getElementById("petCard");
 const petFrame = document.getElementById("petFrame");
 const stateChip = document.getElementById("stateChip");
 const petSpeech = document.getElementById("petSpeech");
+const petMeta = document.getElementById("petMeta");
 const expText = document.getElementById("expText");
 const expPercent = document.getElementById("expPercent");
 const expFill = document.getElementById("expFill");

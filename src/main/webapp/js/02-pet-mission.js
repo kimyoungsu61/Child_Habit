@@ -131,6 +131,7 @@ function renderPet() {
   const percent = Math.min(100, Math.round((pet.exp / pet.maxExp) * 100));
 
   if (levelPill) levelPill.textContent = `Lv.${pet.level}`;
+  if (petMeta) petMeta.textContent = `${pet.name} · Lv.${pet.level}`;
   stateChip.textContent = meta.label;
   petSpeech.textContent = `"${pet.dialogue || meta.dialogue}"`;
   expText.textContent = `EXP ${pet.exp} / ${pet.maxExp}`;

@@ -333,7 +333,11 @@ public class ApiServlet extends HttpServlet {
         if (parent == null) {
             return;
         }
-        int updated = missionService.markAllParentNotificationsRead(parent.getParentId());
+        Long notificationId = parseLong(request.getParameter("notificationId"));
+        int updated = notificationId == null
+                ? missionService.markAllParentNotificationsRead(parent.getParentId())
+                : (missionService.markParentNotificationRead(
+                        notificationId, parent.getParentId()) ? 1 : 0);
         success(response, Map.of("updated", updated));
     }
 
@@ -343,7 +347,11 @@ public class ApiServlet extends HttpServlet {
         if (child == null) {
             return;
         }
-        int updated = missionService.markAllChildNotificationsRead(child.getChildId());
+        Long notificationId = parseLong(request.getParameter("notificationId"));
+        int updated = notificationId == null
+                ? missionService.markAllChildNotificationsRead(child.getChildId())
+                : (missionService.markChildNotificationRead(
+                        notificationId, child.getChildId()) ? 1 : 0);
         success(response, Map.of("updated", updated));
     }
 
@@ -661,6 +669,9 @@ public class ApiServlet extends HttpServlet {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("notificationId", item.getNotificationId());
             map.put("type", item.getNotificationType());
+            map.put("missionId", item.getMissionId());
+            map.put("submissionId", item.getSubmissionId());
+            map.put("rewardId", item.getRewardId());
             map.put("title", notificationTitle(item));
             map.put("content", notificationContent(item));
             map.put("isRead", item.getIsRead());

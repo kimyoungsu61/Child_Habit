@@ -28,7 +28,7 @@ public class Pet {
 
     public String getDisplayName() {
         return switch (petName) {
-            case "tori" -> "토리";
+            case "tori", "mongle" -> "몽글이";
             case "mongsil" -> "몽실";
             case "kongi" -> "콩이";
             default -> petName;

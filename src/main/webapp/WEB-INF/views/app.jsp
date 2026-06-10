@@ -112,7 +112,7 @@
           <div class="pet-summary">
             <div>
               <h2>오늘의 대표 펫</h2>
-              <p id="petMeta">몽글이 · 구름 강아지</p>
+              <p id="petMeta">몽글이 · Lv.1</p>
             </div>
             <span class="state-chip" id="stateChip">기본</span>
           </div>
@@ -238,7 +238,10 @@
           <h2>빠른 이동</h2>
           <div class="quick-grid">
             <button class="btn primary" type="button" data-quick-tab="parentInviteScreen">초대코드 생성</button>
-            <button class="btn mint" type="button" data-quick-tab="parentSubmissionsScreen">인증 검토</button>
+            <button class="btn mint has-count-badge" type="button" data-quick-tab="parentSubmissionsScreen">
+              인증 검토
+              <span class="count-badge" data-count-badge hidden>0</span>
+            </button>
             <button class="btn" type="button" data-quick-tab="parentChildScreen">아이 관리</button>
             <button class="btn" type="button" data-quick-tab="parentMissionsScreen">미션 목록</button>
             <button class="btn" type="button" data-quick-tab="parentChildProgressScreen">진행 현황</button>
@@ -248,7 +251,7 @@
       </section>
 
       <section class="screen parent-screen" id="parentInviteScreen" data-title="아이 초대"
-        data-subtitle="초대코드와 QR로 아이를 연결해요">
+        data-subtitle="초대코드로 아이를 연결해요">
         <article class="card panel invite-card">
           <h2>아이 초대코드</h2>
           <p>아이 화면에서 초대코드를 입력하면 보호자와 연결돼요.</p>
@@ -256,7 +259,6 @@
             <span>현재 초대코드</span>
             <strong id="inviteCodeText">ABC123</strong>
           </div>
-          <div class="qr-placeholder">QR</div>
           <button class="btn primary full" id="generateInviteBtn" type="button">초대코드 생성</button>
         </article>
       </section>

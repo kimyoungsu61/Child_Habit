@@ -4,6 +4,10 @@
 // 프론트는 서버가 내려준 사용자 역할에 따라 화면을 보여주는 방식으로 바꾸면 됩니다.
 
 function configureNavForRole(role) {
+  const labelWithBadge = label => `
+    <span class="nav-label">${label}</span>
+    <span class="count-badge nav-count-badge" data-count-badge hidden>0</span>
+  `;
   const navItems = role === "parent"
     ? [
       ["parentScreen", "홈"],
@@ -28,16 +32,19 @@ function configureNavForRole(role) {
     }
     button.style.display = "block";
     button.dataset.tab = item[0];
+    button.classList.toggle("has-count-badge",
+      item[0] === "parentNotificationsScreen" || item[0] === "childNotificationsScreen");
     if (item[1] === "heart") {
       button.innerHTML = '<span class="pet-nav-heart" aria-hidden="true">♥</span>';
       button.setAttribute("aria-label", "펫");
       button.title = "펫";
     } else {
-      button.textContent = item[1];
+      button.innerHTML = labelWithBadge(item[1]);
       button.removeAttribute("aria-label");
       button.removeAttribute("title");
     }
   });
+  if (typeof updateAppBadges === "function") updateAppBadges();
 }
 
 // 아직 로그인 전이어도 하단 메뉴 기본값은 아이 화면 기준으로 맞춰 둡니다.

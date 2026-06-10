@@ -450,6 +450,8 @@ async function startPhotoCamera() {
     captureState.stream = photoStream;
     photoCameraPreview.srcObject = photoStream;
     photoCameraPreview.hidden = false;
+    const playResult = photoCameraPreview.play?.();
+    if (playResult?.catch) await playResult.catch(() => {});
     setCaptureNotice("");
     childCaptureStage?.classList.add("has-media");
     return true;
@@ -460,6 +462,30 @@ async function startPhotoCamera() {
     childCaptureStage?.classList.remove("has-media");
     return false;
   }
+}
+
+function isPhotoFrameReady() {
+  return Boolean(photoCameraPreview?.srcObject
+    && photoCameraPreview.readyState >= 2
+    && photoCameraPreview.videoWidth
+    && photoCameraPreview.videoHeight);
+}
+
+function waitForPhotoFrame(timeoutMs = 2500) {
+  if (isPhotoFrameReady()) return Promise.resolve(true);
+  return new Promise(resolve => {
+    let settled = false;
+    const events = ["loadedmetadata", "loadeddata", "canplay", "playing"];
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      events.forEach(event => photoCameraPreview?.removeEventListener(event, finish));
+      resolve(isPhotoFrameReady());
+    };
+    const timer = window.setTimeout(finish, timeoutMs);
+    events.forEach(event => photoCameraPreview?.addEventListener(event, finish, { once: true }));
+  });
 }
 
 function stopPhotoCamera() {
@@ -480,31 +506,26 @@ async function takePhoto() {
   captureState.mediaType = "photo";
   if (!photoCameraPreview || !photoCaptureCanvas || !photoCapturePreview) return;
   const hasCamera = await startPhotoCamera();
-  const width = photoCameraPreview.videoWidth || 640;
-  const height = photoCameraPreview.videoHeight || 480;
+  const ready = hasCamera && await waitForPhotoFrame();
+  if (!ready) {
+    setCaptureNotice(hasCamera
+      ? "카메라 화면이 준비되지 않았어요. 잠시 후 다시 시도해 주세요."
+      : CAMERA_MESSAGES.notFound);
+    updateCaptureSubmitState();
+    return;
+  }
+  const width = photoCameraPreview.videoWidth;
+  const height = photoCameraPreview.videoHeight;
   photoCaptureCanvas.width = width;
   photoCaptureCanvas.height = height;
   const context = photoCaptureCanvas.getContext("2d");
+  if (!context) return;
   try {
-    if (hasCamera && photoCameraPreview.readyState >= 2 && photoCameraPreview.videoWidth) {
-      context.drawImage(photoCameraPreview, 0, 0, width, height);
-    } else {
-      context.fillStyle = "#172233";
-      context.fillRect(0, 0, width, height);
-      context.fillStyle = "#ffffff";
-      context.font = "bold 28px system-ui, sans-serif";
-      context.textAlign = "center";
-      context.fillText("사진 인증 테스트 이미지", width / 2, height / 2);
-      if (!hasCamera) setCaptureNotice(CAMERA_MESSAGES.notFound);
-    }
+    context.drawImage(photoCameraPreview, 0, 0, width, height);
   } catch (error) {
-    context.fillStyle = "#172233";
-    context.fillRect(0, 0, width, height);
-    context.fillStyle = "#ffffff";
-    context.font = "bold 28px system-ui, sans-serif";
-    context.textAlign = "center";
-    context.fillText("사진 인증 테스트 이미지", width / 2, height / 2);
     setCaptureNotice(normalizeCameraError(error));
+    updateCaptureSubmitState();
+    return;
   }
   capturedPhotoDataUrl = photoCaptureCanvas.toDataURL("image/png");
   captureState.hasPhoto = true;
