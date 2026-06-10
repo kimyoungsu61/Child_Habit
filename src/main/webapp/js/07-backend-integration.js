@@ -472,7 +472,10 @@ function renderRewardBoxScreen(submission) {
   const visual = document.getElementById("rewardBoxVisual");
   const message = document.getElementById("rewardBoxMessage");
   if (title) title.textContent = `${meta.label} 획득`;
-  if (visual) visual.textContent = meta.icon;
+  if (visual) {
+    visual.classList.add("has-image");
+    visual.innerHTML = `<img src="${rewardAssetSrc(meta.image)}" alt="${meta.label}">`;
+  }
   if (message) message.textContent = `승인된 미션 보상으로 ${meta.label} 1개를 받았어요.`;
 }
 

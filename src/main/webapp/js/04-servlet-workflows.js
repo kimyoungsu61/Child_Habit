@@ -19,11 +19,23 @@ function renderRewardCounts() {
 
 function getBoxMeta(boxType = appState.selectedBoxType || "beginner") {
   const boxMeta = {
-    beginner: { label: "하급 상자", grade: "하급", gradeClass: "low", icon: "LOW", resultLabel: "하급 상자" },
-    middle: { label: "중급 상자", grade: "중급", gradeClass: "middle", icon: "MID", resultLabel: "중급 상자" },
-    premium: { label: "상급 상자", grade: "상급", gradeClass: "high", icon: "HIGH", resultLabel: "상급 상자" }
+    beginner: { label: "하급 상자", grade: "하급", gradeClass: "low", icon: "LOW", resultLabel: "하급 상자", image: "reward_box_low_wood.png" },
+    middle: { label: "중급 상자", grade: "중급", gradeClass: "middle", icon: "MID", resultLabel: "중급 상자", image: "reward_box_middle_silver.png" },
+    premium: { label: "상급 상자", grade: "상급", gradeClass: "high", icon: "HIGH", resultLabel: "상급 상자", image: "reward_box_high_gold.png" }
   };
   return boxMeta[boxType] || boxMeta.beginner;
+}
+
+function rewardAssetSrc(fileName) {
+  const root = document.getElementById("appRoot");
+  const contextPath = root?.dataset?.contextPath || "";
+  return `${contextPath}/assets/rewards/${fileName}`;
+}
+
+function renderBoxIconImage(icon, meta) {
+  if (!icon || !meta?.image) return;
+  icon.classList.add("has-image");
+  icon.innerHTML = `<img src="${rewardAssetSrc(meta.image)}" alt="${meta.label}">`;
 }
 
 const REWARD_CHEST_MOTION_FILES = {
@@ -48,6 +60,9 @@ function getRewardChestMotionElements() {
 function resetRewardChestMotion(boxType = appState.selectedBoxType || "beginner") {
   const { stage, video, placeholder } = getRewardChestMotionElements();
   const src = rewardChestMotionSrc(boxType);
+  const meta = getBoxMeta(boxType);
+  const icon = document.getElementById("boxVideoIcon");
+  renderBoxIconImage(icon, meta);
   if (stage) stage.classList.remove("is-opening", "has-motion");
   if (placeholder) placeholder.hidden = false;
   if (video) {
@@ -174,7 +189,7 @@ function prepareBoxOpenScreen(boxType) {
   if (title) title.textContent = `${meta.label} 개봉`;
   if (guide) guide.textContent = "상자를 누르면 개봉 연출 후 경험치가 지급돼요.";
   if (chip) chip.textContent = meta.grade;
-  if (icon) icon.textContent = meta.icon;
+  renderBoxIconImage(icon, meta);
   if (result) {
     result.hidden = true;
     result.className = `reward-rule ${meta.gradeClass}`;

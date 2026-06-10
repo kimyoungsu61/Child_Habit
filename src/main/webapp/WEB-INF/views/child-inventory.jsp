@@ -50,17 +50,23 @@
                 </div>
                 <div class="reward-box-list">
                     <button class="reward-box-card low" type="button" ${lowCount <= 0 ? 'disabled' : ''}>
-                        <span class="reward-box-emoji">LOW</span>
+                        <span class="reward-box-emoji reward-box-thumb">
+                            <img src="${pageContext.request.contextPath}/assets/rewards/reward_box_low_wood.png" alt="하급 상자">
+                        </span>
                         <strong>하급 상자</strong>
                         <em><b>${lowCount}</b>개 보유</em>
                     </button>
                     <button class="reward-box-card middle" type="button" ${middleCount <= 0 ? 'disabled' : ''}>
-                        <span class="reward-box-emoji">MID</span>
+                        <span class="reward-box-emoji reward-box-thumb">
+                            <img src="${pageContext.request.contextPath}/assets/rewards/reward_box_middle_silver.png" alt="중급 상자">
+                        </span>
                         <strong>중급 상자</strong>
                         <em><b>${middleCount}</b>개 보유</em>
                     </button>
                     <button class="reward-box-card high" type="button" ${highCount <= 0 ? 'disabled' : ''}>
-                        <span class="reward-box-emoji">HIGH</span>
+                        <span class="reward-box-emoji reward-box-thumb">
+                            <img src="${pageContext.request.contextPath}/assets/rewards/reward_box_high_gold.png" alt="상급 상자">
+                        </span>
                         <strong>상급 상자</strong>
                         <em><b>${highCount}</b>개 보유</em>
                     </button>

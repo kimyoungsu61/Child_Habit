@@ -520,7 +520,9 @@
           <!-- 추후 실제 상자 개봉 영상 파일을 연결할 위치입니다. 예: assets/rewards/box-low-open.mp4 -->
           <video id="boxOpeningVideo" class="box-opening-video" muted playsinline preload="metadata" hidden></video>
           <div class="box-video-placeholder" id="boxVideoPlaceholder">
-            <span class="box-video-icon" id="boxVideoIcon">BOX</span>
+            <span class="box-video-icon has-image" id="boxVideoIcon">
+                <img src="/assets/rewards/reward_box_low_wood.png" alt="보상 상자">
+              </span>
             <strong>상자 개봉 영상 영역</strong>
             <em>후에 mp4/webm 파일을 연결하면 됩니다</em>
           </div>
@@ -559,17 +561,23 @@
           </div>
           <div class="reward-box-list">
             <button class="reward-box-card low" type="button" data-open-box="beginner">
-              <span class="reward-box-emoji">LOW</span>
+              <span class="reward-box-emoji reward-box-thumb">
+                  <img src="/assets/rewards/reward_box_low_wood.png" alt="하급 상자">
+                </span>
               <strong>하급 상자</strong>
               <em><b data-inventory-count="beginner">0</b>개 보유</em>
             </button>
             <button class="reward-box-card middle" type="button" data-open-box="middle">
-              <span class="reward-box-emoji">MID</span>
+              <span class="reward-box-emoji reward-box-thumb">
+                  <img src="/assets/rewards/reward_box_middle_silver.png" alt="중급 상자">
+                </span>
               <strong>중급 상자</strong>
               <em><b data-inventory-count="middle">0</b>개 보유</em>
             </button>
             <button class="reward-box-card high" type="button" data-open-box="premium">
-              <span class="reward-box-emoji">HIGH</span>
+              <span class="reward-box-emoji reward-box-thumb">
+                  <img src="/assets/rewards/reward_box_high_gold.png" alt="상급 상자">
+                </span>
               <strong>상급 상자</strong>
               <em><b data-inventory-count="premium">0</b>개 보유</em>
             </button>
