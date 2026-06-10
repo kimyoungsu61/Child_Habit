@@ -26,6 +26,93 @@ function getBoxMeta(boxType = appState.selectedBoxType || "beginner") {
   return boxMeta[boxType] || boxMeta.beginner;
 }
 
+const REWARD_CHEST_MOTION_FILES = {
+  beginner: "wood_box.mp4",
+  middle: "silver_box.mp4",
+  premium: "gold_box_open.mp4"
+};
+
+function rewardChestMotionSrc(boxType = appState.selectedBoxType || "beginner") {
+  const fileName = REWARD_CHEST_MOTION_FILES[boxType] || REWARD_CHEST_MOTION_FILES.beginner;
+  return new URL(`assets/reward-chest/${fileName}`, document.baseURI).pathname;
+}
+
+function getRewardChestMotionElements() {
+  return {
+    stage: document.getElementById("boxVideoStage"),
+    video: document.getElementById("boxOpeningVideo"),
+    placeholder: document.getElementById("boxVideoPlaceholder")
+  };
+}
+
+function resetRewardChestMotion(boxType = appState.selectedBoxType || "beginner") {
+  const { stage, video, placeholder } = getRewardChestMotionElements();
+  const src = rewardChestMotionSrc(boxType);
+  if (stage) stage.classList.remove("is-opening", "has-motion");
+  if (placeholder) placeholder.hidden = false;
+  if (video) {
+    video.pause();
+    video.hidden = true;
+    if (video.dataset.motionSrc !== src) {
+      video.src = src;
+      video.dataset.motionSrc = src;
+      video.load();
+    }
+    try {
+      video.currentTime = 0;
+    } catch (error) {
+      // Metadata may not be ready yet; the video will still start from the beginning on play.
+    }
+  }
+}
+
+function playRewardChestMotion(boxType = appState.selectedBoxType || "beginner") {
+  const { stage, video, placeholder } = getRewardChestMotionElements();
+  if (!video) {
+    if (stage) stage.classList.add("is-opening");
+    return new Promise(resolve => window.setTimeout(resolve, 900));
+  }
+
+  const src = rewardChestMotionSrc(boxType);
+  if (video.dataset.motionSrc !== src) {
+    video.src = src;
+    video.dataset.motionSrc = src;
+    video.load();
+  }
+  if (stage) stage.classList.add("is-opening", "has-motion");
+  if (placeholder) placeholder.hidden = true;
+  video.hidden = false;
+  video.muted = true;
+  try {
+    video.currentTime = 0;
+  } catch (error) {
+    // Ignore seek timing issues before metadata is loaded.
+  }
+
+  return new Promise(resolve => {
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      window.clearTimeout(fallbackTimer);
+      video.removeEventListener("ended", finish);
+      video.removeEventListener("error", finish);
+      resolve();
+    };
+    const fallbackTimer = window.setTimeout(finish, 3400);
+    video.addEventListener("ended", finish, { once: true });
+    video.addEventListener("error", finish, { once: true });
+    const playResult = video.play();
+    if (playResult?.catch) {
+      playResult.catch(() => {
+        if (placeholder) placeholder.hidden = false;
+        video.hidden = true;
+        finish();
+      });
+    }
+  });
+}
+
 
 function renderFrameDex() {
   // 1. 현재 펫 레벨 확인하기 (현재는 몽글이 기준, 추후 모든 펫은 대표 펫 레벨로 연결하는 단계)
@@ -83,7 +170,6 @@ function prepareBoxOpenScreen(boxType) {
   const resultText = document.getElementById("boxOpenResultText");
   const openButton = document.getElementById("playBoxOpenBtn");
   const expButton = document.getElementById("goExpResultBtn");
-  const stage = document.getElementById("boxVideoStage");
 
   if (title) title.textContent = `${meta.label} 개봉`;
   if (guide) guide.textContent = "상자를 누르면 개봉 연출 후 경험치가 지급돼요.";
@@ -100,7 +186,7 @@ function prepareBoxOpenScreen(boxType) {
     openButton.textContent = "상자 열기";
   }
   if (expButton) expButton.hidden = true;
-  if (stage) stage.classList.remove("is-opening");
+  resetRewardChestMotion(appState.selectedBoxType);
 }
 
 function openSelectedRewardBox() {
@@ -119,7 +205,6 @@ function openSelectedRewardBox() {
   const expButton = document.getElementById("goExpResultBtn");
   const result = document.getElementById("boxOpenResult");
   const resultText = document.getElementById("boxOpenResultText");
-  const stage = document.getElementById("boxVideoStage");
   const guide = document.getElementById("boxOpenGuide");
 
   appState.rewardBoxCounts[boxType] -= 1;
@@ -129,9 +214,9 @@ function openSelectedRewardBox() {
     openButton.disabled = true;
     openButton.textContent = "개봉 중...";
   }
-  if (stage) stage.classList.add("is-opening");
+  const motionPromise = playRewardChestMotion(boxType);
 
-  setTimeout(() => {
+  motionPromise.then(() => {
     addExp(exp);
     petDex[0].badgeAcquired = appState.pet.level >= 5;
     addHistory("reward", `${meta.resultLabel} 개봉`, `EXP ${exp}를 획득했어요.`);
@@ -143,10 +228,11 @@ function openSelectedRewardBox() {
     if (resultText) resultText.textContent = `EXP ${exp} 획득 · 몽글이 성장 반영`;
     if (openButton) openButton.hidden = true;
     if (expButton) expButton.hidden = false;
+    getRewardChestMotionElements().stage?.classList.remove("is-opening");
     restartReactClass();
     playFrameSequence("magic", { loop: false, onComplete: resetPet });
     showToast(`EXP ${exp} 획득!`);
-  }, 900);
+  });
 }
 
 // 부모가 아이를 초대할 때 보여줄 6자리 임시 코드를 만듭니다.

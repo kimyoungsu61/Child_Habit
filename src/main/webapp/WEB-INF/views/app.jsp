@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=notification-read-20260610" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=reward-chest-20260610" />
   </head>
 
   <body>
@@ -749,14 +749,14 @@
     PDF의 Servlet 흐름에 맞춰 프론트 JS를 기능별로 나눴습니다.
     아래 순서가 중요합니다. 뒤 파일은 앞 파일에서 만든 상수와 함수를 사용합니다.
   -->
-    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=notification-read-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=notification-read-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=notification-read-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=notification-read-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=notification-read-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=notification-read-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=notification-read-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=notification-read-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=reward-chest-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=reward-chest-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=reward-chest-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=reward-chest-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=reward-chest-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=reward-chest-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=reward-chest-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=reward-chest-20260610"></script>
   </body>
 
   </html>

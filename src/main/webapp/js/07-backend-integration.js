@@ -1369,7 +1369,7 @@ interceptClick("#playBoxOpenBtn", async () => {
     openButton.disabled = true;
     openButton.textContent = "개봉 중...";
   }
-  if (stage) stage.classList.add("is-opening");
+  const motionPromise = playRewardChestMotion(appState.selectedBoxType);
 
   try {
     const result = await apiRequest(`/child/boxes/${submission.submissionId}/open`, {
@@ -1379,7 +1379,7 @@ interceptClick("#playBoxOpenBtn", async () => {
     appState.lastRewardExp = result.expAmount;
     renderExpResult(result);
     await loadChildHome();
-    await new Promise(resolve => window.setTimeout(resolve, 900));
+    await motionPromise;
     if (guide) guide.textContent = "개봉 완료! 경험치 결과를 확인하세요.";
     if (resultBox) resultBox.hidden = false;
     if (resultText) resultText.textContent = `EXP ${result.expAmount}를 획득했어요.`;
@@ -1392,6 +1392,7 @@ interceptClick("#playBoxOpenBtn", async () => {
       openButton.disabled = false;
       openButton.textContent = "상자 열기";
     }
+    resetRewardChestMotion(appState.selectedBoxType);
     if (stage) stage.classList.remove("is-opening");
     throw error;
   }
