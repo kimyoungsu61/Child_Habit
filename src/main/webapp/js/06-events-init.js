@@ -176,7 +176,14 @@ document.querySelectorAll("[data-capture-mode]").forEach(button => {
   button.addEventListener("click", () => setCaptureMode(button.dataset.captureMode));
 });
 
-takePhotoBtn?.addEventListener("click", takePhoto);
+takePhotoBtn?.addEventListener("click", () => {
+  Promise.resolve(takePhoto()).catch(error => {
+    const message = normalizeCameraError(error);
+    if (cameraPermissionMessage) cameraPermissionMessage.textContent = message;
+    if (capturePlaceholder) capturePlaceholder.textContent = `📷\n${message}`;
+    updateCaptureSubmitState();
+  });
+});
 retakePhotoBtn?.addEventListener("click", retakePhoto);
 
 // 영상 녹화 임시 버튼입니다. 실제 녹화 파일은 아직 만들지 않고 상태만 바꿉니다.

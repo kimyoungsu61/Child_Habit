@@ -98,7 +98,7 @@ function preloadFrameSequences() {
 // 서버/상태값용 영문 status를 화면에 보여줄 한글 문구로 바꿉니다.
 function missionLabel(status) {
   const labels = {
-    none: "대기 전",
+    none: "대기",
     recording: "작성 중",
     submitted: "확인 대기",
     approved: "확인 완료",

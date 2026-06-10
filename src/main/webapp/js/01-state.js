@@ -53,7 +53,7 @@ const appState = {
   missionMode: "video",
   rewardMessage: "보호자 확인이 완료되면 상자를 고를 수 있어요.",
   dexFilter: "all",
-  inviteCode: "ABC123",
+
   currentMissionId: "mission-low",
   captureMode: "video",
   currentSubmission: null,
@@ -251,6 +251,21 @@ let photoStream = null;
 let capturedPhotoDataUrl = "";
 let videoRecordingReady = false;
 let isVideoRecording = false;
+let discardVideoRecording = false;
+const CAMERA_MESSAGES = {
+  permission: "카메라 권한을 허용해 주세요.",
+  notFound: "카메라 장치를 찾을 수 없습니다.",
+  unavailable: "카메라를 사용할 수 없습니다. 잠시 후 다시 시도해 주세요.",
+  notSupported: "이 브라우저에서는 카메라 촬영을 지원하지 않습니다."
+};
+const captureState = {
+  mediaType: "video",
+  isRecording: false,
+  hasVideo: false,
+  hasPhoto: false,
+  stream: null,
+  recorder: null
+};
 let selectedCharacterOptions = {
   expression: null,
   background: null,
