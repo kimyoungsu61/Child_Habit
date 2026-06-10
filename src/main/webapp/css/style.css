@@ -3,11 +3,102 @@
 @import url("./00-base-layout.css");
 @import url("./01-entry-auth.css");
 @import url("./02-shell-components.css");
-@import url("./03-pet-home.css");
+@import url("./03-pet-home.css?v=pet-stage-20260610-2");
 @import url("./04-common-ui.css");
 @import url("./05-profile-modal.css");
-@import url("./06-compact-responsive.css");
+@import url("./06-compact-responsive.css?v=pet-stage-20260610-2");
 @import url("./07-parent-child-flows.css");
 @import url("./08-character-profile-frame.css");
 @import url("./09-capture.css");
 @import url("./10-mobile-overrides.css");
+
+/* =========================
+   Pet home background applied
+   - 펫 메인 화면 배경 이미지 적용
+   ========================= */
+#petScreen .pet-stage,
+#petScreen .pet-room,
+#petScreen .pet-area,
+#petScreen .pet-card,
+#petScreen .pet-hero,
+#petScreen .pet-display,
+#petScreen .character-stage,
+#petScreen .profile-pet-stage,
+#petScreen .panel:first-child {
+  position: relative;
+  overflow: hidden;
+  border-radius: 24px;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.10)),
+    url("../assets/backgrounds/pet_home_bg.png?v=pet-stage-20260610-2") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
+
+#petScreen .pet-stage::before,
+#petScreen .pet-room::before,
+#petScreen .pet-area::before,
+#petScreen .pet-card::before,
+#petScreen .pet-hero::before,
+#petScreen .pet-display::before,
+#petScreen .character-stage::before,
+#petScreen .profile-pet-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 58%, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.18));
+  z-index: 0;
+}
+
+#petScreen .pet-stage > *,
+#petScreen .pet-room > *,
+#petScreen .pet-area > *,
+#petScreen .pet-card > *,
+#petScreen .pet-hero > *,
+#petScreen .pet-display > *,
+#petScreen .character-stage > *,
+#petScreen .profile-pet-stage > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* 펫이 배경 중앙 무대 위에 자연스럽게 올라오도록 보정 */
+#petScreen .pet-sprite,
+#petScreen .pet-image,
+#petScreen .pet-character,
+#petScreen .character-image,
+#petScreen img[alt*="펫"],
+#petScreen img[alt*="몽글"] {
+  position: relative;
+  z-index: 2;
+  transform: translateY(8px);
+  filter: drop-shadow(0 16px 18px rgba(83, 111, 133, 0.16));
+}
+
+/* 펫 카드 내부 텍스트/버튼 가독성 보호 */
+#petScreen .pet-info,
+#petScreen .pet-status,
+#petScreen .pet-actions,
+#petScreen .status-card,
+#petScreen .btn {
+  position: relative;
+  z-index: 3;
+}
+
+/* 모바일 카드 비율 보정 */
+@media (max-width: 430px) {
+  #petScreen .pet-stage,
+  #petScreen .pet-room,
+  #petScreen .pet-area,
+  #petScreen .pet-card,
+  #petScreen .pet-hero,
+  #petScreen .pet-display,
+  #petScreen .character-stage,
+  #petScreen .profile-pet-stage,
+  #petScreen .panel:first-child {
+    min-height: 314px;
+    background-position: center center !important;
+  }
+}

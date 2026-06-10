@@ -40,14 +40,16 @@
 .pet-stage {
   position: relative;
   height: clamp(218px, 34dvh, 292px);
-  padding: 10px 8px 22px;
+  padding: 10px 8px 18px;
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid rgba(255, 205, 102, 0.56);
-  background:
-    radial-gradient(circle at 27% 28%, rgba(255, 255, 255, 0.86), transparent 18%),
-    radial-gradient(circle at 76% 70%, rgba(255, 225, 132, 0.45), transparent 25%),
-    linear-gradient(180deg, #eaffff 0%, #fff4d7 100%);
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.06)),
+    url("../assets/backgrounds/pet_home_bg.png?v=pet-stage-20260610-2");
+  background-size: cover;
+  background-position: center 58%;
+  background-repeat: no-repeat;
   display: grid;
   place-items: center;
   margin-bottom: 9px;
@@ -62,7 +64,7 @@
   position: relative;
   display: grid;
   place-items: center;
-  transform: translateY(0);
+  transform: translateY(18px);
   z-index: 2;
 }
 
