@@ -6,7 +6,140 @@ function renderRewardCounts() {
   Object.entries(appState.rewardBoxCounts).forEach(([box, count]) => {
     const element = document.getElementById(`${box}BoxCount`);
     if (element) element.textContent = `[${count}]`;
+    document.querySelectorAll(`[data-inventory-count="${box}"]`).forEach(countElement => {
+      countElement.textContent = count;
+    });
+    const card = document.querySelector(`[data-open-box="${box}"]`);
+    if (card) {
+      card.disabled = count <= 0;
+      card.classList.toggle("empty", count <= 0);
+    }
   });
+}
+
+function getBoxMeta(boxType = appState.selectedBoxType || "beginner") {
+  const boxMeta = {
+    beginner: { label: "하급 상자", grade: "하급", gradeClass: "low", icon: "LOW", resultLabel: "하급 상자" },
+    middle: { label: "중급 상자", grade: "중급", gradeClass: "middle", icon: "MID", resultLabel: "중급 상자" },
+    premium: { label: "상급 상자", grade: "상급", gradeClass: "high", icon: "HIGH", resultLabel: "상급 상자" }
+  };
+  return boxMeta[boxType] || boxMeta.beginner;
+}
+
+
+function renderFrameDex() {
+  // 1. 현재 펫 레벨 확인하기 (현재는 몽글이 기준, 추후 모든 펫은 대표 펫 레벨로 연결하는 단계)
+  const currentLevel = getPetFrameLevel();
+  const frameGrid = document.querySelector(".frame-dex-grid");
+  if (!frameGrid) return;
+
+  // 2. 액자 목록 만들기 (레벨 조건에 따라 보유/잠김 상태를 나누는 단계)
+  frameGrid.innerHTML = Object.entries(PROFILE_FRAMES).map(([key, frame]) => {
+    const unlocked = isProfileFrameUnlocked(key, currentLevel);
+    const statusText = unlocked ? (frame.unlockLevel === 1 ? "기본 보유" : `Lv.${frame.unlockLevel} 해금 완료`) : `Lv.${frame.unlockLevel} 해금`;
+    const cardClass = unlocked ? "owned" : "locked";
+    const questionMark = unlocked ? "" : "<b>?</b>";
+
+    return `
+      <article class="frame-dex-card ${cardClass}" data-frame-key="${key}">
+        <div class="frame-dex-preview ${unlocked ? "" : "silhouette"}">
+          <img src="${frame.image}" alt="${frame.label}" />
+          ${questionMark}
+        </div>
+        <strong>${frame.label}</strong>
+        <span>${statusText}</span>
+      </article>
+    `;
+  }).join("");
+}
+
+function renderInventoryTab() {
+  const selectedTab = appState.selectedInventoryTab || "boxes";
+  document.querySelectorAll("[data-inventory-tab]").forEach(button => {
+    button.classList.toggle("active", button.dataset.inventoryTab === selectedTab);
+  });
+  document.querySelectorAll("[data-inventory-panel]").forEach(panel => {
+    panel.classList.toggle("active", panel.dataset.inventoryPanel === selectedTab);
+  });
+  renderRewardCounts();
+  renderFrameDex();
+}
+
+function prepareBoxOpenScreen(boxType) {
+  appState.selectedBoxType = boxType || "beginner";
+  const meta = getBoxMeta(appState.selectedBoxType);
+  const title = document.getElementById("boxOpenTitle");
+  const guide = document.getElementById("boxOpenGuide");
+  const chip = document.getElementById("boxOpenGradeChip");
+  const icon = document.getElementById("boxVideoIcon");
+  const result = document.getElementById("boxOpenResult");
+  const resultText = document.getElementById("boxOpenResultText");
+  const openButton = document.getElementById("playBoxOpenBtn");
+  const expButton = document.getElementById("goExpResultBtn");
+  const stage = document.getElementById("boxVideoStage");
+
+  if (title) title.textContent = `${meta.label} 개봉`;
+  if (guide) guide.textContent = "상자를 누르면 개봉 연출 후 경험치가 지급돼요.";
+  if (chip) chip.textContent = meta.grade;
+  if (icon) icon.textContent = meta.icon;
+  if (result) {
+    result.hidden = true;
+    result.className = `reward-rule ${meta.gradeClass}`;
+  }
+  if (resultText) resultText.textContent = "EXP를 획득했어요.";
+  if (openButton) {
+    openButton.hidden = false;
+    openButton.disabled = false;
+    openButton.textContent = "상자 열기";
+  }
+  if (expButton) expButton.hidden = true;
+  if (stage) stage.classList.remove("is-opening");
+}
+
+function openSelectedRewardBox() {
+  const boxType = appState.selectedBoxType || "beginner";
+  const count = appState.rewardBoxCounts[boxType] || 0;
+  if (count <= 0) {
+    showToast("보유한 상자가 없어요.");
+    switchTab("childInventoryScreen");
+    return;
+  }
+
+  const meta = getBoxMeta(boxType);
+  const [min, max] = rewardBoxes[boxType] || rewardBoxes.beginner;
+  const exp = Math.floor(min + Math.random() * (max - min + 1));
+  const openButton = document.getElementById("playBoxOpenBtn");
+  const expButton = document.getElementById("goExpResultBtn");
+  const result = document.getElementById("boxOpenResult");
+  const resultText = document.getElementById("boxOpenResultText");
+  const stage = document.getElementById("boxVideoStage");
+  const guide = document.getElementById("boxOpenGuide");
+
+  appState.rewardBoxCounts[boxType] -= 1;
+  appState.lastRewardExp = exp;
+  appState.rewardMessage = `${meta.resultLabel}에서 EXP ${exp}를 얻었어요.`;
+  if (openButton) {
+    openButton.disabled = true;
+    openButton.textContent = "개봉 중...";
+  }
+  if (stage) stage.classList.add("is-opening");
+
+  setTimeout(() => {
+    addExp(exp);
+    petDex[0].badgeAcquired = appState.pet.level >= 5;
+    addHistory("reward", `${meta.resultLabel} 개봉`, `EXP ${exp}를 획득했어요.`);
+    renderRewardCounts();
+    renderInventoryTab();
+    renderMission();
+    if (guide) guide.textContent = "개봉 완료! 경험치 결과를 확인하세요.";
+    if (result) result.hidden = false;
+    if (resultText) resultText.textContent = `EXP ${exp} 획득 · 몽글이 성장 반영`;
+    if (openButton) openButton.hidden = true;
+    if (expButton) expButton.hidden = false;
+    restartReactClass();
+    playFrameSequence("magic", { loop: false, onComplete: resetPet });
+    showToast(`EXP ${exp} 획득!`);
+  }, 900);
 }
 
 // 부모가 아이를 초대할 때 보여줄 6자리 임시 코드를 만듭니다.
@@ -457,4 +590,16 @@ function renderMyPage() {
   syncProfileFrames();
   scheduleApplySavedProfileCropStyle();
   renderHistories();
+}
+
+function renderExpResult() {
+  const expTitle = document.querySelector("#childExpResultScreen h2");
+  const expText = document.querySelector("#childExpResultScreen p");
+  const fill = document.querySelector("#childExpResultScreen .progress-fill");
+  const exp = appState.lastRewardExp || 0;
+  const percent = Math.min(100, Math.round((appState.pet.exp / appState.pet.maxExp) * 100));
+
+  if (expTitle) expTitle.textContent = `EXP +${exp}`;
+  if (expText) expText.textContent = `${appState.pet.name}가 조금 더 성장했어요. 현재 Lv.${appState.pet.level}입니다.`;
+  if (fill) fill.style.width = `${percent}%`;
 }

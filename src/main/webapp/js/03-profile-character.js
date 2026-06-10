@@ -2,16 +2,29 @@
 // 현재는 localStorage에 저장하지만, 실제 서비스에서는 ChildSetupServlet이 저장하고
 // ChildHomeServlet이 저장된 프로필/캐릭터 정보를 내려주는 구조가 좋습니다.
 
+function getPetFrameLevel() {
+  // 1. 현재 대표 펫 레벨 가져오기 (추후 여러 펫이 생기면 activePet.currentLevel 값으로 교체하는 단계)
+  return Number(appState.pet?.level) || 1;
+}
+
+function isProfileFrameUnlocked(frameKey, level = getPetFrameLevel()) {
+  // 2. 액자 해금 여부 계산하기 (모든 펫은 자신의 현재 레벨 기준으로 액자를 해금하는 단계)
+  const frame = PROFILE_FRAMES[frameKey];
+  if (!frame) return false;
+  return level >= frame.unlockLevel;
+}
+
 function getProfileFrameByLevel(level) {
+  // 3. 현재 레벨에서 사용할 수 있는 가장 높은 액자를 계산하기 (자동 적용용 임시 정책)
   const petLevel = Number(level) || 1;
-  if (petLevel >= 3) return { key: "gold", ...PROFILE_FRAMES.gold };
-  if (petLevel >= 2) return { key: "silver", ...PROFILE_FRAMES.silver };
+  if (isProfileFrameUnlocked("gold", petLevel)) return { key: "gold", ...PROFILE_FRAMES.gold };
+  if (isProfileFrameUnlocked("silver", petLevel)) return { key: "silver", ...PROFILE_FRAMES.silver };
   return { key: "bronze", ...PROFILE_FRAMES.bronze };
 }
 
 // 현재 펫 레벨에 맞는 프로필 프레임을 계산합니다.
 function getCurrentProfileFrame() {
-  return getProfileFrameByLevel(appState.pet.level);
+  return getProfileFrameByLevel(getPetFrameLevel());
 }
 
 // 초대코드는 대소문자/공백이 섞일 수 있으므로 비교 전에 같은 형식으로 정리합니다.

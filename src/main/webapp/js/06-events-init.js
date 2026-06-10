@@ -416,3 +416,36 @@ ensureBackNavigationControls();
 showEntryPanel("entryStartCard");
 setPetFrame("idle", 0);
 playFrameSequence("idle", { loop: true });
+
+// 인벤토리 카테고리 탭입니다.
+// 1. 탭값 저장하기 (사용자가 선택한 보상함 카테고리를 상태에 저장하는 단계)
+// 2. 화면 다시 그리기 (선택된 탭 패널만 보이게 갱신하는 단계)
+document.querySelectorAll("[data-inventory-tab]").forEach(button => {
+  button.addEventListener("click", () => {
+    appState.selectedInventoryTab = button.dataset.inventoryTab || "boxes";
+    renderInventoryTab();
+  });
+});
+
+// 인벤토리의 리워드 상자 카드입니다.
+// 1. 상자 종류 받기 (하급/중급/상급 중 어떤 상자를 눌렀는지 확인하는 단계)
+// 2. 보유 수량 확인하기 (0개면 개봉 화면으로 보내지 않는 단계)
+// 3. 개봉 화면 이동하기 (선택한 상자 정보를 화면에 반영하는 단계)
+document.querySelectorAll("[data-open-box]").forEach(button => {
+  button.addEventListener("click", () => {
+    const boxType = button.dataset.openBox || "beginner";
+    if ((appState.rewardBoxCounts[boxType] || 0) <= 0) {
+      showToast("보유한 상자가 없어요. 미션 보상을 먼저 받아요.");
+      return;
+    }
+    appState.selectedBoxType = boxType;
+    prepareBoxOpenScreen(boxType);
+    switchTab("childRewardOpenScreen");
+  });
+});
+
+// 상자 개봉 버튼입니다.
+// 1. 선택된 상자 확인하기 (인벤토리에서 선택한 상자 등급을 가져오는 단계)
+// 2. 개봉 연출 실행하기 (현재는 CSS 애니메이션, 추후 영상 재생으로 교체할 단계)
+// 3. 경험치 반영하기 (상자 수량 차감 후 펫 EXP를 올리는 단계)
+document.getElementById("playBoxOpenBtn")?.addEventListener("click", openSelectedRewardBox);
