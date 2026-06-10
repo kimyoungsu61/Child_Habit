@@ -22,6 +22,8 @@ public interface ChildAccountMapper {
 
     ChildProfile findChildById(Long childId);
 
+    int updateFrame(@Param("childId") Long childId, @Param("frameType") String frameType);
+
     int regenerateInviteCode(@Param("childId") Long childId,
             @Param("parentId") Long parentId,
             @Param("inviteCode") String inviteCode);

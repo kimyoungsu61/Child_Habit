@@ -1,6 +1,7 @@
 package com.genai.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -97,6 +98,8 @@ public class ApiServlet extends HttpServlet {
                 createInvite(request, response);
             } else if ("/parent/missions".equals(path)) {
                 createMission(request, response);
+            } else if (path.matches("/parent/missions/\\d+/cancel")) {
+                cancelMission(request, response, path);
             } else if ("/child/setup".equals(path)) {
                 childSetup(request, response);
             } else if ("/child/submissions".equals(path)) {
@@ -105,6 +108,10 @@ public class ApiServlet extends HttpServlet {
                 reviewSubmission(request, response, path);
             } else if (path.matches("/child/boxes/\\d+/open")) {
                 openBox(request, response, path);
+            } else if ("/child/pet/interactions".equals(path)) {
+                interactWithPet(request, response);
+            } else if ("/child/profile/frame".equals(path)) {
+                updateChildFrame(request, response);
             } else {
                 error(response, HttpServletResponse.SC_NOT_FOUND,
                         "지원하지 않는 API입니다.");
@@ -241,6 +248,8 @@ public class ApiServlet extends HttpServlet {
                 missionService.findMissionsForParent(parent.getParentId())));
         data.put("submissions", submissionMaps(
                 missionService.findPendingForParent(parent.getParentId())));
+        data.put("todaySubmissions", submissionMaps(
+                missionService.findTodayForParent(parent.getParentId())));
         data.put("progress", progressMaps(
                 missionService.findTodayProgressForParent(parent.getParentId())));
         data.put("notifications", notificationMaps(
@@ -260,7 +269,8 @@ public class ApiServlet extends HttpServlet {
         data.put("child", childMap(child));
         data.put("setupComplete", child.getCharacterImageUrl() != null && activePet != null);
         data.put("activePet", activePet == null ? null : childPetMap(activePet));
-        data.put("missions", missionMaps(missionService.findMissionsForChild(child.getChildId())));
+        data.put("missions", missionMaps(missionService.findMissionsForChild(child.getChildId())
+                .stream().limit(5).toList()));
         data.put("submissions", submissionMaps(
                 missionService.findChildSubmissions(child.getChildId())));
         data.put("inventory", inventoryMaps(
@@ -269,6 +279,7 @@ public class ApiServlet extends HttpServlet {
                 missionService.findActivityHistoryForChild(child.getChildId())));
         data.put("notifications", notificationMaps(
                 missionService.findNotificationsForChild(child.getChildId())));
+        data.put("serverDate", LocalDate.now().toString());
         success(response, data);
     }
 
@@ -299,6 +310,17 @@ public class ApiServlet extends HttpServlet {
                 request.getParameter("missionGrade"),
                 request.getParameter("mediaType"));
         success(response, Map.of("created", true));
+    }
+
+    private void cancelMission(HttpServletRequest request, HttpServletResponse response,
+            String path) throws IOException {
+        Parent parent = requireParent(request, response);
+        if (parent == null) {
+            return;
+        }
+        Long missionId = Long.valueOf(path.split("/")[3]);
+        missionService.deleteMission(missionId, parent.getParentId());
+        success(response, Map.of("deleted", true));
     }
 
     private void childSetup(HttpServletRequest request, HttpServletResponse response)
@@ -392,6 +414,34 @@ public class ApiServlet extends HttpServlet {
         data.put("currentLevel", result.getCurrentLevel());
         data.put("currentExp", result.getCurrentExp());
         success(response, data);
+    }
+
+    private void interactWithPet(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        ChildProfile child = requireChild(request, response);
+        if (child == null) {
+            return;
+        }
+        ChildPet activePet = gameProfileService.addInteractionExp(
+                child.getChildId(), value(request.getParameter("action")));
+        success(response, childPetMap(activePet));
+    }
+
+    private void updateChildFrame(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        ChildProfile child = requireChild(request, response);
+        if (child == null) {
+            return;
+        }
+        ChildPet activePet = gameProfileService.findActivePet(child.getChildId());
+        if (activePet == null) {
+            throw new IllegalStateException("대표 펫을 찾을 수 없습니다.");
+        }
+        ChildProfile updated = childAccountService.updateFrame(
+                child.getChildId(),
+                value(request.getParameter("frameType")),
+                activePet.getCurrentLevel());
+        success(response, Map.of("child", childMap(updated)));
     }
 
     private Parent requireParent(HttpServletRequest request, HttpServletResponse response)
@@ -506,6 +556,9 @@ public class ApiServlet extends HttpServlet {
         map.put("mediaType", submission.getMediaType());
         map.put("mediaUrl", submission.getMediaUrl());
         map.put("status", submission.getStatus());
+        map.put("missionDate", submission.getMissionDate() == null
+                ? ""
+                : submission.getMissionDate().toString());
         map.put("submittedAt", string(submission.getSubmittedAt()));
         map.put("reviewedAt", string(submission.getReviewedAt()));
         map.put("rewardGiven", submission.getRewardGiven());

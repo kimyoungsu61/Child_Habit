@@ -22,6 +22,12 @@ public class MissionDAO {
         }
     }
 
+    public int countActiveMissionsByChild(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(MissionMapper.class).countActiveMissionsByChild(childId);
+        }
+    }
+
     public boolean updateMission(Mission mission) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
             int updated = session.getMapper(MissionMapper.class).updateMission(mission);
@@ -39,6 +45,19 @@ public class MissionDAO {
             int updated = session.getMapper(MissionMapper.class)
                     .deactivateMission(missionId, parentId);
             if (updated == 1) {
+                session.commit();
+                return true;
+            }
+            session.rollback();
+            return false;
+        }
+    }
+
+    public boolean deleteMission(Long missionId, Long parentId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            MissionMapper mapper = session.getMapper(MissionMapper.class);
+            mapper.deleteMissionNotifications(missionId, parentId);
+            if (mapper.deleteMission(missionId, parentId) == 1) {
                 session.commit();
                 return true;
             }
@@ -129,6 +148,12 @@ public class MissionDAO {
     public List<MissionSubmission> findPendingByParentId(Long parentId) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
             return session.getMapper(MissionMapper.class).findPendingByParentId(parentId);
+        }
+    }
+
+    public List<MissionSubmission> findTodayByParentId(Long parentId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(MissionMapper.class).findTodayByParentId(parentId);
         }
     }
 

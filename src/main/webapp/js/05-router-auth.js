@@ -8,14 +8,14 @@ function configureNavForRole(role) {
     ? [
       ["parentScreen", "홈"],
       ["parentMissionsScreen", "미션"],
-      ["parentChildScreen", "펫"],
+      ["parentChildScreen", "heart"],
       ["parentSubmissionsScreen", "보상함"],
       ["parentNotificationsScreen", "알림"]
     ]
     : [
       ["homeScreen", "홈"],
       ["childTodayMissionsScreen", "미션"],
-      ["petScreen", "펫"],
+      ["petScreen", "heart"],
       ["childInventoryScreen", "보상함"],
       ["childNotificationsScreen", "알림"]
     ];
@@ -28,7 +28,15 @@ function configureNavForRole(role) {
     }
     button.style.display = "block";
     button.dataset.tab = item[0];
-    button.textContent = item[1];
+    if (item[1] === "heart") {
+      button.innerHTML = '<span class="pet-nav-heart" aria-hidden="true">♥</span>';
+      button.setAttribute("aria-label", "펫");
+      button.title = "펫";
+    } else {
+      button.textContent = item[1];
+      button.removeAttribute("aria-label");
+      button.removeAttribute("title");
+    }
   });
 }
 

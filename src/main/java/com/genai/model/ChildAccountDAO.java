@@ -58,6 +58,19 @@ public class ChildAccountDAO {
         }
     }
 
+    public boolean updateFrame(Long childId, String frameType) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            int updated = session.getMapper(ChildAccountMapper.class)
+                    .updateFrame(childId, frameType);
+            if (updated == 1) {
+                session.commit();
+                return true;
+            }
+            session.rollback();
+            return false;
+        }
+    }
+
     public boolean regenerateInviteCode(Long childId, Long parentId, String inviteCode) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
             ChildAccountMapper mapper = session.getMapper(ChildAccountMapper.class);

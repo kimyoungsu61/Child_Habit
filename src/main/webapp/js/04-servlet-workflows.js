@@ -36,12 +36,19 @@ function renderFrameDex() {
   // 2. 액자 목록 만들기 (레벨 조건에 따라 보유/잠김 상태를 나누는 단계)
   frameGrid.innerHTML = Object.entries(PROFILE_FRAMES).map(([key, frame]) => {
     const unlocked = isProfileFrameUnlocked(key, currentLevel);
-    const statusText = unlocked ? (frame.unlockLevel === 1 ? "기본 보유" : `Lv.${frame.unlockLevel} 해금 완료`) : `Lv.${frame.unlockLevel} 해금`;
+    const selected = appState.selectedProfileFrameKey === key;
+    const statusText = selected
+      ? "현재 사용 중"
+      : (unlocked
+        ? (frame.unlockLevel === 1 ? "기본 보유" : `Lv.${frame.unlockLevel} 해금 완료`)
+        : `Lv.${frame.unlockLevel} 해금`);
     const cardClass = unlocked ? "owned" : "locked";
     const questionMark = unlocked ? "" : "<b>?</b>";
 
     return `
-      <article class="frame-dex-card ${cardClass}" data-frame-key="${key}">
+      <article class="frame-dex-card ${cardClass} ${selected ? "selected" : ""}"
+               data-frame-key="${key}" data-frame-unlocked="${unlocked}"
+               role="button" tabindex="${unlocked ? "0" : "-1"}">
         <div class="frame-dex-preview ${unlocked ? "" : "silhouette"}">
           <img src="${frame.image}" alt="${frame.label}" />
           ${questionMark}

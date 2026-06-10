@@ -1,6 +1,7 @@
 package com.genai.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.genai.model.ChildPet;
@@ -10,6 +11,11 @@ import com.genai.model.Pet;
 public class GameProfileService {
     private static final Set<String> CHARACTER_PRESETS =
             Set.of("forest", "space", "ocean");
+    private static final Map<String, Integer> INTERACTION_EXP = Map.of(
+            "touch", 5,
+            "praise", 15,
+            "play", 10,
+            "magic", 20);
 
     private final GameProfileDAO gameProfileDAO;
 
@@ -44,6 +50,14 @@ public class GameProfileService {
 
     public ChildPet findActivePet(Long childId) {
         return gameProfileDAO.findActivePet(childId);
+    }
+
+    public ChildPet addInteractionExp(Long childId, String action) {
+        Integer expAmount = INTERACTION_EXP.get(action);
+        if (expAmount == null) {
+            throw new IllegalArgumentException("지원하지 않는 펫 상호작용입니다.");
+        }
+        return gameProfileDAO.addExpToActivePet(childId, expAmount);
     }
 
     private void validateNickname(String nickname) {

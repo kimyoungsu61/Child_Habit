@@ -80,6 +80,14 @@
         )
     </insert>
 
+    <select id="countActiveMissionsByChild" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION
+        WHERE child_id = #{childId}
+          AND is_active = 'Y'
+          AND mission_title != 'default_media_mission'
+    </select>
+
     <update id="updateMission" parameterType="com.genai.model.Mission">
         UPDATE MISSION
         SET child_id = #{childId},
@@ -104,6 +112,34 @@
           AND parent_id = #{parentId}
           AND is_active = 'Y'
     </update>
+
+    <delete id="deleteMissionNotifications">
+        DELETE FROM NOTIFICATION n
+        WHERE n.mission_id = #{missionId}
+          AND EXISTS (
+              SELECT 1
+              FROM MISSION m
+              WHERE m.mission_id = n.mission_id
+                AND m.parent_id = #{parentId}
+                AND NOT EXISTS (
+                    SELECT 1
+                    FROM MISSION_SUBMISSION ms
+                    WHERE ms.mission_id = m.mission_id
+                )
+          )
+    </delete>
+
+    <delete id="deleteMission">
+        DELETE FROM MISSION m
+        WHERE m.mission_id = #{missionId}
+          AND m.parent_id = #{parentId}
+          AND m.mission_title != 'default_media_mission'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM MISSION_SUBMISSION ms
+              WHERE ms.mission_id = m.mission_id
+          )
+    </delete>
 
     <select id="findMissionsForParent" parameterType="long" resultType="com.genai.model.Mission">
         SELECT m.mission_id,
@@ -296,6 +332,29 @@
         WHERE c.parent_id = #{parentId}
           AND ms.status = 'pending'
         ORDER BY ms.submission_id
+    </select>
+
+    <select id="findTodayByParentId" parameterType="long"
+            resultType="com.genai.model.MissionSubmission">
+        SELECT ms.submission_id,
+               ms.mission_id,
+               ms.child_id,
+               ms.mission_date,
+               NVL(ms.box_grade, m.mission_grade) box_grade,
+               ms.media_type,
+               ms.media_url,
+               ms.status,
+               ms.submitted_at,
+               ms.reviewed_at,
+               ms.reward_given,
+               ms.media_deleted_at,
+               c.nickname child_nickname
+        FROM MISSION_SUBMISSION ms
+        JOIN CHILD c ON c.child_id = ms.child_id
+        JOIN MISSION m ON m.mission_id = ms.mission_id
+        WHERE c.parent_id = #{parentId}
+          AND ms.mission_date = TRUNC(SYSDATE)
+        ORDER BY ms.submission_id DESC
     </select>
 
     <select id="findRewardBoxes" resultType="com.genai.model.RewardBox">

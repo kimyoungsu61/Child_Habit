@@ -46,4 +46,17 @@ public class GameProfileDAO {
             return session.getMapper(GameProfileMapper.class).findActivePet(childId);
         }
     }
+
+    public ChildPet addExpToActivePet(Long childId, int expAmount) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            GameProfileMapper mapper = session.getMapper(GameProfileMapper.class);
+            if (mapper.addExpToActivePet(childId, expAmount) != 1) {
+                session.rollback();
+                throw new IllegalStateException("대표 펫의 경험치를 저장하지 못했습니다.");
+            }
+            ChildPet activePet = mapper.findActivePet(childId);
+            session.commit();
+            return activePet;
+        }
+    }
 }

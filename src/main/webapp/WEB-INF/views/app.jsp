@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=reward-flow-20260610" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=mission-cancel-time-20260610" />
   </head>
 
   <body>
@@ -707,7 +707,9 @@
       <nav class="bottom-nav" aria-label="하단 메뉴">
         <button class="nav-btn active" data-tab="homeScreen">홈</button>
         <button class="nav-btn" data-tab="childTodayMissionsScreen">미션</button>
-        <button class="nav-btn" data-tab="petScreen">펫</button>
+        <button class="nav-btn pet-nav-btn" data-tab="petScreen" aria-label="펫" title="펫">
+          <span class="pet-nav-heart" aria-hidden="true">♥</span>
+        </button>
         <button class="nav-btn" data-tab="childInventoryScreen">보상함</button>
         <button class="nav-btn" data-tab="childNotificationsScreen">알림</button>
       </nav>
@@ -739,14 +741,14 @@
     PDF의 Servlet 흐름에 맞춰 프론트 JS를 기능별로 나눴습니다.
     아래 순서가 중요합니다. 뒤 파일은 앞 파일에서 만든 상수와 함수를 사용합니다.
   -->
-    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=reward-flow-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=reward-flow-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=reward-flow-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=reward-flow-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=reward-flow-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=reward-flow-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=reward-flow-20260610"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=reward-flow-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=mission-cancel-time-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=mission-cancel-time-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=mission-cancel-time-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=mission-cancel-time-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=mission-cancel-time-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=mission-cancel-time-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=mission-cancel-time-20260610"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=mission-cancel-time-20260610"></script>
   </body>
 
   </html>

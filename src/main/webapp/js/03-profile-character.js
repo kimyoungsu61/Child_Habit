@@ -24,6 +24,10 @@ function getProfileFrameByLevel(level) {
 
 // 현재 펫 레벨에 맞는 프로필 프레임을 계산합니다.
 function getCurrentProfileFrame() {
+  const selectedKey = appState.selectedProfileFrameKey || "bronze";
+  if (isProfileFrameUnlocked(selectedKey)) {
+    return { key: selectedKey, ...PROFILE_FRAMES[selectedKey] };
+  }
   return getProfileFrameByLevel(getPetFrameLevel());
 }
 

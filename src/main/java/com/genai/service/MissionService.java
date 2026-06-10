@@ -16,6 +16,7 @@ import com.genai.model.RewardBox;
 import com.genai.model.RewardInventoryItem;
 
 public class MissionService {
+    private static final int MAX_ACTIVE_MISSIONS_PER_CHILD = 5;
     private static final Set<String> MEDIA_TYPES = Set.of("photo", "video");
     private static final Set<String> BOX_GRADES = Set.of("low", "middle", "high");
 
@@ -38,6 +39,10 @@ public class MissionService {
     public void createMission(Long parentId, Long childId, String title,
             String description, String grade, String mediaType) {
         validateMission(parentId, childId, title, grade, mediaType);
+        if (missionDAO.countActiveMissionsByChild(childId)
+                >= MAX_ACTIVE_MISSIONS_PER_CHILD) {
+            throw new IllegalArgumentException("아이에게 등록할 수 있는 미션은 최대 5개입니다.");
+        }
         Mission mission = new Mission();
         mission.setParentId(parentId);
         mission.setChildId(childId);
@@ -53,6 +58,15 @@ public class MissionService {
         validateMission(parentId, childId, title, grade, mediaType);
         if (missionId == null) {
             throw new IllegalArgumentException("Mission ID is required.");
+        }
+        Mission existing = missionDAO.findMissionForParent(missionId, parentId);
+        if (existing == null) {
+            return false;
+        }
+        if (!childId.equals(existing.getChildId())
+                && missionDAO.countActiveMissionsByChild(childId)
+                >= MAX_ACTIVE_MISSIONS_PER_CHILD) {
+            throw new IllegalArgumentException("아이에게 등록할 수 있는 미션은 최대 5개입니다.");
         }
         Mission mission = new Mission();
         mission.setMissionId(missionId);
@@ -70,6 +84,17 @@ public class MissionService {
             throw new IllegalArgumentException("Mission and parent IDs are required.");
         }
         return missionDAO.deactivateMission(missionId, parentId);
+    }
+
+    public boolean deleteMission(Long missionId, Long parentId) {
+        if (missionId == null || parentId == null) {
+            throw new IllegalArgumentException("취소할 미션을 선택해 주세요.");
+        }
+        if (!missionDAO.deleteMission(missionId, parentId)) {
+            throw new IllegalArgumentException(
+                    "이미 인증이 제출된 미션은 기록 보존을 위해 취소할 수 없습니다.");
+        }
+        return true;
     }
 
     public List<Mission> findMissionsForParent(Long parentId) {
@@ -140,6 +165,10 @@ public class MissionService {
 
     public List<MissionSubmission> findPendingForParent(Long parentId) {
         return missionDAO.findPendingByParentId(parentId);
+    }
+
+    public List<MissionSubmission> findTodayForParent(Long parentId) {
+        return missionDAO.findTodayByParentId(parentId);
     }
 
     public List<RewardBox> findRewardBoxes() {

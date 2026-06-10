@@ -54,6 +54,7 @@ const appState = {
   rewardMessage: "보호자 확인이 완료되면 상자를 고를 수 있어요.",
   selectedInventoryTab: "boxes",
   selectedBoxType: "beginner",
+  selectedProfileFrameKey: "bronze",
   lastRewardExp: 25,
   dexFilter: "all",
 

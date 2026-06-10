@@ -165,7 +165,7 @@ function resetPet() {
   playFrameSequence("idle", { loop: true });
 }
 
-function handlePetAction(type) {
+function handlePetAction(type, options = {}) {
   const action = actionMap[type];
   if (!action) return;
 
@@ -175,7 +175,7 @@ function handlePetAction(type) {
   renderPet();
   restartReactClass();
   createParticles(action.effect, 9);
-  addExp(action.exp);
+  if (options.addExperience !== false) addExp(action.exp);
   playFrameSequence(action.animation, { loop: false, onComplete: resetPet });
 }
 

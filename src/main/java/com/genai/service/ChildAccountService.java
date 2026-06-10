@@ -2,6 +2,7 @@ package com.genai.service;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import com.genai.model.ChildAccountDAO;
 import com.genai.model.ChildProfile;
@@ -9,6 +10,10 @@ import com.genai.model.ChildProfile;
 public class ChildAccountService {
     public static final String UNSET_NICKNAME = "미설정 아이";
     private static final int MAX_CODE_ATTEMPTS = 10;
+    private static final Map<String, Integer> FRAME_LEVELS = Map.of(
+            "wood", 1,
+            "iron", 2,
+            "gold", 3);
 
     private final ChildAccountDAO childAccountDAO;
     private final InviteCodeGenerator codeGenerator;
@@ -42,6 +47,21 @@ public class ChildAccountService {
     }
 
     public ChildProfile findById(Long childId) {
+        return childAccountDAO.findById(childId);
+    }
+
+    public ChildProfile updateFrame(Long childId, String frameType, int currentLevel) {
+        Integer requiredLevel = FRAME_LEVELS.get(frameType);
+        if (requiredLevel == null) {
+            throw new IllegalArgumentException("선택할 수 없는 액자입니다.");
+        }
+        if (currentLevel < requiredLevel) {
+            throw new IllegalArgumentException(
+                    "Lv." + requiredLevel + "부터 사용할 수 있는 액자입니다.");
+        }
+        if (!childAccountDAO.updateFrame(childId, frameType)) {
+            throw new IllegalArgumentException("아이 프로필 액자를 변경하지 못했습니다.");
+        }
         return childAccountDAO.findById(childId);
     }
 

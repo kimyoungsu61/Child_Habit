@@ -110,6 +110,21 @@
         WHERE c.child_id = #{childId}
     </select>
 
+    <update id="updateFrame">
+        UPDATE CHILD
+        SET frame_id = (
+            SELECT frame_id
+            FROM FRAME
+            WHERE frame_type = #{frameType}
+        )
+        WHERE child_id = #{childId}
+          AND EXISTS (
+            SELECT 1
+            FROM FRAME
+            WHERE frame_type = #{frameType}
+          )
+    </update>
+
     <update id="regenerateInviteCode">
         UPDATE CHILD_INVITE
         SET invite_code = #{inviteCode},

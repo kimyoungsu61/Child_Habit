@@ -4,6 +4,7 @@
 const API_ROOT = new URL("api", document.baseURI).pathname.replace(/\/$/, "");
 let serverDashboard = null;
 let serverChildHome = null;
+let loadedServerDate = "";
 let videoStream = null;
 let videoRecorder = null;
 let videoChunks = [];
@@ -59,6 +60,66 @@ function boxTypeForGrade(grade) {
 
 function gradeForBoxType(boxType) {
   return ({ beginner: "low", middle: "middle", premium: "high" })[boxType] || "low";
+}
+
+function frameKeyForServerType(frameType) {
+  return ({ wood: "bronze", iron: "silver", gold: "gold" })[frameType] || "bronze";
+}
+
+function serverFrameTypeForKey(frameKey) {
+  return ({ bronze: "wood", silver: "iron", gold: "gold" })[frameKey] || "wood";
+}
+
+function formatRelativeNotificationTime(createdAt) {
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return "";
+
+  const now = new Date();
+  const elapsed = Math.max(0, now.getTime() - created.getTime());
+  const minutes = Math.floor(elapsed / 60000);
+  const hours = Math.floor(elapsed / 3600000);
+  const dateKey = date => new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).format(date);
+  const yesterday = new Date(now.getTime() - 86400000);
+
+  if (minutes < 1) return "지금";
+  if (minutes < 60) return `${minutes}m`;
+  if (dateKey(created) === dateKey(now)) return `${hours}h`;
+  if (dateKey(created) === dateKey(yesterday)) return "어제";
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    month: "numeric",
+    day: "numeric"
+  }).format(created);
+}
+
+function notificationCard(item) {
+  return `<div class="notice-card">
+    <strong>${escapeHtml(item.title)}</strong>
+    <p>${escapeHtml(item.content || "")}</p>
+    <time class="notice-time" data-created-at="${escapeHtml(item.createdAt || "")}">
+      ${formatRelativeNotificationTime(item.createdAt)}
+    </time>
+  </div>`;
+}
+
+function updateRelativeNotificationTimes() {
+  document.querySelectorAll(".notice-time[data-created-at]").forEach(element => {
+    element.textContent = formatRelativeNotificationTime(element.dataset.createdAt);
+  });
+}
+
+function applyActivePetState(activePet) {
+  if (!activePet) return;
+  appState.pet.name = activePet.pet?.name || appState.pet.name;
+  appState.pet.level = activePet.currentLevel;
+  appState.pet.exp = Math.min(300, Math.max(
+    0, activePet.currentExp - ((activePet.currentLevel - 1) * 300)));
+  appState.pet.maxExp = 300;
 }
 
 function findCurrentChildSubmission() {
@@ -131,8 +192,10 @@ function renderExpResult(result) {
   const title = document.getElementById("expResultTitle");
   const progress = document.getElementById("expResultProgress");
   const message = document.getElementById("expResultMessage");
+  const levelExp = Math.min(300, Math.max(
+    0, result.currentExp - ((result.currentLevel - 1) * 300)));
   if (title) title.textContent = `EXP +${result.expAmount}`;
-  if (progress) progress.style.width = `${Math.min(100, (result.currentExp % 300) / 3)}%`;
+  if (progress) progress.style.width = `${levelExp / 3}%`;
   if (message) {
     message.textContent = `${appState.pet.name}이(가) Lv.${result.currentLevel}, EXP ${result.currentExp}까지 성장했어요.`;
   }
@@ -278,7 +341,7 @@ function renderParentDashboardData() {
         const profileImage = getChildProfileImageSource(child);
         return `
         <article class="child-manage-card">
-          <span class="profile-avatar large">
+          <span class="profile-avatar large child-manage-avatar">
             ${profileImage
               ? `<img class="profile-character-img" src="${escapeHtml(profileImage)}" alt="${nickname} 프로필">`
               : escapeHtml(nickname.slice(0, 1))}
@@ -299,21 +362,46 @@ function renderParentDashboardData() {
     "#parentMissionsScreen .mission-grade-list");
   if (missionList) {
     missionList.innerHTML = serverDashboard.missions.length
-      ? serverDashboard.missions.map(mission => `
-        <button class="mission-grade-card ${mission.grade}" type="button">
+      ? serverDashboard.missions.map(mission => {
+        const completed = serverDashboard.todaySubmissions?.some(
+          submission => submission.missionId === mission.missionId
+            && submission.status === "approved");
+        return `
+        <article class="parent-mission-item">
+          <div class="mission-grade-card ${mission.grade} ${completed ? "mission-completed" : ""}">
           <strong>${gradeLabel(mission.grade)} · ${mission.title}</strong>
-          <span>${mission.mediaType === "photo" ? "사진" : "영상"} 인증 · ${mission.childNickname}</span>
-        </button>
-      `).join("")
+          <span>${completed
+            ? "오늘 승인 완료"
+            : `${mission.mediaType === "photo" ? "사진" : "영상"} 인증 · ${mission.childNickname}`}</span>
+          ${completed ? '<b class="mission-complete-stamp">미션 완료</b>' : ""}
+          </div>
+          <button class="mission-cancel-btn" type="button"
+                  data-cancel-mission="${mission.missionId}">
+            취소
+          </button>
+        </article>
+      `;
+      }).join("")
       : '<div class="empty-dex">등록된 미션이 없습니다.</div>';
   }
 
   const childSelect = document.getElementById("newMissionChild");
   if (childSelect) {
+    const missionCounts = serverDashboard.missions.reduce((counts, mission) => {
+      counts[mission.childId] = (counts[mission.childId] || 0) + 1;
+      return counts;
+    }, {});
+    const availableChildren = connectedChildren.filter(
+      child => (missionCounts[child.childId] || 0) < 5);
     childSelect.innerHTML = connectedChildren.length
-      ? connectedChildren.map(child =>
-        `<option value="${child.childId}">${child.nickname}</option>`).join("")
+      ? connectedChildren.map(child => {
+        const count = missionCounts[child.childId] || 0;
+        return `<option value="${child.childId}" ${count >= 5 ? "disabled" : ""}>${escapeHtml(child.nickname)} (${count}/5)${count >= 5 ? " · 등록 완료" : ""}</option>`;
+      }).join("")
       : '<option value="">프로필 등록을 완료한 아이가 없습니다</option>';
+    childSelect.value = availableChildren[0]?.childId || "";
+    const saveMissionButton = document.getElementById("saveMissionBtn");
+    if (saveMissionButton) saveMissionButton.disabled = availableChildren.length === 0;
   }
 
   const progressList = document.querySelector(
@@ -335,9 +423,7 @@ function renderParentDashboardData() {
   if (notifications) {
     notifications.innerHTML = `<h2>부모 알림</h2>${
       serverDashboard.notifications.length
-        ? serverDashboard.notifications.map(item =>
-          `<div class="notice-card"><strong>${item.title}</strong><p>${item.content || ""}</p></div>`
-        ).join("")
+        ? serverDashboard.notifications.map(notificationCard).join("")
         : '<div class="empty-dex">새 알림이 없습니다.</div>'
     }`;
   }
@@ -358,8 +444,10 @@ renderParentSubmissions = function renderServerParentSubmissions() {
 
 async function loadChildHome() {
   serverChildHome = await apiRequest("/child/home");
+  loadedServerDate = serverChildHome.serverDate || "";
   const child = serverChildHome.child;
   appState.child.nickname = child.nickname;
+  appState.selectedProfileFrameKey = frameKeyForServerType(child.frameType);
   if (child.inviteCode) setCurrentInviteCode(child.inviteCode);
   if (child.characterImageUrl) {
     const imageUrl = appAssetUrl(child.characterImageUrl);
@@ -375,11 +463,7 @@ async function loadChildHome() {
     });
   }
   if (serverChildHome.activePet) {
-    const activePet = serverChildHome.activePet;
-    appState.pet.name = activePet.pet?.name || appState.pet.name;
-    appState.pet.level = activePet.currentLevel;
-    appState.pet.exp = activePet.currentExp % 300;
-    appState.pet.maxExp = 300;
+    applyActivePetState(serverChildHome.activePet);
   }
   const currentSubmissionId = appState.currentSubmission?.submissionId;
   appState.submissions = serverChildHome.submissions;
@@ -396,15 +480,35 @@ function renderChildMissionData() {
   if (!serverChildHome) return;
   const list = document.querySelector("#childTodayMissionsScreen .mission-grade-list");
   if (list) {
+    const todaySubmissions = serverChildHome.submissions.filter(
+      submission => submission.missionDate === serverChildHome.serverDate);
+    const countedTodaySubmissions = todaySubmissions.filter(
+      submission => submission.status === "pending" || submission.status === "approved");
+    const dailyLimitReached = countedTodaySubmissions.length >= 5;
     list.innerHTML = serverChildHome.missions.length
-      ? serverChildHome.missions.map(mission => `
-        <button class="mission-grade-card ${mission.grade}" type="button"
+      ? serverChildHome.missions.map(mission => {
+        const submission = todaySubmissions.find(
+          item => item.missionId === mission.missionId
+            && (item.status === "pending" || item.status === "approved"));
+        const completed = Boolean(submission);
+        const unavailable = completed || dailyLimitReached;
+        const statusText = submission?.status === "approved"
+          ? "오늘 미션 완료"
+          : (submission?.status === "pending"
+            ? "인증 제출 완료"
+            : (dailyLimitReached ? "오늘 5개 제출 완료" : `${mission.mediaType === "photo" ? "사진" : "영상"} 인증`));
+        return `
+        <button type="button"
                 data-server-mission="${mission.missionId}"
-                data-server-media="${mission.mediaType}">
+                data-server-media="${mission.mediaType}"
+                ${unavailable ? "disabled" : ""}
+                class="mission-grade-card ${mission.grade} ${completed ? "mission-completed" : ""} ${dailyLimitReached && !completed ? "daily-limit-reached" : ""}">
           <strong>${gradeLabel(mission.grade)} · ${mission.title}</strong>
-          <span>${mission.mediaType === "photo" ? "사진" : "영상"} 인증</span>
+          <span>${statusText}</span>
+          ${completed ? '<b class="mission-complete-stamp">미션 완료</b>' : ""}
         </button>
-      `).join("")
+      `;
+      }).join("")
       : '<div class="empty-dex">오늘 배정된 미션이 없습니다.</div>';
   }
 
@@ -412,9 +516,7 @@ function renderChildMissionData() {
   if (notifications) {
     notifications.innerHTML = `<h2>아이 알림</h2>${
       serverChildHome.notifications.length
-        ? serverChildHome.notifications.map(item =>
-          `<div class="notice-card"><strong>${item.title}</strong><p>${item.content || ""}</p></div>`
-        ).join("")
+        ? serverChildHome.notifications.map(notificationCard).join("")
         : '<div class="empty-dex">새 알림이 없습니다.</div>'
     }`;
   }
@@ -426,7 +528,7 @@ function renderInventoryData() {
     const key = ({ low: "beginner", middle: "middle", high: "premium" })[item.boxGrade];
     if (key) appState.rewardBoxCounts[key] = item.quantity;
   });
-  renderRewardCounts();
+  renderInventoryTab();
 }
 
 async function restoreSession() {
@@ -484,7 +586,7 @@ async function loginChildFromInvite() {
   }
 }
 
-interceptClick("#parentLoginBtn", async () => {
+async function loginParent() {
   const email = document.getElementById("parentEmail").value.trim();
   const password = document.getElementById("parentPassword").value;
   await apiRequest("/parent/login", {
@@ -493,6 +595,17 @@ interceptClick("#parentLoginBtn", async () => {
   });
   enterParent();
   await loadParentDashboard();
+}
+
+interceptClick("#parentLoginBtn", loginParent);
+
+["#parentEmail", "#parentPassword"].forEach(selector => {
+  document.querySelector(selector)?.addEventListener("keydown", event => {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    loginParent().catch(error => showToast(error.message));
+  }, true);
 });
 
 interceptClick("#parentJoinBtn", async () => {
@@ -563,6 +676,23 @@ interceptClick("#saveMissionBtn", async () => {
 });
 
 document.addEventListener("click", event => {
+  const cancelButton = event.target.closest("[data-cancel-mission]");
+  if (cancelButton) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    const missionId = Number(cancelButton.dataset.cancelMission);
+    if (!window.confirm("이 미션을 취소할까요? 아이의 미션 목록에서도 사라집니다.")) {
+      return;
+    }
+    apiRequest(`/parent/missions/${missionId}/cancel`, {
+      method: "POST"
+    }).then(async () => {
+      await loadParentDashboard();
+      showToast("미션을 취소했습니다.");
+    }).catch(error => showToast(error.message));
+    return;
+  }
+
   const missionButton = event.target.closest("[data-server-mission]");
   if (missionButton) {
     event.preventDefault();
@@ -622,7 +752,8 @@ document.querySelectorAll(
     }, true);
   });
 
-document.querySelectorAll("[data-tab='childNotificationsScreen'], [data-tab='childInventoryScreen']")
+document.querySelectorAll(
+  "[data-tab='childNotificationsScreen'], [data-tab='childInventoryScreen'], [data-tab='childTodayMissionsScreen']")
   .forEach(button => {
     button.addEventListener("click", () => {
       if (appState.role === "child") {
@@ -630,6 +761,41 @@ document.querySelectorAll("[data-tab='childNotificationsScreen'], [data-tab='chi
       }
     }, true);
   });
+
+document.querySelectorAll("[data-action]").forEach(button => {
+  interceptClick(button, async () => {
+    const action = button.dataset.action;
+    const activePet = await apiRequest("/child/pet/interactions", {
+      method: "POST",
+      body: formData({ action })
+    });
+    const previousLevel = appState.pet.level;
+    applyActivePetState(activePet);
+    handlePetAction(action, { addExperience: false });
+    if (appState.pet.level > previousLevel) {
+      showToast(`${appState.pet.name}가 Lv.${appState.pet.level}로 성장했어요!`);
+      createParticles("🌟", 14);
+    }
+    renderInventoryTab();
+    syncProfileFrames();
+  });
+});
+
+document.addEventListener("click", event => {
+  const frameCard = event.target.closest("[data-frame-key]");
+  if (!frameCard || frameCard.dataset.frameUnlocked !== "true") return;
+  event.preventDefault();
+  const frameKey = frameCard.dataset.frameKey;
+  apiRequest("/child/profile/frame", {
+    method: "POST",
+    body: formData({ frameType: serverFrameTypeForKey(frameKey) })
+  }).then(data => {
+    appState.selectedProfileFrameKey = frameKeyForServerType(data.child.frameType);
+    renderFrameDex();
+    syncProfileFrames();
+    showToast(`${PROFILE_FRAMES[frameKey].label}를 적용했어요.`);
+  }).catch(error => showToast(error.message));
+}, true);
 
 async function stopVideoCamera() {
   if (videoRecorder && videoRecorder.state !== "inactive") {
@@ -984,11 +1150,23 @@ window.addEventListener("pagehide", stopVideoCamera);
 restoreSession().catch(() => {});
 
 window.setInterval(() => {
+  updateRelativeNotificationTimes();
   const activeScreenId = getActiveScreenId();
   if (appState.role === "child" && activeScreenId === "childNotificationsScreen") {
     loadChildHome().catch(() => {});
   }
   if (appState.role === "parent" && activeScreenId === "parentNotificationsScreen") {
     loadParentDashboard().catch(() => {});
+  }
+  if (appState.role === "child" && loadedServerDate) {
+    const seoulDate = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).format(new Date());
+    if (seoulDate !== loadedServerDate) {
+      loadChildHome().catch(() => {});
+    }
   }
 }, 10000);

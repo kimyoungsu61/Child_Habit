@@ -21,9 +21,17 @@ public interface MissionMapper {
 
     int insertMissionAssignedNotification(Mission mission);
 
+    int countActiveMissionsByChild(Long childId);
+
     int updateMission(Mission mission);
 
     int deactivateMission(@Param("missionId") Long missionId,
+            @Param("parentId") Long parentId);
+
+    int deleteMissionNotifications(@Param("missionId") Long missionId,
+            @Param("parentId") Long parentId);
+
+    int deleteMission(@Param("missionId") Long missionId,
             @Param("parentId") Long parentId);
 
     List<Mission> findMissionsForParent(Long parentId);
@@ -54,6 +62,8 @@ public interface MissionMapper {
             @Param("childId") Long childId);
 
     List<MissionSubmission> findPendingByParentId(Long parentId);
+
+    List<MissionSubmission> findTodayByParentId(Long parentId);
 
     List<RewardBox> findRewardBoxes();
 

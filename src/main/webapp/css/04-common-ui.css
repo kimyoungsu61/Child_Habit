@@ -503,6 +503,24 @@
   background: linear-gradient(135deg, var(--pink), var(--yellow));
 }
 
+.pet-nav-heart {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: #ff7296;
+  font-size: 25px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 5px rgba(255, 114, 150, 0.24));
+  transform: translateY(1px);
+}
+
+.nav-btn.active .pet-nav-heart {
+  color: #fff;
+  filter: drop-shadow(0 2px 4px rgba(127, 75, 34, 0.2));
+  transform: translateY(1px) scale(1.08);
+}
+
 body.parent-mode .nav-btn.active {
   color: white;
   background: linear-gradient(135deg, var(--pink), var(--yellow));

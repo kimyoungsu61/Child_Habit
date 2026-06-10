@@ -43,6 +43,21 @@
   margin-top: 12px;
 }
 
+.child-manage-avatar {
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.child-manage-avatar .profile-character-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 50%;
+}
+
 .history-card {
   justify-content: space-between;
   align-items: flex-start;
@@ -188,9 +203,37 @@
   gap: 9px;
 }
 
+.parent-mission-item {
+  position: relative;
+}
+
+.parent-mission-item .mission-grade-card {
+  padding-right: 66px;
+}
+
+.mission-cancel-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 4;
+  min-width: 44px;
+  padding: 6px 9px;
+  border: 1px solid rgba(239, 79, 121, 0.28);
+  border-radius: 999px;
+  color: #d9446d;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 11px;
+  font-weight: 950;
+}
+
+.mission-cancel-btn:hover {
+  background: #fff0f4;
+}
+
 .mission-grade-card,
 .submission-card,
 .inventory-grid button {
+  position: relative;
   width: 100%;
   min-height: 70px;
   padding: 12px;
@@ -200,6 +243,43 @@
   background: rgba(255, 255, 255, 0.78);
   text-align: left;
   font-weight: 950;
+}
+
+.mission-grade-card.mission-completed {
+  min-height: 82px;
+  overflow: hidden;
+  cursor: default;
+  opacity: 1;
+}
+
+.mission-grade-card.mission-completed > strong,
+.mission-grade-card.mission-completed > span {
+  filter: blur(1.6px);
+  opacity: 0.42;
+}
+
+.mission-complete-stamp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%) rotate(-8deg);
+  padding: 7px 13px;
+  border: 3px double #ff7396;
+  border-radius: 999px;
+  color: #ef4f79;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 5px 12px rgba(239, 79, 121, 0.16);
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.mission-grade-card.daily-limit-reached {
+  opacity: 0.58;
+  filter: grayscale(0.35);
+  cursor: default;
 }
 
 .mission-grade-card strong,
@@ -241,6 +321,21 @@
   border-radius: 18px;
   border: 1px solid rgba(166, 126, 76, 0.18);
   background: rgba(255, 255, 255, 0.72);
+}
+
+.notice-card {
+  position: relative;
+  padding-bottom: 27px;
+}
+
+.notice-time {
+  position: absolute;
+  right: 12px;
+  bottom: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
 }
 
 .progress-list > div {
@@ -494,6 +589,16 @@
 
 .frame-dex-card.owned {
   background: rgba(66, 213, 176, 0.12);
+  cursor: pointer;
+}
+
+.frame-dex-card.selected {
+  outline: 3px solid rgba(255, 115, 150, 0.72);
+  box-shadow: 0 8px 18px rgba(255, 115, 150, 0.18);
+}
+
+.frame-dex-card.locked {
+  cursor: not-allowed;
 }
 
 .compact-head {
