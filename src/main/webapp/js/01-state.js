@@ -53,7 +53,7 @@ const appState = {
   missionMode: "video",
   rewardMessage: "보호자 확인이 완료되면 상자를 고를 수 있어요.",
   dexFilter: "all",
-  inviteCode: "ABC123",
+
   currentMissionId: "mission-low",
   captureMode: "video",
   currentSubmission: null,
