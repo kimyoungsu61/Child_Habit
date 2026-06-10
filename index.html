@@ -508,10 +508,29 @@
     </section>
 
     <section class="screen" id="childRewardOpenScreen" data-title="상자 개봉" data-subtitle="보상 내용을 확인해요">
-      <article class="card panel reward-card">
-        <h2>상자 개봉</h2>
-        <div class="reward-rule low"><strong>획득</strong><span>EXP 25 · 첫 인증 뱃지</span></div>
-        <button class="btn primary full" type="button" data-quick-tab="childExpResultScreen">경험치 결과</button>
+      <article class="card panel reward-card box-open-panel">
+        <div class="panel-head compact-head">
+          <div>
+            <h2 id="boxOpenTitle">하급 상자 개봉</h2>
+            <p id="boxOpenGuide">상자를 눌러 개봉 연출을 확인해요.</p>
+          </div>
+          <span class="state-chip" id="boxOpenGradeChip">하급</span>
+        </div>
+        <div class="box-video-stage" id="boxVideoStage">
+          <!-- 추후 실제 상자 개봉 영상 파일을 연결할 위치입니다. 예: assets/rewards/box-low-open.mp4 -->
+          <video id="boxOpeningVideo" class="box-opening-video" muted playsinline preload="metadata" hidden></video>
+          <div class="box-video-placeholder" id="boxVideoPlaceholder">
+            <span class="box-video-icon" id="boxVideoIcon">BOX</span>
+            <strong>상자 개봉 영상 영역</strong>
+            <em>후에 mp4/webm 파일을 연결하면 됩니다</em>
+          </div>
+        </div>
+        <div class="reward-rule low" id="boxOpenResult" hidden>
+          <strong>획득 결과</strong>
+          <span id="boxOpenResultText">EXP를 획득했어요.</span>
+        </div>
+        <button class="btn primary full" type="button" id="playBoxOpenBtn">상자 열기</button>
+        <button class="btn mint full" type="button" id="goExpResultBtn" data-quick-tab="childExpResultScreen" hidden>경험치 결과 보기</button>
       </article>
     </section>
 
@@ -525,12 +544,87 @@
     </section>
 
     <section class="screen" id="childInventoryScreen" data-title="보상함 / 인벤토리" data-subtitle="보유 상자와 프레임을 확인해요">
-      <article class="card panel flow-panel">
+      <article class="card panel flow-panel inventory-panel">
         <h2>보상함</h2>
-        <div class="inventory-grid">
-          <button type="button" data-quick-tab="childRewardOpenScreen">하급 상자 1개</button>
-          <button type="button" data-quick-tab="childFrameScreen">무지개 프레임</button>
-          <button type="button" data-quick-tab="childCharacterCreateScreen">AI 캐릭터 티켓</button>
+        <div class="inventory-tabs" role="tablist" aria-label="보상함 카테고리">
+          <button class="inventory-tab active" type="button" data-inventory-tab="boxes">리워드 상자</button>
+          <button class="inventory-tab" type="button" data-inventory-tab="badges">뱃지</button>
+          <button class="inventory-tab" type="button" data-inventory-tab="frames">액자</button>
+        </div>
+
+        <div class="inventory-tab-panel active" id="inventoryBoxesPanel" data-inventory-panel="boxes">
+          <div class="inventory-section-head">
+            <strong>보유 상자</strong>
+            <span>상자를 누르면 개봉 화면으로 이동합니다</span>
+          </div>
+          <div class="reward-box-list">
+            <button class="reward-box-card low" type="button" data-open-box="beginner">
+              <span class="reward-box-emoji">LOW</span>
+              <strong>하급 상자</strong>
+              <em><b data-inventory-count="beginner">0</b>개 보유</em>
+            </button>
+            <button class="reward-box-card middle" type="button" data-open-box="middle">
+              <span class="reward-box-emoji">MID</span>
+              <strong>중급 상자</strong>
+              <em><b data-inventory-count="middle">0</b>개 보유</em>
+            </button>
+            <button class="reward-box-card high" type="button" data-open-box="premium">
+              <span class="reward-box-emoji">HIGH</span>
+              <strong>상급 상자</strong>
+              <em><b data-inventory-count="premium">0</b>개 보유</em>
+            </button>
+          </div>
+        </div>
+
+        <div class="inventory-tab-panel" id="inventoryBadgesPanel" data-inventory-panel="badges">
+          <div class="inventory-section-head">
+            <strong>뱃지</strong>
+            <span>펫 만렙 달성 시 뱃지가 지급됩니다</span>
+          </div>
+          <div class="badge-dex-grid">
+            <article class="badge-card locked">
+              <div class="badge-visual">?</div>
+              <strong>몽글이 뱃지</strong>
+              <span>몽글이 만렙 달성 필요</span>
+            </article>
+            <article class="badge-card locked">
+              <div class="badge-visual">?</div>
+              <strong>포근이 뱃지</strong>
+              <span>추후 펫 추가 후 해금</span>
+            </article>
+          </div>
+        </div>
+
+        <div class="inventory-tab-panel" id="inventoryFramesPanel" data-inventory-panel="frames">
+          <div class="inventory-section-head">
+            <strong>액자 도감</strong>
+            <span>획득 조건을 달성하면 잠금이 풀립니다</span>
+          </div>
+          <div class="frame-dex-grid">
+            <article class="frame-dex-card owned" data-frame-key="bronze">
+              <div class="frame-dex-preview">
+                <img src="./assets/frames/frame-bronze.webp" alt="동 액자" />
+              </div>
+              <strong>동 액자</strong>
+              <span>기본 보유</span>
+            </article>
+            <article class="frame-dex-card locked" data-frame-key="silver">
+              <div class="frame-dex-preview silhouette">
+                <img src="./assets/frames/frame-silver.webp" alt="은 액자" />
+                <b>?</b>
+              </div>
+              <strong>은 액자</strong>
+              <span>Lv.2 해금</span>
+            </article>
+            <article class="frame-dex-card locked" data-frame-key="gold">
+              <div class="frame-dex-preview silhouette">
+                <img src="./assets/frames/frame-gold.webp" alt="금 액자" />
+                <b>?</b>
+              </div>
+              <strong>금 액자</strong>
+              <span>Lv.3 해금</span>
+            </article>
+          </div>
         </div>
       </article>
     </section>
@@ -540,9 +634,9 @@
         <h2>프레임 선택</h2>
         <div class="frame-preview"><span class="profile-avatar profile-photo xl"></span></div>
         <div class="inventory-grid">
-          <button type="button">기본 선택됨</button>
-          <button type="button">무지개 unlocked</button>
-          <button type="button">별빛 locked</button>
+          <button type="button">동 액자 선택됨</button>
+          <button type="button" disabled>은 액자 locked · Lv.2 해금</button>
+          <button type="button" disabled>금 액자 locked · Lv.3 해금</button>
         </div>
       </article>
     </section>

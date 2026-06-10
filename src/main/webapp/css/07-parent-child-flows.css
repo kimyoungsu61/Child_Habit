@@ -268,3 +268,327 @@
 }
 
 .frame-preview {
+  min-height: 170px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(166, 126, 76, 0.18);
+}
+
+/* 인벤토리 탭, 상자 개봉, 뱃지/액자 도감 화면 스타일입니다. */
+.inventory-panel {
+  gap: 12px;
+}
+
+.inventory-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  padding: 5px;
+  border-radius: 999px;
+  background: rgba(255, 246, 216, 0.72);
+  border: 1px solid rgba(166, 126, 76, 0.16);
+}
+
+.inventory-tab {
+  min-height: 38px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.inventory-tab.active {
+  color: #765000;
+  background: #fff;
+  box-shadow: 0 7px 16px rgba(111, 78, 34, 0.08);
+}
+
+.inventory-tab-panel {
+  display: none;
+  gap: 10px;
+}
+
+.inventory-tab-panel.active {
+  display: grid;
+}
+
+.inventory-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.inventory-section-head strong {
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.inventory-section-head span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  text-align: right;
+  line-height: 1.35;
+}
+
+.reward-box-list,
+.badge-dex-grid,
+.frame-dex-grid {
+  display: grid;
+  gap: 9px;
+}
+
+.reward-box-card,
+.badge-card,
+.frame-dex-card {
+  width: 100%;
+  min-height: 82px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(166, 126, 76, 0.2);
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.78);
+  text-align: left;
+}
+
+.reward-box-card {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+}
+
+.reward-box-card:disabled,
+.inventory-grid button:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.reward-box-card.low {
+  background: rgba(66, 213, 176, 0.13);
+}
+
+.reward-box-card.middle {
+  background: rgba(255, 211, 107, 0.2);
+}
+
+.reward-box-card.high {
+  background: rgba(255, 134, 162, 0.14);
+}
+
+.reward-box-emoji {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  color: #8a5700;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px dashed rgba(166, 126, 76, 0.28);
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.5px;
+}
+
+.reward-box-card strong,
+.badge-card strong,
+.frame-dex-card strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.reward-box-card em,
+.badge-card span,
+.frame-dex-card span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.reward-box-card em {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.reward-box-card b {
+  font-size: 18px;
+  color: #765000;
+}
+
+.badge-dex-grid,
+.frame-dex-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.badge-card,
+.frame-dex-card {
+  min-height: 168px;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  text-align: center;
+}
+
+.badge-visual,
+.frame-dex-preview {
+  width: 94px;
+  height: 94px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 9px;
+  border-radius: 22px;
+  background: rgba(255, 246, 216, 0.78);
+  border: 1px solid rgba(166, 126, 76, 0.2);
+  overflow: hidden;
+}
+
+.badge-visual {
+  color: rgba(117, 104, 87, 0.72);
+  font-size: 28px;
+  font-weight: 950;
+}
+
+.badge-card.locked .badge-visual {
+  filter: grayscale(1);
+  opacity: 0.62;
+}
+
+.frame-dex-preview {
+  position: relative;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.frame-dex-preview img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.frame-dex-card.locked .frame-dex-preview img {
+  filter: blur(0.8px) grayscale(0.35);
+  opacity: 0.68;
+}
+
+.frame-dex-preview.silhouette b {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #6d604f;
+  font-size: 28px;
+  font-weight: 950;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.frame-dex-card.owned {
+  background: rgba(66, 213, 176, 0.12);
+}
+
+.compact-head {
+  align-items: flex-start;
+  margin-bottom: 0;
+}
+
+.compact-head p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.box-open-panel {
+  gap: 12px;
+}
+
+.box-video-stage {
+  position: relative;
+  min-height: 190px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px dashed rgba(166, 126, 76, 0.3);
+  background: linear-gradient(135deg, #fff1bd, #eaffff);
+}
+
+.box-video-stage.is-opening .box-video-icon {
+  animation: boxOpenPulse 0.9s ease both;
+}
+
+.box-opening-video {
+  width: 100%;
+  height: 100%;
+  min-height: 190px;
+  object-fit: cover;
+}
+
+.box-video-placeholder {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  color: #8a5700;
+  text-align: center;
+  font-weight: 950;
+}
+
+.box-video-placeholder strong {
+  font-size: 15px;
+}
+
+.box-video-placeholder em {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 850;
+}
+
+.box-video-icon {
+  width: 92px;
+  height: 74px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(166, 126, 76, 0.22);
+  box-shadow: 0 10px 20px rgba(111, 78, 34, 0.1);
+  letter-spacing: 2px;
+}
+
+@keyframes boxOpenPulse {
+  0% { transform: scale(1) rotate(0deg); }
+  35% { transform: scale(1.08) rotate(-2deg); }
+  70% { transform: scale(1.12) rotate(2deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+@media (max-width: 380px) {
+  .inventory-tabs {
+    gap: 4px;
+  }
+
+  .inventory-tab {
+    font-size: 11px;
+  }
+
+  .reward-box-card {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .reward-box-card em {
+    grid-column: 2;
+    text-align: left;
+  }
+}

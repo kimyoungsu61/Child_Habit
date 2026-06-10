@@ -119,6 +119,9 @@ function addExp(amount) {
   }
   renderPet();
   renderDex();
+  renderInventoryTab();
+  renderMyPage();
+  syncProfileFrames();
 }
 
 // 홈 화면의 펫 이름, 상태, EXP 바, 말풍선을 한 번에 다시 그립니다.

@@ -182,6 +182,9 @@ function switchTab(screenId, options = {}) {
     clearCaptureStreams();
   }
   if (screenId === "childSubmissionWaitingScreen") renderSubmissionWaiting();
+  if (screenId === "childInventoryScreen") renderInventoryTab();
+  if (screenId === "childRewardOpenScreen") prepareBoxOpenScreen(appState.selectedBoxType);
+  if (screenId === "childExpResultScreen") renderExpResult();
   if (screenId === "parentSubmissionsScreen") renderParentSubmissions();
   if (screenId === "parentSubmissionDetailScreen") renderParentSubmissionDetail();
   if (screenId === "childCharacterCreateScreen") {

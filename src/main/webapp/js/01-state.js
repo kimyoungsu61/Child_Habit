@@ -18,9 +18,9 @@ const GENERATED_CHARACTER_STORAGE_KEY = "generatedCharacter";
 const CURRENT_INVITE_CODE_STORAGE_KEY = "currentInviteCode";
 const mockCharacterImageUrl = DEFAULT_PROFILE_IMAGE;
 const PROFILE_FRAMES = {
-  bronze: { label: "동 액자", image: "./assets/frames/frame-bronze.webp" },
-  silver: { label: "은 액자", image: "./assets/frames/frame-silver.webp" },
-  gold: { label: "골드 액자", image: "./assets/frames/frame-gold.webp" }
+  bronze: { label: "동 액자", image: "./assets/frames/frame-bronze.webp", unlockLevel: 1 },
+  silver: { label: "은 액자", image: "./assets/frames/frame-silver.webp", unlockLevel: 2 },
+  gold: { label: "금 액자", image: "./assets/frames/frame-gold.webp", unlockLevel: 3 }
 };
 
 // 화면에서 보여줄 모든 임시 데이터입니다.
@@ -52,6 +52,9 @@ const appState = {
   missionStatus: "none",
   missionMode: "video",
   rewardMessage: "보호자 확인이 완료되면 상자를 고를 수 있어요.",
+  selectedInventoryTab: "boxes",
+  selectedBoxType: "beginner",
+  lastRewardExp: 25,
   dexFilter: "all",
 
   currentMissionId: "mission-low",
