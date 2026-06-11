@@ -172,7 +172,7 @@ async function requestCharacterImage(options) {
   await new Promise(resolve => setTimeout(resolve, 450));
   const variant = `${options.expression}-${options.glasses}`;
   return {
-    imageUrl: `./assets/characters/avatar-${variant}.svg`,
+    imageUrl: appPath(`/assets/characters/avatar-${variant}.svg`),
     prompt
   };
 }
@@ -356,6 +356,9 @@ function getSavedProfileImage() {
       || source.startsWith("data:image/")
       || source.startsWith("./assets/")
       || source.startsWith("assets/")
+      || source.startsWith("/assets/")
+      || source.startsWith(`${window.APP_CONTEXT || ""}/assets/`)
+      || source.startsWith(`${window.APP_CONTEXT || ""}/media/`)
       || source.startsWith("https://")
       || source.startsWith("http://");
     return isValidSource && !source.includes("undefined") && !source.includes("NaN") ? source : "";

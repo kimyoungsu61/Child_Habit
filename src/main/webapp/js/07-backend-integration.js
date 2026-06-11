@@ -1,7 +1,7 @@
 // Same-origin integration layer for the Java Servlet backend.
 // It runs after the original prototype scripts and replaces mock workflows
 // without changing the existing visual components.
-const API_ROOT = new URL("api", document.baseURI).pathname.replace(/\/$/, "");
+const API_ROOT = appPath("/api").replace(/\/$/, "");
 let serverDashboard = null;
 let serverChildHome = null;
 let loadedServerDate = "";
@@ -506,7 +506,17 @@ function renderRewardBoxScreen(submission) {
   if (message) message.textContent = `승인된 미션 보상으로 ${meta.label} 1개를 받았어요.`;
 }
 
-function renderExpResult(result) {
+function renderExpResult(result = window.__lastExpResult) {
+  if (!result) {
+    result = {
+      expAmount: appState.lastRewardExp || 0,
+      currentLevel: appState.pet?.level || 1,
+      currentExp: appState.pet?.exp || 0,
+      boxCount: 1,
+      boxLabel: "보상 상자"
+    };
+  }
+  window.__lastExpResult = result;
   const title = document.getElementById("expResultTitle");
   const progress = document.getElementById("expResultProgress");
   const message = document.getElementById("expResultMessage");
@@ -521,6 +531,7 @@ function renderExpResult(result) {
       ? `${boxLabel} ${boxCount}개를 열어 총 EXP ${result.expAmount}를 얻었어요. ${appState.pet.name}은 Lv.${result.currentLevel}, EXP ${result.currentExp}까지 성장했어요.`
       : `${appState.pet.name}이(가) Lv.${result.currentLevel}, EXP ${result.currentExp}까지 성장했어요.`;
   }
+  if (typeof playExpResultFanfare === "function") playExpResultFanfare();
 }
 
 function setEntryMessage(element, message) {
@@ -905,7 +916,7 @@ async function restoreSession() {
 
 function appAssetUrl(path) {
   if (!path) return "";
-  return new URL(path.replace(/^\//, ""), document.baseURI).pathname;
+  return appPath(path);
 }
 
 function backendCharacterPath(path) {
@@ -1553,6 +1564,7 @@ async function openSelectedRewardBoxes(quantity = 1) {
         : "개봉 완료! 경험치 결과를 확인하세요.";
     }
     if (resultBox) resultBox.hidden = false;
+    if (typeof playRewardOpenFanfare === "function") playRewardOpenFanfare();
     if (resultText) {
       resultText.textContent = openedCount > 1
         ? `${meta.label} ${openedCount}개에서 EXP ${totalExp}를 획득했어요.`
@@ -1580,6 +1592,7 @@ async function openSelectedRewardBoxes(quantity = 1) {
       });
       await loadChildHome().catch(() => {});
       if (resultBox) resultBox.hidden = false;
+      if (typeof playRewardOpenFanfare === "function") playRewardOpenFanfare();
       if (resultText) resultText.textContent = `${openedCount}개까지 열고 멈췄어요. EXP ${totalExp}를 획득했어요.`;
       if (expButton) expButton.hidden = false;
     } else {

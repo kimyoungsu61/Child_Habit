@@ -183,7 +183,7 @@
 
     async function startCamera() {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            setStatus('이 브라우저에서는 카메라를 사용할 수 없습니다. HTTPS 또는 localhost로 접속해 주세요.');
+            setStatus('이 브라우저에서는 카메라를 사용할 수 없습니다. HTTPS 등 브라우저가 허용하는 보안 환경에서 접속해 주세요.');
             return;
         }
 

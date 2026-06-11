@@ -27,9 +27,7 @@ function getBoxMeta(boxType = appState.selectedBoxType || "beginner") {
 }
 
 function rewardAssetSrc(fileName) {
-  const root = document.getElementById("appRoot");
-  const contextPath = root?.dataset?.contextPath || "";
-  return `${contextPath}/assets/rewards/${fileName}`;
+  return appPath(`/assets/rewards/${fileName}`);
 }
 
 function renderBoxIconImage(icon, meta) {
@@ -46,7 +44,25 @@ const REWARD_CHEST_MOTION_FILES = {
 
 function rewardChestMotionSrc(boxType = appState.selectedBoxType || "beginner") {
   const fileName = REWARD_CHEST_MOTION_FILES[boxType] || REWARD_CHEST_MOTION_FILES.beginner;
-  return new URL(`assets/reward-chest/${fileName}`, document.baseURI).pathname;
+  return appPath(`/assets/reward-chest/${fileName}`);
+}
+
+function replayFanfare(element) {
+  if (!element) return;
+  element.classList.remove("fanfare-active");
+  void element.offsetWidth;
+  element.classList.add("fanfare-complete");
+  element.classList.add("fanfare-active");
+  window.setTimeout(() => element.classList.remove("fanfare-active"), 1900);
+}
+
+function playRewardOpenFanfare() {
+  replayFanfare(document.getElementById("boxVideoStage"));
+  replayFanfare(document.querySelector("#childRewardOpenScreen .box-open-panel"));
+}
+
+function playExpResultFanfare() {
+  replayFanfare(document.querySelector("#childExpResultScreen .exp-result-panel"));
 }
 
 function getRewardChestMotionElements() {
@@ -237,6 +253,8 @@ function prepareBoxOpenScreen(boxType) {
   }
   if (openMoreButton) openMoreButton.hidden = true;
   if (expButton) expButton.hidden = true;
+  document.getElementById("boxVideoStage")?.classList.remove("fanfare-active", "fanfare-complete");
+  document.querySelector("#childRewardOpenScreen .box-open-panel")?.classList.remove("fanfare-active", "fanfare-complete");
   updateBoxOpenQuantityControls(appState.selectedBoxType);
   resetRewardChestMotion(appState.selectedBoxType);
 }
@@ -288,6 +306,7 @@ function openSelectedRewardBox() {
     renderMission();
     if (guide) guide.textContent = "개봉 완료! 경험치 결과를 확인하세요.";
     if (result) result.hidden = false;
+    playRewardOpenFanfare();
     if (resultText) resultText.textContent = `EXP ${exp} 획득 · 몽글이 성장 반영`;
     if (openButton) openButton.hidden = true;
     if (expButton) expButton.hidden = false;
@@ -806,4 +825,5 @@ function renderExpResult() {
   if (expTitle) expTitle.textContent = `EXP +${exp}`;
   if (expText) expText.textContent = `${appState.pet.name}가 조금 더 성장했어요. 현재 Lv.${appState.pet.level}입니다.`;
   if (fill) fill.style.width = `${percent}%`;
+  playExpResultFanfare();
 }

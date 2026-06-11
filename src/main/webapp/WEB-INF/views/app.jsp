@@ -561,6 +561,18 @@
             <span class="state-chip" id="boxOpenGradeChip">하급</span>
           </div>
           <div class="box-video-stage" id="boxVideoStage">
+            <div class="reward-fanfare" aria-hidden="true">
+              <span class="fanfare-ray ray-left-a"></span>
+              <span class="fanfare-ray ray-left-b"></span>
+              <span class="fanfare-ray ray-right-a"></span>
+              <span class="fanfare-ray ray-right-b"></span>
+              <span class="fanfare-ribbon ribbon-left"></span>
+              <span class="fanfare-ribbon ribbon-right"></span>
+              <span class="fanfare-mark mark-one"></span>
+              <span class="fanfare-mark mark-two"></span>
+              <span class="fanfare-mark mark-three"></span>
+              <span class="fanfare-mark mark-four"></span>
+            </div>
             <video id="boxOpeningVideo" class="box-opening-video" muted playsinline preload="metadata" hidden></video>
             <div class="box-video-placeholder" id="boxVideoPlaceholder">
               <span class="box-video-icon has-image" id="boxVideoIcon">
@@ -590,7 +602,19 @@
       </section>
 
       <section class="screen" id="childExpResultScreen" data-title="경험치 획득 결과" data-subtitle="펫 성장 결과를 보여줘요">
-        <article class="card panel flow-panel">
+        <article class="card panel flow-panel exp-result-panel">
+          <div class="exp-fanfare" aria-hidden="true">
+            <span class="fanfare-ray ray-left-a"></span>
+            <span class="fanfare-ray ray-left-b"></span>
+            <span class="fanfare-ray ray-right-a"></span>
+            <span class="fanfare-ray ray-right-b"></span>
+            <span class="fanfare-ribbon ribbon-left"></span>
+            <span class="fanfare-ribbon ribbon-right"></span>
+            <span class="fanfare-mark mark-one"></span>
+            <span class="fanfare-mark mark-two"></span>
+            <span class="fanfare-mark mark-three"></span>
+            <span class="fanfare-mark mark-four"></span>
+          </div>
           <h2 id="expResultTitle">EXP 획득</h2>
           <div class="progress-track">
             <div class="progress-fill" id="expResultProgress" style="width: 0%"></div>
@@ -816,6 +840,10 @@
     PDF의 Servlet 흐름에 맞춰 프론트 JS를 기능별로 나눴습니다.
     아래 순서가 중요합니다. 뒤 파일은 앞 파일에서 만든 상수와 함수를 사용합니다.
   -->
+    <script>
+      window.APP_CONTEXT = "${pageContext.request.contextPath}";
+      window.APP_CONTEXT_PATH = window.APP_CONTEXT;
+    </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/01-state.js?v=ai-20260611-1"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-stage-20260610-2"></script>

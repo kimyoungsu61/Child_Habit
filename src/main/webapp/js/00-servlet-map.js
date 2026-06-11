@@ -47,11 +47,31 @@ const SERVLET_ENDPOINTS = {
   }
 };
 
+function getAppContextPath() {
+  const root = document.getElementById("appRoot");
+  return window.APP_CONTEXT
+    || window.APP_CONTEXT_PATH
+    || root?.dataset?.contextPath
+    || "";
+}
+
+function appPath(path = "") {
+  const value = String(path || "");
+  if (/^(?:[a-z][a-z0-9+.-]*:|\/\/|data:|blob:)/i.test(value)) return value;
+  const contextPath = getAppContextPath();
+  if (!value) return contextPath || "/";
+  return `${contextPath}${value.startsWith("/") ? value : `/${value}`}`;
+}
+
+window.APP_CONTEXT = getAppContextPath();
+window.APP_CONTEXT_PATH = window.APP_CONTEXT;
+window.appPath = appPath;
+
 // 공통 요청 함수 초안입니다.
 // 지금은 임시 화면 흐름을 유지해야 하므로 아직 호출하지 않습니다.
 // 나중에는 callServlet(SERVLET_ENDPOINTS.mission.submit, formData)처럼 사용할 수 있습니다.
 async function callServlet(endpoint, payload, options = {}) {
-  const targetUrl = endpoint.url.split(",")[0].trim();
+  const targetUrl = appPath(endpoint.url.split(",")[0].trim());
   const method = endpoint.method.includes("POST") && payload ? "POST" : "GET";
   return fetch(targetUrl, {
     method,
