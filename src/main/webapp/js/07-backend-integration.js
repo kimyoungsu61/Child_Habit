@@ -10,6 +10,8 @@ let videoStream = null;
 let videoRecorder = null;
 let videoChunks = [];
 let capturedVideoBlob = null;
+let capturedVideoObjectUrl = "";
+let requiredCaptureMode = "";
 const knownParentNotificationIds = new Set();
 const knownChildNotificationIds = new Set();
 const JOIN_DRAFT_STORAGE_KEYS = [
@@ -343,9 +345,19 @@ function showHeadsUpNotification(notification) {
 }
 
 function renderParentSubmissionMedia() {
-  if (!parentSubmissionPreview || !appState.currentSubmission?.mediaUrl) return;
+  if (!parentSubmissionPreview) return;
+  if (!appState.currentSubmission?.mediaUrl) {
+    parentSubmissionPreview.textContent = "인증 파일이 삭제되었거나 존재하지 않습니다.";
+    return;
+  }
   const media = appState.currentSubmission;
-  const mediaUrl = new URL(media.mediaUrl.replace(/^\//, ""), document.baseURI).pathname;
+  const contextPath = appRoot?.dataset.contextPath || "";
+  const mediaPath = String(media.mediaUrl).startsWith("/")
+    ? String(media.mediaUrl)
+    : `/${media.mediaUrl}`;
+  const mediaUrl = mediaPath === contextPath || mediaPath.startsWith(`${contextPath}/`)
+    ? mediaPath
+    : `${contextPath}${mediaPath}`;
   parentSubmissionPreview.innerHTML = media.mediaType === "photo"
     ? `<img class="capture-preview-media is-visible" src="${mediaUrl}" alt="제출 사진">`
     : `<video class="capture-preview-media is-visible" src="${mediaUrl}" controls playsinline></video>`;
@@ -357,8 +369,6 @@ function openParentSubmissionDetail(submission) {
     return;
   }
   appState.currentSubmission = submission;
-  renderParentSubmissionDetail();
-  renderParentSubmissionMedia();
   switchTab("parentSubmissionDetailScreen");
 }
 
@@ -762,6 +772,26 @@ renderParentSubmissions = function renderServerParentSubmissions() {
     : '<div class="empty-dex">승인 대기 제출물이 없어요.</div>';
 };
 
+renderParentSubmissionDetail = function renderServerParentSubmissionDetail() {
+  const submission = appState.currentSubmission || appState.submissions[0];
+  if (!submission) {
+    if (parentSubmissionPreview) {
+      parentSubmissionPreview.textContent = "확인할 제출물이 없습니다.";
+    }
+    return;
+  }
+  if (parentSubmissionChild) {
+    parentSubmissionChild.textContent = submission.childName || submission.childNickname || "";
+  }
+  if (parentSubmissionMediaType) {
+    parentSubmissionMediaType.textContent = mediaTypeLabel(submission.mediaType);
+  }
+  if (parentSubmissionGrade) {
+    parentSubmissionGrade.textContent = submission.grade || gradeLabel(submission.boxGrade || "low");
+  }
+  renderParentSubmissionMedia();
+};
+
 async function loadChildHome(options = {}) {
   serverChildHome = await apiRequest("/child/home");
   rememberKnownNotifications("child", serverChildHome.notifications, options.showHeadsUp);
@@ -1074,13 +1104,9 @@ document.addEventListener("click", event => {
     event.preventDefault();
     event.stopImmediatePropagation();
     appState.currentMissionId = Number(missionButton.dataset.serverMission);
-    appState.captureMode = missionButton.dataset.serverMedia;
-    document.querySelectorAll("[data-capture-mode]").forEach(button => {
-      button.disabled = false;
-      button.title = "";
-    });
+    requiredCaptureMode = missionButton.dataset.serverMedia === "photo" ? "photo" : "video";
+    appState.captureMode = requiredCaptureMode;
     switchTab("childCameraScreen");
-    setCaptureMode(appState.captureMode);
     return;
   }
   const submissionButton = event.target.closest("[data-server-submission]");
@@ -1178,8 +1204,23 @@ async function stopVideoCamera() {
   if (preview) {
     preview.pause();
     preview.srcObject = null;
+    preview.removeAttribute("src");
+    preview.controls = false;
     preview.hidden = true;
   }
+}
+
+function showRecordedVideo(blob) {
+  const preview = document.getElementById("videoCameraPreview");
+  if (!preview || !blob) return;
+  if (capturedVideoObjectUrl) URL.revokeObjectURL(capturedVideoObjectUrl);
+  capturedVideoObjectUrl = URL.createObjectURL(blob);
+  preview.srcObject = null;
+  preview.src = capturedVideoObjectUrl;
+  preview.controls = true;
+  preview.muted = false;
+  preview.hidden = false;
+  preview.load();
 }
 
 async function startVideoRecording() {
@@ -1201,6 +1242,10 @@ async function startVideoRecording() {
   }
   await stopVideoCamera();
   discardVideoRecording = false;
+  if (capturedVideoObjectUrl) {
+    URL.revokeObjectURL(capturedVideoObjectUrl);
+    capturedVideoObjectUrl = "";
+  }
   capturedVideoBlob = null;
   videoChunks = [];
   try {
@@ -1266,7 +1311,10 @@ async function startVideoRecording() {
     captureState.hasVideo = videoRecordingReady;
     captureState.isRecording = false;
     stopVideoCamera();
-    setCaptureNotice("");
+    if (videoRecordingReady) showRecordedVideo(capturedVideoBlob);
+    setCaptureNotice(videoRecordingReady
+      ? `녹화 완료: ${Math.max(1, Math.round(capturedVideoBlob.size / 1024))} KB`
+      : "녹화된 영상이 없습니다. 다시 녹화해 주세요.");
     setCapturePlaceholder(videoRecordingReady
       ? "✅\n녹화가 완료되었어요"
       : "🎥\n아직 녹화 전이에요\n녹화 시작 버튼을 눌러요");
@@ -1373,9 +1421,9 @@ interceptClick("#missionResultActionBtn", () => {
   const submission = findCurrentChildSubmission();
   if (action === "resubmit" && submission) {
     appState.currentMissionId = submission.missionId;
-    appState.captureMode = submission.mediaType;
+    requiredCaptureMode = submission.mediaType === "photo" ? "photo" : "video";
+    appState.captureMode = requiredCaptureMode;
     switchTab("childCameraScreen");
-    setCaptureMode(submission.mediaType);
     return;
   }
   if (action === "reward" && submission) {
@@ -1631,8 +1679,9 @@ window.addEventListener("pageshow", () => {
   }
 });
 
-window.addEventListener("pagehide", stopVideoCamera);
-restoreSession().catch(() => {});
+window.addEventListener("pagehide", clearCaptureStreams);
+backToEntry();
+showEntryPanel("entryStartCard", { skipHistory: true });
 
 window.setInterval(() => {
   updateRelativeNotificationTimes();

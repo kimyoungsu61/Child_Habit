@@ -556,10 +556,16 @@ function updateCaptureSubmitState() {
     startMockVideoBtn.classList.toggle("mint", isVideoRecording);
     startMockVideoBtn.classList.toggle("primary", !isVideoRecording);
   }
+  if (stopMockVideoBtn) {
+    stopMockVideoBtn.hidden = !isVideoRecording;
+  }
 }
 
 // 촬영 방식을 사진/영상 중 하나로 바꾸고 관련 UI를 초기화합니다.
 function setCaptureMode(mode) {
+  if (typeof requiredCaptureMode !== "undefined" && requiredCaptureMode) {
+    mode = requiredCaptureMode;
+  }
   clearCaptureStreams();
   appState.captureMode = mode === "video" ? "video" : "photo";
   captureState.mediaType = appState.captureMode;
@@ -571,7 +577,11 @@ function setCaptureMode(mode) {
   captureState.isRecording = false;
   captureState.recorder = null;
   document.querySelectorAll("[data-capture-mode]").forEach(button => {
-    button.disabled = false;
+    const isRequiredMode = typeof requiredCaptureMode === "undefined"
+      || !requiredCaptureMode
+      || button.dataset.captureMode === requiredCaptureMode;
+    button.disabled = !isRequiredMode;
+    button.title = isRequiredMode ? "" : "이 미션에서 선택할 수 없는 인증 방식입니다.";
     button.classList.toggle("active", button.dataset.captureMode === appState.captureMode);
   });
   if (photoCaptureActions) photoCaptureActions.hidden = appState.captureMode !== "photo";
@@ -587,6 +597,13 @@ function setCaptureMode(mode) {
   }
   setCaptureNotice("");
   updateCaptureSubmitState();
+  if (appState.captureMode === "photo" && getActiveScreenId() === "childCameraScreen") {
+    window.requestAnimationFrame(() => {
+      if (appState.captureMode === "photo" && getActiveScreenId() === "childCameraScreen") {
+        startPhotoCamera().catch(error => setCaptureNotice(normalizeCameraError(error)));
+      }
+    });
+  }
 }
 
 async function startPhotoCamera() {
@@ -599,6 +616,12 @@ async function startPhotoCamera() {
   try {
     if (!photoStream) {
       photoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+    }
+    if (appState.captureMode !== "photo" || getActiveScreenId() !== "childCameraScreen") {
+      stopCaptureStream(photoStream);
+      photoStream = null;
+      captureState.stream = null;
+      return false;
     }
     captureState.stream = photoStream;
     photoCameraPreview.srcObject = photoStream;
@@ -683,7 +706,7 @@ async function takePhoto() {
   capturedPhotoDataUrl = photoCaptureCanvas.toDataURL("image/png");
   captureState.hasPhoto = true;
   showPhotoCapturePreview(capturedPhotoDataUrl);
-  photoCameraPreview.hidden = true;
+  stopPhotoCamera();
   childCaptureStage?.classList.add("has-media");
   setCapturePlaceholder("✅\n사진 촬영이 완료되었어요");
   updateCaptureSubmitState();
@@ -693,11 +716,11 @@ function retakePhoto() {
   capturedPhotoDataUrl = "";
   captureState.hasPhoto = false;
   hidePhotoCapturePreview();
-  if (photoCameraPreview) photoCameraPreview.hidden = true;
   childCaptureStage?.classList.remove("has-media");
   setCapturePlaceholder("📷\n아직 사진 촬영 전이에요\n사진 찍기 버튼을 눌러요");
   updateCaptureSubmitState();
   setCaptureNotice("");
+  startPhotoCamera().catch(error => setCaptureNotice(normalizeCameraError(error)));
 }
 
 function submitCapture() {

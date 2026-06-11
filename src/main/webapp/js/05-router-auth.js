@@ -199,7 +199,12 @@ function switchTab(screenId, options = {}) {
   if (screenId === "childRewardOpenScreen") prepareBoxOpenScreen(appState.selectedBoxType);
   if (screenId === "childExpResultScreen") renderExpResult();
   if (screenId === "parentSubmissionsScreen") renderParentSubmissions();
-  if (screenId === "parentSubmissionDetailScreen") renderParentSubmissionDetail();
+  if (screenId === "parentSubmissionDetailScreen") {
+    renderParentSubmissionDetail();
+    if (typeof renderParentSubmissionMedia === "function") {
+      renderParentSubmissionMedia();
+    }
+  }
   if (screenId === "childCharacterCreateScreen") {
     renderCharacterOptions();
     renderCharacterPreview(pendingGeneratedCharacter || getGeneratedCharacter());

@@ -13,17 +13,28 @@ import javax.servlet.http.Part;
 
 public class MissionMediaStorage {
     private static final String URL_PREFIX = "/media/submissions/";
+    private static final String STORAGE_PROPERTY = "genai.media.dir";
+    private static final String STORAGE_ENV = "GENAI_MEDIA_DIR";
     private static final Set<String> PHOTO_TYPES = Set.of("image/jpeg", "image/png", "image/webp");
     private static final Set<String> VIDEO_TYPES = Set.of("video/mp4", "video/webm", "video/quicktime");
 
     private final Path rootDirectory;
+    private final Path legacyRootDirectory;
 
     public MissionMediaStorage() {
-        this(Path.of(System.getProperty("java.io.tmpdir"), "genai-mission-media"));
+        this(defaultRootDirectory(),
+                Path.of(System.getProperty("java.io.tmpdir"), "genai-mission-media"));
     }
 
     MissionMediaStorage(Path rootDirectory) {
-        this.rootDirectory = rootDirectory;
+        this(rootDirectory, null);
+    }
+
+    MissionMediaStorage(Path rootDirectory, Path legacyRootDirectory) {
+        this.rootDirectory = rootDirectory.toAbsolutePath().normalize();
+        this.legacyRootDirectory = legacyRootDirectory == null
+                ? null
+                : legacyRootDirectory.toAbsolutePath().normalize();
     }
 
     public String save(Part part, String mediaType) {
@@ -55,7 +66,11 @@ public class MissionMediaStorage {
         }
 
         try {
-            return Files.deleteIfExists(rootDirectory.resolve(fileName).normalize());
+            Files.deleteIfExists(rootDirectory.resolve(fileName).normalize());
+            if (legacyRootDirectory != null) {
+                Files.deleteIfExists(legacyRootDirectory.resolve(fileName).normalize());
+            }
+            return true;
         } catch (IOException exception) {
             throw new IllegalStateException("임시 미션 파일을 삭제하지 못했습니다.", exception);
         }
@@ -70,7 +85,14 @@ public class MissionMediaStorage {
             return null;
         }
         Path path = rootDirectory.resolve(fileName).normalize();
-        return Files.exists(path) ? path : null;
+        if (Files.exists(path)) {
+            return path;
+        }
+        if (legacyRootDirectory == null) {
+            return null;
+        }
+        Path legacyPath = legacyRootDirectory.resolve(fileName).normalize();
+        return Files.exists(legacyPath) ? legacyPath : null;
     }
 
     private void validate(Part part, String mediaType) {
@@ -111,8 +133,28 @@ public class MissionMediaStorage {
     }
 
     private String normalizedContentType(Part part) {
-        return part.getContentType() == null
-                ? ""
-                : part.getContentType().toLowerCase(Locale.ROOT);
+        if (part.getContentType() == null) {
+            return "";
+        }
+        return part.getContentType()
+                .split(";", 2)[0]
+                .trim()
+                .toLowerCase(Locale.ROOT);
+    }
+
+    private static Path defaultRootDirectory() {
+        String configured = System.getProperty(STORAGE_PROPERTY);
+        if (configured == null || configured.isBlank()) {
+            configured = System.getenv(STORAGE_ENV);
+        }
+        if (configured != null && !configured.isBlank()) {
+            return Path.of(configured);
+        }
+
+        String catalinaBase = System.getProperty("catalina.base");
+        if (catalinaBase != null && !catalinaBase.isBlank()) {
+            return Path.of(catalinaBase, "data", "mission-media");
+        }
+        return Path.of(System.getProperty("user.home"), ".genai", "mission-media");
     }
 }
