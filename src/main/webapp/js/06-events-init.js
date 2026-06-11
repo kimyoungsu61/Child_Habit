@@ -31,6 +31,7 @@ document.querySelectorAll("[data-character-option]").forEach(button => {
     const key = button.dataset.characterOption;
     selectedCharacterOptions[key] = button.dataset.value;
     pendingGeneratedCharacter = null;
+    setCharacterCreateLoading(false);
     if (characterCreateMessage) characterCreateMessage.textContent = "";
     renderCharacterOptions();
     renderCharacterPreview(null);
@@ -48,7 +49,7 @@ generateCharacterBtn?.addEventListener("click", async () => {
   }
 
   if (characterCreateMessage) characterCreateMessage.textContent = "캐릭터를 생성하는 중이에요...";
-  generateCharacterBtn.disabled = true;
+  setCharacterCreateLoading(true);
   try {
     const result = await requestCharacterImage(selectedCharacterOptions);
     pendingGeneratedCharacter = {
@@ -69,7 +70,7 @@ generateCharacterBtn?.addEventListener("click", async () => {
     }
     renderCharacterPreview(null);
   } finally {
-    generateCharacterBtn.disabled = false;
+    setCharacterCreateLoading(false);
   }
 });
 
