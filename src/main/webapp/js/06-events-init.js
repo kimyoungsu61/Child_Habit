@@ -356,6 +356,8 @@ document.querySelectorAll("[data-filter]").forEach(button => {
 
 // 3. 클래스 초기화하기 (연속 클릭해도 애니메이션이 다시 실행되게 만드는 단계)
 preloadFrameSequences();
+loadSavedTheme();
+bindThemeControls();
 renderPet();
 renderMission();
 renderDex();

@@ -9,7 +9,78 @@
   --pink: #ff86a2;
   --yellow: #ffd36b;
   --card: rgba(255, 255, 255, 0.92);
+  --app-background:
+    radial-gradient(circle at 18% 12%, rgba(255, 223, 128, 0.4), transparent 28%),
+    radial-gradient(circle at 86% 5%, rgba(96, 216, 240, 0.38), transparent 30%),
+    linear-gradient(180deg, #f5fffb 0%, #fff3d7 48%, #eafaff 100%);
+  --theme-chip-bg: #fff3c3;
+  --theme-chip-color: #765100;
+  --theme-accent: #ffd36b;
+  --theme-accent-2: #5ad3ed;
+  --home-card: var(--card);
+  --home-speech: rgba(255, 255, 255, 0.88);
+  --home-button: #fffdf8;
   --shadow: 0 16px 38px rgba(102, 78, 39, 0.12);
+}
+
+body[data-theme="mint"] {
+  --card: rgba(239, 255, 248, 0.94);
+  --app-background:
+    radial-gradient(circle at 14% 10%, rgba(141, 237, 190, 0.36), transparent 28%),
+    radial-gradient(circle at 86% 6%, rgba(255, 213, 108, 0.34), transparent 30%),
+    linear-gradient(180deg, #effff7 0%, #f8ffe8 48%, #eaf8ff 100%);
+  --theme-chip-bg: #dff9eb;
+  --theme-chip-color: #17725c;
+  --theme-accent: #42d5b0;
+  --theme-accent-2: #ffd36b;
+  --home-card: rgba(239, 255, 248, 0.95);
+  --home-speech: rgba(247, 255, 251, 0.92);
+  --home-button: #f7fffb;
+}
+
+body[data-theme="sky"] {
+  --card: rgba(238, 249, 255, 0.94);
+  --app-background:
+    radial-gradient(circle at 20% 9%, rgba(124, 215, 245, 0.36), transparent 30%),
+    radial-gradient(circle at 88% 8%, rgba(255, 178, 204, 0.3), transparent 28%),
+    linear-gradient(180deg, #edf9ff 0%, #f8f3ff 48%, #fff6df 100%);
+  --theme-chip-bg: #e1f5ff;
+  --theme-chip-color: #176b8c;
+  --theme-accent: #5ad3ed;
+  --theme-accent-2: #ff9bb5;
+  --home-card: rgba(238, 249, 255, 0.95);
+  --home-speech: rgba(248, 252, 255, 0.92);
+  --home-button: #f8fcff;
+}
+
+body[data-theme="peach"] {
+  --card: rgba(255, 247, 237, 0.94);
+  --app-background:
+    radial-gradient(circle at 16% 10%, rgba(255, 160, 145, 0.34), transparent 29%),
+    radial-gradient(circle at 86% 7%, rgba(106, 216, 205, 0.28), transparent 29%),
+    linear-gradient(180deg, #fff4ec 0%, #fff9df 50%, #edf8ff 100%);
+  --theme-chip-bg: #ffe6d8;
+  --theme-chip-color: #944520;
+  --theme-accent: #ff9a7b;
+  --theme-accent-2: #5bd6c9;
+  --home-card: rgba(255, 247, 237, 0.95);
+  --home-speech: rgba(255, 251, 246, 0.92);
+  --home-button: #fffaf3;
+}
+
+body[data-theme="lavender"] {
+  --card: rgba(249, 244, 255, 0.94);
+  --app-background:
+    radial-gradient(circle at 16% 10%, rgba(190, 159, 255, 0.3), transparent 29%),
+    radial-gradient(circle at 86% 7%, rgba(111, 218, 188, 0.3), transparent 29%),
+    linear-gradient(180deg, #f8f0ff 0%, #f0fbff 48%, #fff7df 100%);
+  --theme-chip-bg: #efe4ff;
+  --theme-chip-color: #60439a;
+  --theme-accent: #b99af8;
+  --theme-accent-2: #5bd6bc;
+  --home-card: rgba(249, 244, 255, 0.95);
+  --home-speech: rgba(252, 248, 255, 0.92);
+  --home-button: #fcf9ff;
 }
 
 * {
@@ -21,10 +92,7 @@ body {
   min-height: 100vh;
   color: var(--ink);
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background:
-    radial-gradient(circle at 18% 12%, rgba(255, 223, 128, 0.4), transparent 28%),
-    radial-gradient(circle at 86% 5%, rgba(96, 216, 240, 0.38), transparent 30%),
-    linear-gradient(180deg, #f5fffb 0%, #fff3d7 48%, #eafaff 100%);
+  background: var(--app-background);
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: contain;
 }

@@ -107,6 +107,68 @@ function missionLabel(status) {
   return labels[status] || labels.none;
 }
 
+function getThemeMeta(themeKey) {
+  return APP_THEMES[themeKey] || APP_THEMES.default;
+}
+
+function applyTheme(themeKey, options = {}) {
+  const normalizedKey = APP_THEMES[themeKey] ? themeKey : "default";
+  const meta = getThemeMeta(normalizedKey);
+  appState.theme = normalizedKey;
+  document.body.dataset.theme = normalizedKey;
+  if (themeLabel) themeLabel.textContent = meta.label;
+  if (themeButton) themeButton.setAttribute("aria-label", `${meta.label} 테마 선택`);
+  document.querySelectorAll("[data-theme-choice]").forEach(button => {
+    const active = button.dataset.themeChoice === normalizedKey;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  if (options.persist) {
+    try {
+      localStorage.setItem(THEME_STORAGE_KEY, normalizedKey);
+    } catch (error) {
+      // localStorage가 막힌 환경에서는 현재 세션 테마만 적용한다.
+    }
+  }
+}
+
+function loadSavedTheme() {
+  let savedTheme = "default";
+  try {
+    savedTheme = localStorage.getItem(THEME_STORAGE_KEY) || "default";
+  } catch (error) {
+    savedTheme = "default";
+  }
+  applyTheme(savedTheme);
+}
+
+function openThemeModal() {
+  if (!themeModal) return;
+  applyTheme(appState.theme);
+  themeModal.classList.add("active");
+  themeModal.setAttribute("aria-hidden", "false");
+}
+
+function closeThemeModal() {
+  if (!themeModal) return;
+  themeModal.classList.remove("active");
+  themeModal.setAttribute("aria-hidden", "true");
+}
+
+function bindThemeControls() {
+  themeButton?.addEventListener("click", openThemeModal);
+  document.querySelectorAll("[data-close-theme]").forEach(element => {
+    element.addEventListener("click", closeThemeModal);
+  });
+  document.querySelectorAll("[data-theme-choice]").forEach(button => {
+    button.addEventListener("click", () => {
+      applyTheme(button.dataset.themeChoice, { persist: true });
+      closeThemeModal();
+      showToast(`${getThemeMeta(appState.theme).label} 테마를 적용했어요.`);
+    });
+  });
+}
+
 // EXP를 더하고, maxExp를 넘으면 레벨업시킵니다.
 // 실제 서버 연결 후에는 서버에서 계산한 level/exp를 그대로 반영하는 편이 좋습니다.
 function addExp(amount) {
@@ -133,13 +195,12 @@ function addExp(amount) {
 // 홈 화면의 펫 이름, 상태, EXP 바, 말풍선을 한 번에 다시 그립니다.
 function renderPet() {
   const pet = appState.pet;
-  const meta = stateMeta[pet.state] || stateMeta.normal;
   const percent = Math.min(100, Math.round((pet.exp / pet.maxExp) * 100));
 
   if (levelPill) levelPill.textContent = `Lv.${pet.level}`;
   if (petMeta) petMeta.textContent = `${pet.name} · Lv.${pet.level}`;
-  stateChip.textContent = meta.label;
-  petSpeech.textContent = `"${pet.dialogue || meta.dialogue}"`;
+  if (themeLabel) themeLabel.textContent = getThemeMeta(appState.theme).label;
+  petSpeech.textContent = `"${stateMeta.normal.dialogue}"`;
   expText.textContent = `EXP ${pet.exp} / ${pet.maxExp}`;
   expPercent.textContent = `${percent}%`;
   expFill.style.width = `${percent}%`;
@@ -182,10 +243,11 @@ function handlePetAction(type, options = {}) {
 
   appState.pet.state = action.state;
   appState.pet.activeAction = type;
-  appState.pet.dialogue = action.dialogue;
+  appState.pet.dialogue = stateMeta.normal.dialogue;
   renderPet();
   restartReactClass();
   createParticles(action.effect, 9);
+  if (action.toast) showToast(action.toast);
   if (options.addExperience !== false) addExp(action.exp);
   playFrameSequence(action.animation, { loop: false, onComplete: resetPet });
 }

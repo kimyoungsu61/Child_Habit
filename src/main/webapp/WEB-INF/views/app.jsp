@@ -114,7 +114,10 @@
               <h2>오늘의 대표 펫</h2>
               <p id="petMeta">몽글이 · Lv.1</p>
             </div>
-            <span class="state-chip" id="stateChip">기본</span>
+            <button class="theme-chip" id="themeButton" type="button" aria-label="테마 선택">
+              <span class="theme-chip-swatch" aria-hidden="true"></span>
+              <span id="themeLabel">기본</span>
+            </button>
           </div>
 
           <div class="pet-stage">
@@ -764,6 +767,38 @@
             <input id="profileSizeRange" type="range" min="34" max="92" step="1" value="68" />
           </label>
           <button class="profile-size-btn" id="profileSizeUpBtn" type="button">크게</button>
+        </div>
+      </article>
+    </div>
+
+    <div class="modal theme-modal" id="themeModal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-theme></div>
+      <article class="modal-card theme-modal-card card" role="dialog" aria-modal="true" aria-label="테마 선택">
+        <button class="modal-close" type="button" data-close-theme aria-label="닫기">×</button>
+        <div class="theme-modal-head">
+          <h2>테마 선택</h2>
+        </div>
+        <div class="theme-grid" aria-label="테마 목록">
+          <button class="theme-option" type="button" data-theme-choice="default" aria-pressed="true">
+            <span class="theme-swatch theme-swatch-default" aria-hidden="true"></span>
+            <span>기본</span>
+          </button>
+          <button class="theme-option" type="button" data-theme-choice="mint" aria-pressed="false">
+            <span class="theme-swatch theme-swatch-mint" aria-hidden="true"></span>
+            <span>민트</span>
+          </button>
+          <button class="theme-option" type="button" data-theme-choice="sky" aria-pressed="false">
+            <span class="theme-swatch theme-swatch-sky" aria-hidden="true"></span>
+            <span>하늘</span>
+          </button>
+          <button class="theme-option" type="button" data-theme-choice="peach" aria-pressed="false">
+            <span class="theme-swatch theme-swatch-peach" aria-hidden="true"></span>
+            <span>복숭아</span>
+          </button>
+          <button class="theme-option" type="button" data-theme-choice="lavender" aria-pressed="false">
+            <span class="theme-swatch theme-swatch-lavender" aria-hidden="true"></span>
+            <span>라벤더</span>
+          </button>
         </div>
       </article>
     </div>

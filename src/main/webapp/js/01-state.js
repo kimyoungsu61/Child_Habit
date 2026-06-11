@@ -16,11 +16,19 @@ const PROFILE_IMAGE_STORAGE_KEY = "profileImage";
 const PROFILE_CROP_STYLE_STORAGE_KEY = "profileCropStyle";
 const GENERATED_CHARACTER_STORAGE_KEY = "generatedCharacter";
 const CURRENT_INVITE_CODE_STORAGE_KEY = "currentInviteCode";
+const THEME_STORAGE_KEY = "dduuttnnTheme";
 const mockCharacterImageUrl = DEFAULT_PROFILE_IMAGE;
 const PROFILE_FRAMES = {
   bronze: { label: "동 액자", image: "./assets/frames/frame-bronze.webp", unlockLevel: 1 },
   silver: { label: "은 액자", image: "./assets/frames/frame-silver.webp", unlockLevel: 2 },
   gold: { label: "금 액자", image: "./assets/frames/frame-gold.webp", unlockLevel: 3 }
+};
+const APP_THEMES = {
+  default: { label: "기본" },
+  mint: { label: "민트" },
+  sky: { label: "하늘" },
+  peach: { label: "복숭아" },
+  lavender: { label: "라벤더" }
 };
 
 // 화면에서 보여줄 모든 임시 데이터입니다.
@@ -55,6 +63,7 @@ const appState = {
   selectedInventoryTab: "boxes",
   selectedBoxType: "beginner",
   selectedProfileFrameKey: "bronze",
+  theme: "default",
   lastRewardExp: 25,
   dexFilter: "all",
 
@@ -103,10 +112,10 @@ const stateMeta = {
 // 홈 화면의 펫 액션 버튼과 실제 변화값을 연결합니다.
 // 예: data-action="touch" 버튼 클릭 -> happy 상태, touch 애니메이션, EXP +10.
 const actionMap = {
-  touch: { state: "happy", animation: "touch", exp: 10, effect: "🤍", dialogue: "쓰다듬어줘서 기분이 좋아졌어!" },
-  praise: { state: "proud", animation: "praise", exp: 15, effect: "⭐", dialogue: "칭찬을 받으니까 더 해보고 싶어!" },
-  play: { state: "cheerful", animation: "play", exp: 10, effect: "🎈", dialogue: "같이 놀아서 마음이 반짝반짝해!" },
-  magic: { state: "magic", animation: "magic", exp: 20, effect: "🌟", dialogue: "마법처럼 용기가 뿅 생겼어!" }
+  touch: { state: "happy", animation: "touch", exp: 10, effect: "🤍", toast: "쓰담쓰담!" },
+  praise: { state: "proud", animation: "praise", exp: 15, effect: "⭐", toast: "잘했어!" },
+  play: { state: "cheerful", animation: "play", exp: 10, effect: "🎈", toast: "같이 놀자!" },
+  magic: { state: "magic", animation: "magic", exp: 20, effect: "🌟", toast: "마법 뿅!" }
 };
 
 // 보상 상자를 열었을 때 랜덤으로 받을 EXP 범위입니다.
@@ -146,7 +155,9 @@ const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
 const petCard = document.getElementById("petCard");
 const petFrame = document.getElementById("petFrame");
-const stateChip = document.getElementById("stateChip");
+const themeButton = document.getElementById("themeButton");
+const themeLabel = document.getElementById("themeLabel");
+const themeModal = document.getElementById("themeModal");
 const petSpeech = document.getElementById("petSpeech");
 const petMeta = document.getElementById("petMeta");
 const expText = document.getElementById("expText");
