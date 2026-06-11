@@ -326,7 +326,7 @@ function renderDex() {
 
     return `
       <article class="dex-card">
-        <div class="dex-thumb"><img class="dex-image" src="./assets/pets/mongle/idle/frame_0001.webp" alt="${pet.name}" /></div>
+        <div class="dex-thumb"><img class="dex-image" src="${framePath("idle", 0)}" alt="${pet.name}" /></div>
         <div class="dex-copy">
           <h3>${pet.name} <small>${pet.type}</small></h3>
           <p>${pet.description}</p>

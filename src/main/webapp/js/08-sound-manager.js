@@ -3,9 +3,11 @@
   "use strict";
 
   var root = document.getElementById("appRoot");
-  var contextPath = typeof window.APP_CONTEXT_PATH === "string"
-    ? window.APP_CONTEXT_PATH
-    : ((root && root.dataset && root.dataset.contextPath) || "");
+  var contextPath = typeof window.APP_CONTEXT === "string"
+    ? window.APP_CONTEXT
+    : (typeof window.APP_CONTEXT_PATH === "string"
+      ? window.APP_CONTEXT_PATH
+      : ((root && root.dataset && root.dataset.contextPath) || ""));
 
   var SOUND_MAP = {
     touch: "pet-touch.wav",

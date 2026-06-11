@@ -3,7 +3,7 @@
 // 백엔드 연결 후에는 ParentLoginServlet, ChildHomeServlet, MissionListServlet 등의 응답으로
 // appState 초기값을 채우거나, 화면별 fetch 결과로 교체하면 됩니다.
 
-const PET_FRAME_ROOT = "./assets/pets/mongle";
+const PET_FRAME_ROOT = appPath("/assets/pets/mongle");
 const PET_ANIMATIONS = {
   idle: { frames: 121, fps: 24, loop: true },
   touch: { frames: 121, fps: 24, loop: false },
@@ -11,7 +11,7 @@ const PET_ANIMATIONS = {
   play: { frames: 121, fps: 24, loop: false },
   magic: { frames: 121, fps: 24, loop: false }
 };
-const DEFAULT_PROFILE_IMAGE = "./assets/images/profile.webp";
+const DEFAULT_PROFILE_IMAGE = appPath("/assets/images/profile.webp");
 const PROFILE_IMAGE_STORAGE_KEY = "profileImage";
 const PROFILE_CROP_STYLE_STORAGE_KEY = "profileCropStyle";
 const GENERATED_CHARACTER_STORAGE_KEY = "generatedCharacter";
@@ -19,9 +19,9 @@ const CURRENT_INVITE_CODE_STORAGE_KEY = "currentInviteCode";
 const THEME_STORAGE_KEY = "dduuttnnTheme";
 const mockCharacterImageUrl = DEFAULT_PROFILE_IMAGE;
 const PROFILE_FRAMES = {
-  bronze: { label: "동 액자", image: "./assets/frames/frame-bronze.webp", unlockLevel: 1 },
-  silver: { label: "은 액자", image: "./assets/frames/frame-silver.webp", unlockLevel: 2 },
-  gold: { label: "금 액자", image: "./assets/frames/frame-gold.webp", unlockLevel: 3 }
+  bronze: { label: "동 액자", image: appPath("/assets/frames/frame-bronze.webp"), unlockLevel: 1 },
+  silver: { label: "은 액자", image: appPath("/assets/frames/frame-silver.webp"), unlockLevel: 2 },
+  gold: { label: "금 액자", image: appPath("/assets/frames/frame-gold.webp"), unlockLevel: 3 }
 };
 const APP_THEMES = {
   default: { label: "기본" },
