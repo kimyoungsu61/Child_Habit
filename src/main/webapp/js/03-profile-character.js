@@ -728,7 +728,7 @@ function buildCharacterPrompt(options) {
 
 async function requestCharacterImage(options) {
   const prompt = buildCharacterPrompt(options);
-  return apiRequest("/child/character/generate", {
+  const result = await apiRequest("/child/character/generate", {
     method: "POST",
     body: formData({
       gender: options.gender,
@@ -738,6 +738,10 @@ async function requestCharacterImage(options) {
       prompt
     })
   });
+  const imageUrl = typeof appAssetUrl === "function"
+    ? appAssetUrl(result.imageUrl)
+    : result.imageUrl;
+  return { ...result, imageUrl };
 }
 
 function resetCharacterCreateState() {

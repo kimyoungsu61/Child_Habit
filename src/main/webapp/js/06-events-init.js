@@ -63,6 +63,11 @@ generateCharacterBtn?.addEventListener("click", async () => {
     };
     renderCharacterPreview(pendingGeneratedCharacter);
     if (characterCreateMessage) characterCreateMessage.textContent = "캐릭터가 생성됐어요.";
+  } catch (error) {
+    if (characterCreateMessage) {
+      characterCreateMessage.textContent = error.message || "캐릭터 생성에 실패했어요.";
+    }
+    renderCharacterPreview(null);
   } finally {
     generateCharacterBtn.disabled = false;
   }

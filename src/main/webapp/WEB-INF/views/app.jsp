@@ -771,10 +771,10 @@
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/01-state.js?v=ai-20260611-1"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=ai-20260611-1"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=ai-20260611-2"></script>
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=ai-20260611-1"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=ai-20260611-2"></script>
     <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=ai-20260611-1"></script>
   </body>
 
