@@ -93,6 +93,24 @@
   box-shadow: 0 8px 16px rgba(255, 137, 164, 0.16);
 }
 
+.camera-device-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
+
+.camera-device-field {
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.camera-refresh-btn {
+  min-height: 38px;
+  padding-inline: 12px;
+  white-space: nowrap;
+}
+
 .capture-stage {
   min-height: clamp(190px, 34dvh, 250px);
   border-radius: 24px;
@@ -340,3 +358,10 @@
 }
 
 @media (max-width: 380px) {
+  .camera-device-row {
+    grid-template-columns: 1fr;
+  }
+
+  .camera-refresh-btn {
+    width: 100%;
+  }

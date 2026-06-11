@@ -501,6 +501,93 @@ function setCapturePlaceholder(text) {
   if (capturePlaceholder) capturePlaceholder.textContent = text;
 }
 
+function cameraSupportMessage() {
+  if (!window.isSecureContext) {
+    return "카메라는 HTTPS 또는 localhost에서만 사용할 수 있습니다. 현재 IP 주소를 HTTPS로 열어 주세요.";
+  }
+  return CAMERA_MESSAGES.notSupported;
+}
+
+function selectedCameraVideoConstraints() {
+  if (selectedCameraDeviceId) {
+    return { deviceId: { exact: selectedCameraDeviceId } };
+  }
+  return { facingMode: { ideal: "environment" } };
+}
+
+async function openSelectedCameraStream(audio = false) {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: selectedCameraVideoConstraints(),
+      audio
+    });
+  } catch (error) {
+    if (!selectedCameraDeviceId
+        || !["NotFoundError", "OverconstrainedError"].includes(error?.name)) {
+      throw error;
+    }
+    selectedCameraDeviceId = "";
+    if (cameraDeviceSelect) cameraDeviceSelect.value = "";
+    return navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } },
+      audio
+    });
+  }
+}
+
+async function refreshCameraDevices({ requestPermission = false } = {}) {
+  if (!navigator.mediaDevices?.enumerateDevices) {
+    if (cameraDeviceSelect) cameraDeviceSelect.disabled = true;
+    if (refreshCameraDevicesBtn) refreshCameraDevicesBtn.disabled = true;
+    setCaptureNotice(cameraSupportMessage());
+    return [];
+  }
+
+  let permissionStream = null;
+  if (requestPermission && !photoStream && !videoStream) {
+    permissionStream = await openSelectedCameraStream(false);
+  }
+
+  try {
+    const devices = (await navigator.mediaDevices.enumerateDevices())
+      .filter(device => device.kind === "videoinput");
+    if (cameraDeviceSelect) {
+      const currentValue = selectedCameraDeviceId;
+      cameraDeviceSelect.innerHTML = [
+        '<option value="">기본 카메라</option>',
+        ...devices.map((device, index) => {
+          const label = device.label || `카메라 ${index + 1}`;
+          return `<option value="${escapeHtml(device.deviceId)}">${escapeHtml(label)}</option>`;
+        })
+      ].join("");
+      const selectedExists = devices.some(device => device.deviceId === currentValue);
+      selectedCameraDeviceId = selectedExists ? currentValue : "";
+      cameraDeviceSelect.value = selectedCameraDeviceId;
+      cameraDeviceSelect.disabled = devices.length === 0 || isVideoRecording;
+    }
+    if (refreshCameraDevicesBtn) {
+      refreshCameraDevicesBtn.disabled = isVideoRecording;
+    }
+    return devices;
+  } finally {
+    stopCaptureStream(permissionStream);
+  }
+}
+
+async function changeCameraDevice(deviceId) {
+  if (isVideoRecording) {
+    setCaptureNotice("녹화를 종료한 뒤 카메라를 변경해 주세요.");
+    return;
+  }
+  selectedCameraDeviceId = deviceId || "";
+  clearCaptureStreams();
+  if (appState.captureMode === "photo" && getActiveScreenId() === "childCameraScreen") {
+    await startPhotoCamera();
+  } else {
+    setCaptureNotice("선택한 카메라는 다음 녹화부터 사용됩니다.");
+  }
+}
+
 function stopCaptureStream(stream) {
   stream?.getTracks?.().forEach(track => track.stop());
 }
@@ -578,6 +665,8 @@ function updateCaptureSubmitState() {
   if (stopMockVideoBtn) {
     stopMockVideoBtn.hidden = !isVideoRecording;
   }
+  if (cameraDeviceSelect) cameraDeviceSelect.disabled = isVideoRecording;
+  if (refreshCameraDevicesBtn) refreshCameraDevicesBtn.disabled = isVideoRecording;
 }
 
 // 촬영 방식을 사진/영상 중 하나로 바꾸고 관련 UI를 초기화합니다.
@@ -616,6 +705,7 @@ function setCaptureMode(mode) {
   }
   setCaptureNotice("");
   updateCaptureSubmitState();
+  refreshCameraDevices().catch(() => {});
   if (appState.captureMode === "photo" && getActiveScreenId() === "childCameraScreen") {
     window.requestAnimationFrame(() => {
       if (appState.captureMode === "photo" && getActiveScreenId() === "childCameraScreen") {
@@ -628,13 +718,13 @@ function setCaptureMode(mode) {
 async function startPhotoCamera() {
   if (!photoCameraPreview) return false;
   if (!navigator.mediaDevices?.getUserMedia) {
-    setCaptureNotice(CAMERA_MESSAGES.notSupported);
+    setCaptureNotice(cameraSupportMessage());
     setCapturePlaceholder("📷\n카메라를 사용할 수 없습니다\n잠시 후 다시 시도해 주세요");
     return false;
   }
   try {
     if (!photoStream) {
-      photoStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      photoStream = await openSelectedCameraStream(false);
     }
     if (appState.captureMode !== "photo" || getActiveScreenId() !== "childCameraScreen") {
       stopCaptureStream(photoStream);
@@ -647,6 +737,7 @@ async function startPhotoCamera() {
     photoCameraPreview.hidden = false;
     const playResult = photoCameraPreview.play?.();
     if (playResult?.catch) await playResult.catch(() => {});
+    refreshCameraDevices().catch(() => {});
     setCaptureNotice("");
     childCaptureStage?.classList.add("has-media");
     return true;

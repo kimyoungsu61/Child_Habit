@@ -1246,7 +1246,7 @@ async function startVideoRecording() {
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
     const message = typeof MediaRecorder === "undefined"
       ? "이 브라우저에서는 영상 녹화를 지원하지 않습니다."
-      : CAMERA_MESSAGES.notSupported;
+      : cameraSupportMessage();
     setCaptureNotice(message);
     setCapturePlaceholder("🎥\n카메라를 사용할 수 없습니다\n잠시 후 다시 시도해 주세요");
     showToast(message);
@@ -1262,10 +1262,7 @@ async function startVideoRecording() {
   capturedVideoBlob = null;
   videoChunks = [];
   try {
-    videoStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } },
-      audio: false
-    });
+    videoStream = await openSelectedCameraStream(false);
   } catch (error) {
     const message = normalizeCameraError(error);
     capturedVideoBlob = null;
@@ -1281,6 +1278,7 @@ async function startVideoRecording() {
     return;
   }
   captureState.stream = videoStream;
+  refreshCameraDevices().catch(() => {});
   const preview = document.getElementById("videoCameraPreview");
   preview.srcObject = videoStream;
   preview.hidden = false;

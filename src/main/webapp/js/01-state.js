@@ -253,6 +253,8 @@ const retakePhotoBtn = document.getElementById("retakePhotoBtn");
 const startMockVideoBtn = document.getElementById("startMockVideoBtn");
 const stopMockVideoBtn = document.getElementById("stopMockVideoBtn");
 const submitCaptureBtn = document.getElementById("submitCaptureBtn");
+const cameraDeviceSelect = document.getElementById("cameraDeviceSelect");
+const refreshCameraDevicesBtn = document.getElementById("refreshCameraDevicesBtn");
 const generateCharacterBtn = document.getElementById("generateCharacterBtn");
 const startWithCharacterBtn = document.getElementById("startWithCharacterBtn");
 const characterCreateMessage = document.getElementById("characterCreateMessage");
@@ -268,6 +270,7 @@ let capturedPhotoDataUrl = "";
 let videoRecordingReady = false;
 let isVideoRecording = false;
 let discardVideoRecording = false;
+let selectedCameraDeviceId = "";
 const CAMERA_MESSAGES = {
   permission: "카메라 권한을 허용해 주세요.",
   notFound: "카메라 장치를 찾을 수 없습니다.",
