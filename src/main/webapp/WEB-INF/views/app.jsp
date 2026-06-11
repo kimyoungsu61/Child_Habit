@@ -759,6 +759,10 @@
     PDF의 Servlet 흐름에 맞춰 프론트 JS를 기능별로 나눴습니다.
     아래 순서가 중요합니다. 뒤 파일은 앞 파일에서 만든 상수와 함수를 사용합니다.
   -->
+    <script>
+      window.APP_CONTEXT_PATH = "${pageContext.request.contextPath}";
+    </script>
+    <script src="${pageContext.request.contextPath}/js/08-sound-manager.js?v=sound-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/01-state.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-stage-20260610-2"></script>

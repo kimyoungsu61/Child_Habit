@@ -5,8 +5,11 @@ echo ========================================
 echo DDUUTTNN 자동 빌드 및 Tomcat 배포 시작
 echo ========================================
 
-set PROJECT_DIR=C:\Users\SMHRD\Desktop\dduuttnn
-set TOMCAT_DIR=C:\apache-tomcat-9.0.118
+set "PROJECT_DIR=%~dp0"
+set "TOMCAT_DIR=C:\apache-tomcat-9.0.118"
+set "CATALINA_HOME=%TOMCAT_DIR%"
+set "CATALINA_BASE=%TOMCAT_DIR%"
+if not defined JAVA_HOME set "JAVA_HOME=C:\Program Files\Java\jdk-21.0.10"
 set WAR_NAME=back.war
 set APP_NAME=back
 

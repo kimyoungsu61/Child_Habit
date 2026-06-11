@@ -110,12 +110,18 @@ function missionLabel(status) {
 // EXP를 더하고, maxExp를 넘으면 레벨업시킵니다.
 // 실제 서버 연결 후에는 서버에서 계산한 level/exp를 그대로 반영하는 편이 좋습니다.
 function addExp(amount) {
+  const levelBefore = appState.pet.level;
   appState.pet.exp += amount;
   while (appState.pet.exp >= appState.pet.maxExp) {
     appState.pet.exp -= appState.pet.maxExp;
     appState.pet.level += 1;
     showToast(`${appState.pet.name}가 Lv.${appState.pet.level}로 성장했어요!`);
     createParticles("🌟", 14);
+  }
+  if (appState.pet.level > levelBefore) {
+    window.setTimeout(function () {
+      if (typeof window.playSound === "function") window.playSound("levelUp");
+    }, 300);
   }
   renderPet();
   renderDex();
@@ -169,6 +175,10 @@ function resetPet() {
 function handlePetAction(type, options = {}) {
   const action = actionMap[type];
   if (!action) return;
+
+  if (typeof window.playSound === "function") {
+    window.playSound(type);
+  }
 
   appState.pet.state = action.state;
   appState.pet.activeAction = type;

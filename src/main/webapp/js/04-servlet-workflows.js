@@ -229,6 +229,17 @@ function openSelectedRewardBox() {
     openButton.disabled = true;
     openButton.textContent = "개봉 중...";
   }
+
+  if (typeof window.playSound === "function") {
+    const soundMap = {
+      beginner: "rewardOpenLow",
+      middle: "rewardOpenMiddle",
+      premium: "rewardOpenHigh"
+    };
+    const soundName = soundMap[boxType];
+    if (soundName) window.playSound(soundName);
+  }
+
   const motionPromise = playRewardChestMotion(boxType);
 
   motionPromise.then(() => {
@@ -247,6 +258,10 @@ function openSelectedRewardBox() {
     restartReactClass();
     playFrameSequence("magic", { loop: false, onComplete: resetPet });
     showToast(`EXP ${exp} 획득!`);
+
+    if (typeof window.playSound === "function") {
+      window.playSound("rewardSuccess");
+    }
   });
 }
 
