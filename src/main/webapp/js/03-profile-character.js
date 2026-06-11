@@ -666,3 +666,89 @@ function queueProfileCropMove(event) {
     profileCropRaf = 0;
   });
 }
+
+// AI branch: local Jupyter Flask integration uses these normalized values.
+function getCharacterOptionLabels(options) {
+  const labels = {
+    gender: { boy: "남자", girl: "여자" },
+    expression: { smile: "행복", focus: "보통", curious: "신남" },
+    background: { city: "도시", countryside: "공원", futureCity: "미래도시" },
+    glasses: { wear: "안경 착용", none: "안경 미착용" }
+  };
+  return {
+    gender: labels.gender[options.gender] || "",
+    expression: labels.expression[options.expression] || "",
+    background: labels.background[options.background] || "",
+    glasses: labels.glasses[options.glasses] || ""
+  };
+}
+
+function getMissingCharacterOptionLabel(options) {
+  if (!options.gender) return "성별을 선택해 주세요.";
+  if (!options.expression) return "표정을 선택해 주세요.";
+  if (!options.background) return "배경을 선택해 주세요.";
+  if (!options.glasses) return "안경 착용 여부를 선택해 주세요.";
+  return "";
+}
+
+function buildCharacterPrompt(options) {
+  const genderPrompt = {
+    boy: "1boy, young korean boy, clearly male child",
+    girl: "1girl, young korean girl, clearly female child"
+  };
+  const expressionPrompt = {
+    smile: "happy child expression, joyful, cheerful, open mouth smile",
+    focus: "neutral child expression, calm but alert, closed mouth",
+    curious: "excited child expression, cheerful, lively, bright eyes"
+  };
+  const backgroundPrompt = {
+    city: "city street, buildings, urban background, daylight",
+    countryside: "park, trees, grass, flowers, sunlight",
+    futureCity: "cyberpunk city, futuristic cityscape, neon lights"
+  };
+  const glassesPrompt = {
+    wear: "glasses, round glasses, eyewear",
+    none: "no glasses"
+  };
+
+  return [
+    "masterpiece, best quality, anime artwork",
+    "young korean child character",
+    "lower elementary school student",
+    "one child only, solo",
+    "medium shot, head to waist visible",
+    "front facing, looking at viewer, eyes open",
+    "cute children app character style",
+    genderPrompt[options.gender],
+    expressionPrompt[options.expression],
+    backgroundPrompt[options.background],
+    glassesPrompt[options.glasses]
+  ].filter(Boolean).join(", ");
+}
+
+async function requestCharacterImage(options) {
+  const prompt = buildCharacterPrompt(options);
+  return apiRequest("/child/character/generate", {
+    method: "POST",
+    body: formData({
+      gender: options.gender,
+      userEmotion: options.expression,
+      background: options.background,
+      glasses: options.glasses,
+      prompt
+    })
+  });
+}
+
+function resetCharacterCreateState() {
+  selectedCharacterOptions = {
+    gender: null,
+    expression: null,
+    background: null,
+    glasses: null
+  };
+  pendingGeneratedCharacter = null;
+  if (characterCreateMessage) characterCreateMessage.textContent = "";
+  renderCharacterOptions();
+  renderCharacterPreview(null);
+}

@@ -272,6 +272,7 @@ const captureState = {
   recorder: null
 };
 let selectedCharacterOptions = {
+  gender: null,
   expression: null,
   background: null,
   glasses: null

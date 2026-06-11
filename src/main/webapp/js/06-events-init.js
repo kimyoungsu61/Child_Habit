@@ -55,6 +55,7 @@ generateCharacterBtn?.addEventListener("click", async () => {
       imageUrl: result.imageUrl,
       originalImageUrl: result.imageUrl,
       croppedImageUrl: "",
+      gender: selectedCharacterOptions.gender,
       expression: selectedCharacterOptions.expression,
       background: selectedCharacterOptions.background,
       glasses: selectedCharacterOptions.glasses,
