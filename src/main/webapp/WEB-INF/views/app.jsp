@@ -495,6 +495,16 @@
                 class="mode-icon">📷</span><span>사진</span></button>
           </div>
 
+          <div class="camera-device-row">
+            <label class="entry-field camera-device-field" for="cameraDeviceSelect">
+              <span>카메라 선택</span>
+              <select id="cameraDeviceSelect">
+                <option value="">기본 카메라</option>
+              </select>
+            </label>
+            <button class="btn camera-refresh-btn" type="button" id="refreshCameraDevicesBtn">장치 새로고침</button>
+          </div>
+
           <div class="capture-stage" id="childCaptureStage">
             <video id="photoCameraPreview" autoplay playsinline muted hidden></video>
             <video id="videoCameraPreview" autoplay playsinline muted hidden></video>
@@ -845,13 +855,13 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=ai-20260611-1"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=usb-camera-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=character-loading-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=pet-stage-20260610-2"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=usb-camera-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=character-loading-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=ai-20260611-1"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=usb-camera-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=usb-camera-20260611"></script>
   </body>
 
   </html>

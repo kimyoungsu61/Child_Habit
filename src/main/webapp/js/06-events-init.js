@@ -183,6 +183,26 @@ document.querySelectorAll("[data-capture-mode]").forEach(button => {
   button.addEventListener("click", () => setCaptureMode(button.dataset.captureMode));
 });
 
+cameraDeviceSelect?.addEventListener("change", event => {
+  changeCameraDevice(event.target.value).catch(error => {
+    setCaptureNotice(normalizeCameraError(error));
+  });
+});
+
+refreshCameraDevicesBtn?.addEventListener("click", () => {
+  refreshCameraDevices({ requestPermission: true })
+    .then(devices => {
+      setCaptureNotice(devices.length
+        ? `${devices.length}개의 카메라를 찾았습니다.`
+        : "연결된 카메라를 찾을 수 없습니다.");
+    })
+    .catch(error => setCaptureNotice(normalizeCameraError(error)));
+});
+
+navigator.mediaDevices?.addEventListener?.("devicechange", () => {
+  refreshCameraDevices().catch(() => {});
+});
+
 takePhotoBtn?.addEventListener("click", () => {
   Promise.resolve(takePhoto()).catch(error => {
     const message = normalizeCameraError(error);
