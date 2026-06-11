@@ -82,7 +82,14 @@ public class AiImageService {
         JsonObject data = root.has("data") && root.get("data").isJsonObject()
                 ? root.getAsJsonObject("data")
                 : root;
-        String imageBase64 = firstString(data, "image_base64", "imageBase64", "image");
+        String imageBase64 = firstString(data,
+                "image_base64",
+                "imageBase64",
+                "image",
+                "image_url",
+                "imageUrl",
+                "base64",
+                "data");
         if (imageBase64.isBlank()) {
             throw new IllegalStateException("AI 이미지 서버 응답에 image_base64 값이 없습니다.");
         }

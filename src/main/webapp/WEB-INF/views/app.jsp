@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=submission-camera-login-20260611" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=character-loading-20260611" />
   </head>
 
   <body>
@@ -857,7 +857,7 @@
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/01-state.js?v=usb-camera-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=ai-20260611-2"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=character-loading-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=usb-camera-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=usb-camera-20260611"></script>

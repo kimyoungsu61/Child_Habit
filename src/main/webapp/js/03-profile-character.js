@@ -232,6 +232,7 @@ function resetCharacterCreateState() {
     glasses: null
   };
   pendingGeneratedCharacter = null;
+  setCharacterCreateLoading(false);
   if (characterCreateMessage) characterCreateMessage.textContent = "";
   renderCharacterOptions();
   renderCharacterPreview(null);
@@ -262,17 +263,53 @@ function renderCharacterOptions() {
 }
 
 // 생성된 캐릭터 미리보기와 선택 요약을 화면에 보여줍니다.
+function setCharacterCreateLoading(isLoading) {
+  const panel = document.querySelector(".character-create-panel");
+  panel?.classList.toggle("is-generating", isLoading);
+
+  if (generateCharacterBtn) {
+    generateCharacterBtn.disabled = isLoading;
+    generateCharacterBtn.setAttribute("aria-busy", isLoading ? "true" : "false");
+  }
+
+  document.querySelectorAll("[data-character-option]").forEach(button => {
+    button.disabled = isLoading;
+  });
+
+  if (!characterPreview) return;
+  characterPreview.classList.toggle("is-generating", isLoading);
+
+  if (isLoading) {
+    characterPreview.hidden = false;
+    characterPreview.setAttribute("aria-busy", "true");
+    if (characterPreviewImage) {
+      characterPreviewImage.hidden = true;
+      characterPreviewImage.removeAttribute("src");
+    }
+    return;
+  }
+
+  characterPreview.removeAttribute("aria-busy");
+  if (characterPreviewImage) characterPreviewImage.hidden = false;
+}
+
 function renderCharacterPreview(characterData) {
   if (!characterPreview || !characterPreviewImage) return;
   const previewSource = getCharacterProfileImageSource(characterData);
   if (!previewSource) {
     characterPreview.hidden = true;
+    characterPreview.classList.remove("is-generating");
+    characterPreview.removeAttribute("aria-busy");
+    characterPreviewImage.hidden = false;
     characterPreviewImage.removeAttribute("src");
     if (startWithCharacterBtn) startWithCharacterBtn.hidden = true;
     renderCharacterSummary(null);
     return;
   }
   characterPreview.hidden = false;
+  characterPreview.classList.remove("is-generating");
+  characterPreview.removeAttribute("aria-busy");
+  characterPreviewImage.hidden = false;
   characterPreviewImage.src = previewSource;
   renderCharacterSummary(characterData);
   if (startWithCharacterBtn) startWithCharacterBtn.hidden = false;
@@ -755,6 +792,7 @@ function resetCharacterCreateState() {
     glasses: null
   };
   pendingGeneratedCharacter = null;
+  setCharacterCreateLoading(false);
   if (characterCreateMessage) characterCreateMessage.textContent = "";
   renderCharacterOptions();
   renderCharacterPreview(null);
