@@ -697,6 +697,15 @@
         <article class="card panel form-panel character-create-panel">
           <h2>AI 캐릭터 생성</h2>
           <p>원하는 조건을 선택하면 나만의 캐릭터가 생성돼요.</p>
+          <div class="character-option-group" data-character-group="gender">
+            <strong>성별 선택</strong>
+            <div class="character-option-row">
+              <button class="character-option" type="button" data-character-option="gender"
+                data-value="boy">남자</button>
+              <button class="character-option" type="button" data-character-option="gender"
+                data-value="girl">여자</button>
+            </div>
+          </div>
           <div class="character-option-group" data-character-group="expression">
             <strong>표정 선택</strong>
             <div class="character-option-row">
@@ -807,18 +816,14 @@
     PDF의 Servlet 흐름에 맞춰 프론트 JS를 기능별로 나눴습니다.
     아래 순서가 중요합니다. 뒤 파일은 앞 파일에서 만든 상수와 함수를 사용합니다.
   -->
-    <script>
-      window.APP_CONTEXT_PATH = "${pageContext.request.contextPath}";
-    </script>
-    <script src="${pageContext.request.contextPath}/js/08-sound-manager.js?v=sound-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=front-merge-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=front-merge-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=front-merge-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=front-merge-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=submission-camera-login-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=submission-camera-login-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=front-merge-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=mission-cancel-video-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=ai-20260611-1"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-stage-20260610-2"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=ai-20260611-2"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=pet-stage-20260610-2"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=pet-stage-20260610-2"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=ai-20260611-2"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=ai-20260611-1"></script>
   </body>
 
   </html>

@@ -909,7 +909,7 @@ function appAssetUrl(path) {
 }
 
 function backendCharacterPath(path) {
-  const match = String(path || "").match(/\/assets\/characters\/[^?#]+\.svg/);
+  const match = String(path || "").match(/\/(?:assets\/characters\/[^?#]+\.svg|media\/generated\/[^?#]+\.png)/);
   return match ? match[0] : "";
 }
 

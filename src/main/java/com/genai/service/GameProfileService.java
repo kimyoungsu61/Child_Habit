@@ -68,6 +68,7 @@ public class GameProfileService {
 
     private boolean validateCharacterImageUrl(String imageUrl) {
         return imageUrl != null
-                && imageUrl.matches("/assets/characters/avatar-(smile|focus|curious)-(wear|none)\\.svg");
+                && (imageUrl.matches("/assets/characters/avatar-(smile|focus|curious)-(wear|none)\\.svg")
+                || imageUrl.matches("/media/generated/[a-f0-9\\-]{36}\\.png"));
     }
 }

@@ -27,8 +27,11 @@ import com.genai.model.Notification;
 import com.genai.model.Parent;
 import com.genai.model.Pet;
 import com.genai.model.RewardInventoryItem;
+import com.genai.service.AiImageGenerationResult;
+import com.genai.service.AiImageService;
 import com.genai.service.ChildAccountService;
 import com.genai.service.GameProfileService;
+import com.genai.service.GeneratedImageStorage;
 import com.genai.service.JoinResult;
 import com.genai.service.MissionMediaStorage;
 import com.genai.service.MissionService;
@@ -52,6 +55,8 @@ public class ApiServlet extends HttpServlet {
     private MissionService missionService;
     private MissionMediaStorage mediaStorage;
     private PersistentLoginService persistentLoginService;
+    private AiImageService aiImageService;
+    private GeneratedImageStorage generatedImageStorage;
 
     @Override
     public void init() {
@@ -61,6 +66,8 @@ public class ApiServlet extends HttpServlet {
         missionService = new MissionService();
         mediaStorage = new MissionMediaStorage();
         persistentLoginService = new PersistentLoginService();
+        aiImageService = new AiImageService();
+        generatedImageStorage = new GeneratedImageStorage();
     }
 
     @Override
@@ -108,6 +115,8 @@ public class ApiServlet extends HttpServlet {
                 markChildNotificationsRead(request, response);
             } else if ("/child/setup".equals(path)) {
                 childSetup(request, response);
+            } else if ("/child/character/generate".equals(path)) {
+                generateChildCharacter(request, response);
             } else if ("/child/submissions".equals(path)) {
                 submitMission(request, response);
             } else if (path.matches("/parent/submissions/\\d+/(approve|reject)")) {
@@ -408,6 +417,31 @@ public class ApiServlet extends HttpServlet {
         ChildProfile refreshed = childAccountService.findById(child.getChildId());
         request.getSession(false).setAttribute(SessionKeys.CHILD, refreshed);
         success(response, Map.of("child", childMap(refreshed)));
+    }
+
+    private void generateChildCharacter(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        ChildProfile child = requireChild(request, response);
+        if (child == null) {
+            return;
+        }
+        Map<String, String> options = new LinkedHashMap<>();
+        options.put("gender", value(request.getParameter("gender")));
+        options.put("userEmotion", value(request.getParameter("userEmotion")));
+        options.put("background", value(request.getParameter("background")));
+        options.put("glasses", value(request.getParameter("glasses")));
+        options.put("prompt", value(request.getParameter("prompt")));
+
+        AiImageGenerationResult generated = aiImageService.generateCharacter(options);
+        String imageUrl = generatedImageStorage.savePngBase64(generated.getImageBase64());
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("imageUrl", imageUrl);
+        data.put("prompt", generated.getPrompt());
+        if (generated.getSeed() != null) {
+            data.put("seed", generated.getSeed());
+        }
+        success(response, data);
     }
 
     private void submitMission(HttpServletRequest request, HttpServletResponse response)
