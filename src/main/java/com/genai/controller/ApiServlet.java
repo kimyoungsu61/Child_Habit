@@ -348,8 +348,12 @@ public class ApiServlet extends HttpServlet {
             return;
         }
         Long missionId = Long.valueOf(path.split("/")[3]);
-        missionService.deleteMission(missionId, parent.getParentId());
-        success(response, Map.of("deleted", true));
+        if (!missionService.deactivateMission(missionId, parent.getParentId())) {
+            error(response, HttpServletResponse.SC_CONFLICT,
+                    "오늘 완료된 미션은 취소할 수 없습니다.");
+            return;
+        }
+        success(response, Map.of("deactivated", true));
     }
 
     private void markParentNotificationsRead(HttpServletRequest request,

@@ -107,6 +107,13 @@
         WHERE mission_id = #{missionId}
           AND parent_id = #{parentId}
           AND is_active = 'Y'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM MISSION_SUBMISSION ms
+              WHERE ms.mission_id = MISSION.mission_id
+                AND ms.mission_date = TRUNC(SYSDATE)
+                AND ms.status = 'approved'
+          )
     </update>
 
     <delete id="deleteMissionNotifications">

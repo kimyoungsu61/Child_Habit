@@ -512,7 +512,6 @@
             </div>
             <div class="capture-action-row video-actions" id="videoCaptureActions">
               <button class="btn primary" type="button" id="startMockVideoBtn">녹화 시작</button>
-              <button class="btn" type="button" id="stopMockVideoBtn" hidden>녹화 종료</button>
             </div>
             <button class="btn mint full capture-submit" type="button" id="submitCaptureBtn" disabled>인증 제출</button>
           </div>
@@ -784,7 +783,7 @@
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=submission-camera-login-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=submission-camera-login-20260611"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=front-merge-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=submission-camera-login-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=mission-cancel-video-20260611"></script>
   </body>
 
   </html>

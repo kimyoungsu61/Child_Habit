@@ -704,10 +704,12 @@ function renderParentDashboardData() {
                     data-edit-mission="${mission.missionId}">
               수정
             </button>
-            <button class="mission-cancel-btn" type="button"
-                    data-cancel-mission="${mission.missionId}">
-              취소
-            </button>
+            ${completed ? "" : `
+              <button class="mission-cancel-btn" type="button"
+                      data-cancel-mission="${mission.missionId}">
+                취소
+              </button>
+            `}
           </div>
         </article>
       `;
