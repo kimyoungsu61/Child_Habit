@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=pet-stage-20260610-2" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=submission-camera-login-20260611" />
   </head>
 
   <body>
@@ -515,7 +515,6 @@
             </div>
             <div class="capture-action-row video-actions" id="videoCaptureActions">
               <button class="btn primary" type="button" id="startMockVideoBtn">녹화 시작</button>
-              <button class="btn" type="button" id="stopMockVideoBtn" hidden>녹화 종료</button>
             </div>
             <button class="btn mint full capture-submit" type="button" id="submitCaptureBtn" disabled>인증 제출</button>
           </div>
@@ -812,14 +811,14 @@
       window.APP_CONTEXT_PATH = "${pageContext.request.contextPath}";
     </script>
     <script src="${pageContext.request.contextPath}/js/08-sound-manager.js?v=sound-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=pet-stage-20260610-2"></script>
+    <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=front-merge-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=front-merge-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=front-merge-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=front-merge-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=submission-camera-login-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=submission-camera-login-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=front-merge-20260611"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=mission-cancel-video-20260611"></script>
   </body>
 
   </html>
