@@ -65,6 +65,23 @@ function gradeForBoxType(boxType) {
   return ({ beginner: "low", middle: "middle", premium: "high" })[boxType] || "low";
 }
 
+function findDashboardMission(missionId) {
+  return serverDashboard?.missions?.find(
+    mission => Number(mission.missionId) === Number(missionId));
+}
+
+function populateMissionEditForm(mission) {
+  if (!mission) throw new Error("수정할 미션을 찾을 수 없습니다.");
+  document.getElementById("editMissionId").value = mission.missionId;
+  document.getElementById("editMissionChildId").value = mission.childId;
+  document.getElementById("editMissionTitle").value = mission.title || "";
+  document.getElementById("editMissionDescription").value = mission.description || "";
+  document.getElementById("editMissionMediaType").value = mission.mediaType || "photo";
+  document.getElementById("editMissionGrade").value = mission.grade || "low";
+  document.getElementById("editMissionChildName").value = mission.childNickname || "";
+  setEntryMessage(document.getElementById("missionEditMessage"), "");
+}
+
 function frameKeyForServerType(frameType) {
   return ({ wood: "bronze", iron: "silver", gold: "gold" })[frameType] || "bronze";
 }
@@ -483,12 +500,16 @@ function renderExpResult(result) {
   const title = document.getElementById("expResultTitle");
   const progress = document.getElementById("expResultProgress");
   const message = document.getElementById("expResultMessage");
+  const boxCount = Math.max(1, Number(result.boxCount) || 1);
+  const boxLabel = result.boxLabel || "보상 상자";
   const levelExp = Math.min(300, Math.max(
     0, result.currentExp - ((result.currentLevel - 1) * 300)));
   if (title) title.textContent = `EXP +${result.expAmount}`;
   if (progress) progress.style.width = `${levelExp / 3}%`;
   if (message) {
-    message.textContent = `${appState.pet.name}이(가) Lv.${result.currentLevel}, EXP ${result.currentExp}까지 성장했어요.`;
+    message.textContent = boxCount > 1
+      ? `${boxLabel} ${boxCount}개를 열어 총 EXP ${result.expAmount}를 얻었어요. ${appState.pet.name}은 Lv.${result.currentLevel}, EXP ${result.currentExp}까지 성장했어요.`
+      : `${appState.pet.name}이(가) Lv.${result.currentLevel}, EXP ${result.currentExp}까지 성장했어요.`;
   }
 }
 
@@ -668,10 +689,16 @@ function renderParentDashboardData() {
             : `${mission.mediaType === "photo" ? "사진" : "영상"} 인증 · ${mission.childNickname}`}</span>
           ${completed ? '<b class="mission-complete-stamp">미션 완료</b>' : ""}
           </div>
-          <button class="mission-cancel-btn" type="button"
-                  data-cancel-mission="${mission.missionId}">
-            취소
-          </button>
+          <div class="parent-mission-actions">
+            <button class="mission-edit-btn" type="button"
+                    data-edit-mission="${mission.missionId}">
+              수정
+            </button>
+            <button class="mission-cancel-btn" type="button"
+                    data-cancel-mission="${mission.missionId}">
+              취소
+            </button>
+          </div>
         </article>
       `;
       }).join("")
@@ -819,6 +846,7 @@ function renderChildMissionData() {
 
 function renderInventoryData() {
   if (!serverChildHome) return;
+  appState.rewardBoxCounts = { beginner: 0, middle: 0, premium: 0 };
   serverChildHome.inventory.forEach(item => {
     const key = ({ low: "beginner", middle: "middle", high: "premium" })[item.boxGrade];
     if (key) appState.rewardBoxCounts[key] = item.quantity;
@@ -973,7 +1001,35 @@ interceptClick("#saveMissionBtn", async () => {
   switchTab("parentMissionsScreen");
 });
 
+interceptClick("#updateMissionBtn", async () => {
+  const message = document.getElementById("missionEditMessage");
+  const missionId = document.getElementById("editMissionId").value;
+  if (!missionId) throw new Error("수정할 미션을 선택해 주세요.");
+  await apiRequest(`/parent/missions/${missionId}/update`, {
+    method: "POST",
+    body: formData({
+      childId: document.getElementById("editMissionChildId").value,
+      missionTitle: document.getElementById("editMissionTitle").value,
+      missionDescription: document.getElementById("editMissionDescription").value,
+      missionGrade: document.getElementById("editMissionGrade").value,
+      mediaType: document.getElementById("editMissionMediaType").value
+    })
+  });
+  setEntryMessage(message, "미션이 수정되었습니다.");
+  await loadParentDashboard();
+  switchTab("parentMissionsScreen");
+});
+
 document.addEventListener("click", event => {
+  const editButton = event.target.closest("[data-edit-mission]");
+  if (editButton) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    populateMissionEditForm(findDashboardMission(editButton.dataset.editMission));
+    switchTab("parentMissionEditScreen");
+    return;
+  }
+
   const cancelButton = event.target.closest("[data-cancel-mission]");
   if (cancelButton) {
     event.preventDefault();
@@ -1348,73 +1404,178 @@ interceptClick("#claimRewardBoxBtn", () => {
   switchTab("childRewardOpenScreen");
 });
 
-interceptClick("#playBoxOpenBtn", async () => {
+function openableRewardSubmissions(grade) {
+  return (serverChildHome?.submissions || []).filter(item =>
+    item.status === "approved"
+      && item.rewardGiven === "N"
+      && item.boxGrade === grade);
+}
+
+function rewardOpenSoundName(boxType) {
+  return ({
+    beginner: "rewardOpenLow",
+    middle: "rewardOpenMiddle",
+    premium: "rewardOpenHigh"
+  })[boxType] || "";
+}
+
+function availableRewardBoxCount() {
+  return Object.values(appState.rewardBoxCounts || {})
+    .reduce((total, count) => total + Math.max(0, Number(count) || 0), 0);
+}
+
+function setRewardOpenBusy(isBusy, text = "개봉 중...") {
+  const openButton = document.getElementById("playBoxOpenBtn");
+  const batchButton = document.getElementById("openBoxBatchBtn");
+  const quantityInput = document.getElementById("boxOpenQuantity");
+  const openMoreButton = document.getElementById("openSameBoxBtn");
+  if (openButton) {
+    openButton.disabled = isBusy;
+    if (text) openButton.textContent = isBusy ? text : "상자 열기";
+  }
+  if (batchButton) batchButton.disabled = isBusy;
+  if (quantityInput) quantityInput.disabled = isBusy;
+  if (openMoreButton) openMoreButton.disabled = isBusy;
+}
+
+async function openSelectedRewardBoxes(quantity = 1) {
   if (!serverChildHome) await loadChildHome();
-  const grade = gradeForBoxType(appState.selectedBoxType);
+  const boxType = appState.selectedBoxType || "beginner";
+  const grade = gradeForBoxType(boxType);
+  const meta = getBoxMeta(boxType);
   const currentId = appState.currentSubmission?.submissionId;
-  const submission = serverChildHome.submissions.find(item =>
-    item.submissionId === currentId
-      && item.status === "approved"
-      && item.rewardGiven === "N")
-    || serverChildHome.submissions.find(item =>
-      item.status === "approved"
-        && item.rewardGiven === "N"
-        && item.boxGrade === grade);
-  if (!submission) throw new Error("열 수 있는 상자가 없어요.");
+  const openable = openableRewardSubmissions(grade);
+  const preferred = openable.find(item => item.submissionId === currentId);
+  const orderedSubmissions = preferred
+    ? [preferred, ...openable.filter(item => item.submissionId !== currentId)]
+    : openable;
+  const requestedCount = Math.max(1, Number(quantity) || 1);
+  const openCount = Math.min(requestedCount, orderedSubmissions.length);
+  if (openCount <= 0) throw new Error("열 수 있는 상자가 없어요.");
+  const targets = orderedSubmissions.slice(0, openCount);
 
   const openButton = document.getElementById("playBoxOpenBtn");
+  const batchButton = document.getElementById("openBoxBatchBtn");
   const expButton = document.getElementById("goExpResultBtn");
   const resultBox = document.getElementById("boxOpenResult");
   const resultText = document.getElementById("boxOpenResultText");
   const stage = document.getElementById("boxVideoStage");
   const guide = document.getElementById("boxOpenGuide");
-  if (openButton) {
-    openButton.disabled = true;
-    openButton.textContent = "개봉 중...";
+  const openMoreButton = document.getElementById("openSameBoxBtn");
+  if (resultBox) resultBox.hidden = true;
+  if (expButton) expButton.hidden = true;
+  if (openMoreButton) openMoreButton.hidden = true;
+  setRewardOpenBusy(true, openCount > 1 ? `${openCount}개 개봉 중...` : "개봉 중...");
+  if (typeof window.playSound === "function") {
+    const soundName = rewardOpenSoundName(boxType);
+    if (soundName) window.playSound(soundName);
   }
-  const motionPromise = playRewardChestMotion(appState.selectedBoxType);
+  const motionPromise = playRewardChestMotion(boxType);
+  let openedCount = 0;
+  let totalExp = 0;
+  let finalResult = null;
 
   try {
-    const result = await apiRequest(`/child/boxes/${submission.submissionId}/open`, {
-      method: "POST"
-    });
-    appState.currentSubmission = submission;
-    appState.lastRewardExp = result.expAmount;
-    renderExpResult(result);
+    for (const submission of targets) {
+      const result = await apiRequest(`/child/boxes/${submission.submissionId}/open`, {
+        method: "POST"
+      });
+      openedCount += 1;
+      totalExp += Number(result.expAmount) || 0;
+      finalResult = result;
+      appState.currentSubmission = submission;
+    }
+    const enrichedResult = {
+      ...finalResult,
+      expAmount: totalExp,
+      boxCount: openedCount,
+      boxLabel: meta.label
+    };
+    appState.lastRewardExp = totalExp;
+    renderExpResult(enrichedResult);
     await loadChildHome();
     await motionPromise;
-    if (guide) guide.textContent = "개봉 완료! 경험치 결과를 확인하세요.";
+    const remainingCount = openableRewardSubmissions(grade).length;
+    const totalRemainingCount = availableRewardBoxCount();
+    if (guide) {
+      guide.textContent = totalRemainingCount > 0
+        ? "개봉 완료! 보상함에서 다른 상자도 열 수 있어요."
+        : "개봉 완료! 경험치 결과를 확인하세요.";
+    }
     if (resultBox) resultBox.hidden = false;
-    if (resultText) resultText.textContent = `EXP ${result.expAmount}를 획득했어요.`;
+    if (resultText) {
+      resultText.textContent = openedCount > 1
+        ? `${meta.label} ${openedCount}개에서 EXP ${totalExp}를 획득했어요.`
+        : `EXP ${totalExp}를 획득했어요.`;
+    }
     if (openButton) openButton.hidden = true;
     if (expButton) expButton.hidden = false;
+    if (batchButton) batchButton.hidden = remainingCount <= 1;
+    if (openMoreButton) {
+      openMoreButton.hidden = totalRemainingCount <= 0;
+      openMoreButton.disabled = false;
+    }
     if (stage) stage.classList.remove("is-opening");
-    showToast(`EXP ${result.expAmount}를 획득했어요!`);
+    updateBoxOpenQuantityControls(boxType);
+    showToast(`EXP ${totalExp}를 획득했어요!`);
+    if (typeof window.playSound === "function") window.playSound("rewardSuccess");
   } catch (error) {
+    await motionPromise;
+    if (openedCount > 0 && finalResult) {
+      renderExpResult({
+        ...finalResult,
+        expAmount: totalExp,
+        boxCount: openedCount,
+        boxLabel: meta.label
+      });
+      await loadChildHome().catch(() => {});
+      if (resultBox) resultBox.hidden = false;
+      if (resultText) resultText.textContent = `${openedCount}개까지 열고 멈췄어요. EXP ${totalExp}를 획득했어요.`;
+      if (expButton) expButton.hidden = false;
+    } else {
+      resetRewardChestMotion(boxType);
+    }
     if (openButton) {
+      openButton.hidden = false;
       openButton.disabled = false;
       openButton.textContent = "상자 열기";
     }
-    resetRewardChestMotion(appState.selectedBoxType);
+    setRewardOpenBusy(false);
+    updateBoxOpenQuantityControls(boxType);
     if (stage) stage.classList.remove("is-opening");
     throw error;
   }
+}
+
+interceptClick("#playBoxOpenBtn", async () => {
+  await openSelectedRewardBoxes(1);
+});
+
+interceptClick("#openBoxBatchBtn", async () => {
+  await openSelectedRewardBoxes(getBoxOpenQuantity());
+});
+
+interceptClick("#openSameBoxBtn", () => {
+  appState.selectedInventoryTab = "boxes";
+  renderInventoryTab();
+  switchTab("childInventoryScreen");
+});
+
+document.getElementById("boxOpenQuantity")?.addEventListener("input", () => {
+  updateBoxOpenQuantityControls(appState.selectedBoxType);
 });
 
 document.querySelectorAll("[data-box]").forEach(button => {
   interceptClick(button, async () => {
     if (!serverChildHome) await loadChildHome();
-    const grade = ({ beginner: "low", middle: "middle", premium: "high" })[button.dataset.box];
-    const submission = serverChildHome.submissions.find(
-      item => item.status === "approved"
-        && item.rewardGiven === "N"
-        && item.boxGrade === grade);
+    const boxType = button.dataset.box || "beginner";
+    const grade = gradeForBoxType(boxType);
+    const submission = openableRewardSubmissions(grade)[0];
     if (!submission) throw new Error("열 수 있는 상자가 없습니다.");
-    const result = await apiRequest(`/child/boxes/${submission.submissionId}/open`, {
-      method: "POST"
-    });
-    await loadChildHome();
-    showToast(`${result.expAmount} EXP를 획득했어요!`);
+    appState.currentSubmission = submission;
+    appState.selectedBoxType = boxType;
+    prepareBoxOpenScreen(boxType);
+    switchTab("childRewardOpenScreen");
   });
 });
 

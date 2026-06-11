@@ -329,17 +329,22 @@
         data-subtitle="미션 내용과 보상을 수정해요">
         <article class="card panel form-panel">
           <h2>미션 수정</h2>
-          <label class="entry-field"><span>제목</span><input type="text" value="책 읽기 10분" /></label>
-          <label class="entry-field"><span>인증 방식</span><select>
-              <option>사진</option>
-              <option>영상</option>
+          <input id="editMissionId" type="hidden" />
+          <input id="editMissionChildId" type="hidden" />
+          <label class="entry-field"><span>제목</span><input id="editMissionTitle" type="text" /></label>
+          <label class="entry-field"><span>설명</span><input id="editMissionDescription" type="text" /></label>
+          <label class="entry-field"><span>인증 방식</span><select id="editMissionMediaType">
+              <option value="photo">사진</option>
+              <option value="video">영상</option>
             </select></label>
-          <label class="entry-field"><span>보상</span><select>
-              <option>중급 상자</option>
-              <option>하급 상자</option>
-              <option>상급 상자</option>
+          <label class="entry-field"><span>보상</span><select id="editMissionGrade">
+              <option value="low">하급 상자</option>
+              <option value="middle">중급 상자</option>
+              <option value="high">상급 상자</option>
             </select></label>
-          <button class="btn primary full" type="button" data-quick-tab="parentMissionsScreen">수정 완료</button>
+          <label class="entry-field"><span>배정 아이</span><input id="editMissionChildName" type="text" disabled /></label>
+          <button class="btn primary full" id="updateMissionBtn" type="button">수정 완료</button>
+          <p class="entry-message" id="missionEditMessage"></p>
         </article>
       </section>
 
@@ -567,7 +572,16 @@
             <strong>획득 결과</strong>
             <span id="boxOpenResultText">EXP를 획득했어요.</span>
           </div>
+          <div class="box-open-tools" id="boxOpenTools">
+            <label class="entry-field box-open-quantity" for="boxOpenQuantity">
+              <span>한번에 개봉할 수량</span>
+              <input id="boxOpenQuantity" type="number" min="1" step="1" value="1" inputmode="numeric" />
+            </label>
+            <span class="box-open-stock" id="boxOpenMaxCount">보유 0개</span>
+            <button class="btn full" type="button" id="openBoxBatchBtn">선택 수량 한번에 열기</button>
+          </div>
           <button class="btn primary full" type="button" id="playBoxOpenBtn">상자 열기</button>
+          <button class="btn full" type="button" id="openSameBoxBtn" hidden>다른 상자 열기</button>
           <button class="btn mint full" type="button" id="goExpResultBtn" data-quick-tab="childExpResultScreen"
             hidden>경험치 결과 보기</button>
         </article>

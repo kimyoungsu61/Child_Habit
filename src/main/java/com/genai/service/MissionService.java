@@ -55,7 +55,6 @@ public class MissionService {
 
     public boolean updateMission(Long missionId, Long parentId, Long childId, String title,
             String description, String grade, String mediaType) {
-        validateMission(parentId, childId, title, grade, mediaType);
         if (missionId == null) {
             throw new IllegalArgumentException("Mission ID is required.");
         }
@@ -63,15 +62,15 @@ public class MissionService {
         if (existing == null) {
             return false;
         }
-        if (!childId.equals(existing.getChildId())
-                && missionDAO.countActiveMissionsByChild(childId)
-                >= MAX_ACTIVE_MISSIONS_PER_CHILD) {
-            throw new IllegalArgumentException("아이에게 등록할 수 있는 미션은 최대 5개입니다.");
+        Long targetChildId = childId == null ? existing.getChildId() : childId;
+        if (!targetChildId.equals(existing.getChildId())) {
+            throw new IllegalArgumentException("이미 배정된 미션의 아이는 변경할 수 없습니다.");
         }
+        validateMission(parentId, targetChildId, title, grade, mediaType);
         Mission mission = new Mission();
         mission.setMissionId(missionId);
         mission.setParentId(parentId);
-        mission.setChildId(childId);
+        mission.setChildId(targetChildId);
         mission.setMissionTitle(title.trim());
         mission.setMissionDescription(description == null ? "" : description.trim());
         mission.setMissionGrade(grade.trim());

@@ -208,14 +208,21 @@
 }
 
 .parent-mission-item .mission-grade-card {
-  padding-right: 66px;
+  padding-right: 112px;
 }
 
-.mission-cancel-btn {
+.parent-mission-actions {
   position: absolute;
   top: 10px;
   right: 10px;
   z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mission-edit-btn,
+.mission-cancel-btn {
   min-width: 44px;
   padding: 6px 9px;
   border: 1px solid rgba(239, 79, 121, 0.28);
@@ -224,6 +231,15 @@
   background: rgba(255, 255, 255, 0.9);
   font-size: 11px;
   font-weight: 950;
+}
+
+.mission-edit-btn {
+  border-color: rgba(74, 191, 213, 0.36);
+  color: #248399;
+}
+
+.mission-edit-btn:hover {
+  background: #edfaff;
 }
 
 .mission-cancel-btn:hover {
@@ -692,6 +708,26 @@
 
 .box-open-panel {
   gap: 12px;
+}
+
+.box-open-tools {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(166, 126, 76, 0.18);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.box-open-quantity {
+  margin: 0;
+}
+
+.box-open-stock {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+  text-align: right;
 }
 
 .box-video-stage {

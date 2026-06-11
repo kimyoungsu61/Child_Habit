@@ -98,6 +98,8 @@ public class ApiServlet extends HttpServlet {
                 createInvite(request, response);
             } else if ("/parent/missions".equals(path)) {
                 createMission(request, response);
+            } else if (path.matches("/parent/missions/\\d+/update")) {
+                updateMission(request, response, path);
             } else if (path.matches("/parent/missions/\\d+/cancel")) {
                 cancelMission(request, response, path);
             } else if ("/parent/notifications/read".equals(path)) {
@@ -314,6 +316,29 @@ public class ApiServlet extends HttpServlet {
                 request.getParameter("missionGrade"),
                 request.getParameter("mediaType"));
         success(response, Map.of("created", true));
+    }
+
+    private void updateMission(HttpServletRequest request, HttpServletResponse response,
+            String path) throws IOException {
+        Parent parent = requireParent(request, response);
+        if (parent == null) {
+            return;
+        }
+        Long missionId = Long.valueOf(path.split("/")[3]);
+        boolean updated = missionService.updateMission(
+                missionId,
+                parent.getParentId(),
+                parseLong(request.getParameter("childId")),
+                request.getParameter("missionTitle"),
+                request.getParameter("missionDescription"),
+                request.getParameter("missionGrade"),
+                request.getParameter("mediaType"));
+        if (!updated) {
+            error(response, HttpServletResponse.SC_NOT_FOUND,
+                    "수정할 미션을 찾을 수 없습니다.");
+            return;
+        }
+        success(response, Map.of("updated", true));
     }
 
     private void cancelMission(HttpServletRequest request, HttpServletResponse response,
@@ -687,7 +712,8 @@ public class ApiServlet extends HttpServlet {
             case "reward_request" -> "새 인증이 도착했어요";
             case "mission_approved" -> "미션이 승인되었어요";
             case "mission_rejected" -> "인증을 다시 제출해 주세요";
-            case "reward_paid" -> "보상 상자를 열었어요";
+            case "reward_paid" -> storedOrDefault(
+                    notification.getTitle(), "보상 상자를 열었어요");
             default -> notification.getTitle();
         };
     }
@@ -698,9 +724,14 @@ public class ApiServlet extends HttpServlet {
             case "reward_request" -> "아이가 미션 인증을 제출했어요. 확인해 주세요.";
             case "mission_approved" -> "보호자가 미션을 승인했어요. 보상함에서 상자를 확인해 주세요.";
             case "mission_rejected" -> "보호자가 인증을 다시 요청했어요. 미션 인증을 다시 제출해 주세요.";
-            case "reward_paid" -> "보상 상자를 열어 경험치를 획득했어요.";
+            case "reward_paid" -> storedOrDefault(
+                    notification.getContent(), "보상 상자를 열어 경험치를 획득했어요.");
             default -> notification.getContent();
         };
+    }
+
+    private String storedOrDefault(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     private List<Map<String, Object>> activityMaps(List<ActivityRecord> activities) {

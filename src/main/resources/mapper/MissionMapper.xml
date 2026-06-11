@@ -90,19 +90,15 @@
 
     <update id="updateMission" parameterType="com.genai.model.Mission">
         UPDATE MISSION
-        SET child_id = #{childId},
-            mission_title = #{missionTitle},
+        SET mission_title = #{missionTitle},
             mission_description = #{missionDescription},
             mission_grade = #{missionGrade},
             media_type = #{mediaType}
         WHERE mission_id = #{missionId}
           AND parent_id = #{parentId}
+          AND child_id = #{childId}
           AND is_active = 'Y'
-          AND NOT EXISTS (
-              SELECT 1
-              FROM MISSION_SUBMISSION ms
-              WHERE ms.mission_id = MISSION.mission_id
-          )
+          AND mission_title != 'default_media_mission'
     </update>
 
     <update id="deactivateMission">
@@ -508,8 +504,18 @@
             #{submissionId},
             #{rewardId,jdbcType=NUMERIC},
             'reward_paid',
-            '보상 상자를 열었어요',
-            '보상 상자에서 EXP ' || #{expAmount} || '를 획득했어요.',
+            CASE #{boxGrade}
+                WHEN 'low' THEN '하급 상자를 열었어요'
+                WHEN 'middle' THEN '중급 상자를 열었어요'
+                WHEN 'high' THEN '상급 상자를 열었어요'
+                ELSE '보상 상자를 열었어요'
+            END,
+            CASE #{boxGrade}
+                WHEN 'low' THEN '하급'
+                WHEN 'middle' THEN '중급'
+                WHEN 'high' THEN '상급'
+                ELSE '보상'
+            END || ' 상자에서 EXP ' || #{expAmount} || '를 획득했어요.',
             'N'
         )
     </insert>

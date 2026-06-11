@@ -98,6 +98,7 @@ public interface MissionMapper {
     int insertRewardPaidNotification(@Param("childId") Long childId,
             @Param("submissionId") Long submissionId,
             @Param("rewardId") Long rewardId,
+            @Param("boxGrade") String boxGrade,
             @Param("expAmount") int expAmount);
 
     List<Notification> findNotificationsForParent(Long parentId);

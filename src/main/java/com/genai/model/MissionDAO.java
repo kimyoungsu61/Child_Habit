@@ -223,7 +223,8 @@ public class MissionDAO {
                 throw new IllegalStateException("활성 펫 경험치를 갱신하지 못했습니다.");
             }
             missionMapper.insertExpRewardHistory(childId, submissionId, boxGrade, expAmount);
-            missionMapper.insertRewardPaidNotification(childId, submissionId, null, expAmount);
+            missionMapper.insertRewardPaidNotification(
+                    childId, submissionId, null, boxGrade, expAmount);
             ChildPet activePet = gameProfileMapper.findActivePet(childId);
             session.commit();
             return activePet;
