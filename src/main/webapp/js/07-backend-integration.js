@@ -916,19 +916,20 @@ function renderChildMissionData() {
         const submission = todaySubmissions.find(
           item => item.missionId === mission.missionId
             && (item.status === "pending" || item.status === "approved"));
-        const completed = Boolean(submission);
-        const unavailable = completed || dailyLimitReached;
-        const statusText = submission?.status === "approved"
+        const completed = submission?.status === "approved";
+        const waitingForApproval = submission?.status === "pending";
+        const unavailable = completed || waitingForApproval || dailyLimitReached;
+        const statusText = completed
           ? "오늘 미션 완료"
-          : (submission?.status === "pending"
-            ? "인증 제출 완료"
+          : (waitingForApproval
+            ? "승인 대기중"
             : (dailyLimitReached ? "오늘 5개 제출 완료" : `${mission.mediaType === "photo" ? "사진" : "영상"} 인증`));
         return `
         <button type="button"
                 data-server-mission="${mission.missionId}"
                 data-server-media="${mission.mediaType}"
                 ${unavailable ? "disabled" : ""}
-                class="mission-grade-card ${mission.grade} ${completed ? "mission-completed" : ""} ${dailyLimitReached && !completed ? "daily-limit-reached" : ""}">
+                class="mission-grade-card ${mission.grade} ${completed ? "mission-completed" : ""} ${dailyLimitReached && !completed && !waitingForApproval ? "daily-limit-reached" : ""}">
           <strong>${gradeLabel(mission.grade)} · ${mission.title}</strong>
           <span>${statusText}</span>
           ${completed ? '<b class="mission-complete-stamp">미션 완료</b>' : ""}
