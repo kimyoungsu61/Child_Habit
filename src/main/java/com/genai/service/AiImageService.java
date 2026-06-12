@@ -63,7 +63,7 @@ public class AiImageService {
             return parseResponse(response.body());
         } catch (IOException exception) {
             throw new IllegalStateException(
-                    "AI 이미지 서버에 연결할 수 없습니다. 로컬 Jupyter Flask 서버를 실행해 주세요.", exception);
+                    "AI 이미지 서버에 연결할 수 없습니다. AI_IMAGE_API_URL 설정과 Colab/ngrok 서버 상태를 확인해 주세요.", exception);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("AI 이미지 생성 요청이 중단되었습니다.", exception);
