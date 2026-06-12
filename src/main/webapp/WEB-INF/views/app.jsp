@@ -15,7 +15,7 @@
         <article class="entry-card entry-panel active card" id="entryStartCard">
           <div class="entry-hero">
             <span class="entry-kicker">서비스 시작</span>
-            <h1>좋은 습관을 몽글이와 함께 만들어요</h1>
+            <h1>좋은 습관을 몽글과 함께 만들어요</h1>
             <p>부모는 미션을 주고 승인하며, 아이는 인증하고 보상을 받아요.</p>
             <div class="entry-choice-row">
               <button class="btn mint" type="button" data-entry-target="parentLoginCard">부모로 시작하기</button>
@@ -80,7 +80,7 @@
           <span class="profile-avatar profile-photo"></span>
         </button>
         <div class="topbar-copy">
-          <h1 id="pageTitle">오늘도 몽글이와 함께해요</h1>
+          <h1 id="pageTitle">오늘도 몽글과 함께해요</h1>
           <p id="pageSubtitle">좋은 습관을 만들면 함께 성장해요</p>
         </div>
         <button class="exit-btn" id="backToEntryBtn" type="button">나가기</button>
@@ -96,9 +96,9 @@
           </label>
           <div class="pet-select-card">
             <div class="dex-thumb"><img class="dex-image"
-                src="${pageContext.request.contextPath}/assets/pets/mongle/idle/frame_0001.webp" alt="몽글이" /></div>
+                src="${pageContext.request.contextPath}/assets/pets/mongle/idle/frame_0001.webp" alt="몽글" /></div>
             <div>
-              <strong>몽글이</strong>
+              <strong>몽글</strong>
               <p>좋은 습관을 함께 키우는 기본 펫</p>
             </div>
           </div>
@@ -106,13 +106,13 @@
         </article>
       </section>
 
-      <section class="screen active" id="homeScreen" data-title="오늘도 몽글이와 함께해요" data-subtitle="좋은 습관을 만들면 함께 성장해요">
+      <section class="screen active" id="homeScreen" data-title="오늘도 몽글과 함께해요" data-subtitle="좋은 습관을 만들면 함께 성장해요">
         <article class="card pet-room state-normal" id="petCard">
           <div class="effect-layer" id="effectLayer"></div>
           <div class="pet-summary">
             <div>
               <h2>오늘의 대표 펫</h2>
-              <p id="petMeta">몽글이 · Lv.1</p>
+              <p id="petMeta">몽글 · Lv.1</p>
             </div>
             <button class="theme-chip" id="themeButton" type="button" aria-label="테마 선택">
               <span class="theme-chip-swatch" aria-hidden="true"></span>
@@ -126,7 +126,7 @@
             <span class="twinkle three"></span>
             <div class="pet-frame-wrap">
               <img class="pet-frame" id="petFrame"
-                src="${pageContext.request.contextPath}/assets/pets/mongle/idle/frame_0001.webp" alt="몽글이" />
+                src="${pageContext.request.contextPath}/assets/pets/mongle/idle/frame_0001.webp" alt="몽글" />
             </div>
           </div>
 
@@ -169,7 +169,7 @@
         </article>
       </section>
 
-      <section class="screen" id="rewardScreen" data-title="보상 상자" data-subtitle="확인 완료 후 몽글이의 성장을 도와요">
+      <section class="screen" id="rewardScreen" data-title="보상 상자" data-subtitle="확인 완료 후 몽글의 성장을 도와요">
         <article class="card panel reward-card">
           <h2>보상 상자</h2>
           <p id="rewardMessage">인증이 확인되면 상자를 고를 수 있어요.</p>
@@ -214,14 +214,14 @@
             <span class="profile-avatar profile-photo large"></span>
             <div>
               <h2 id="myNickname">토리</h2>
-              <p id="myPetSummary">몽글이 · Lv.4</p>
+              <p id="myPetSummary">몽글 · Lv.4</p>
             </div>
           </div>
           <div class="profile-detail">
-            <div><span>대표 펫</span><strong>몽글이</strong></div>
+            <div><span>대표 펫</span><strong>몽글</strong></div>
             <div><span>경험치</span><strong id="myExpText">EXP 240 / 300</strong></div>
             <div><span>오늘 인증 상태</span><strong id="myMissionStatus">대기 전</strong></div>
-            <div><span>획득 뱃지</span><strong id="myBadgeText">첫 습관 뱃지 준비 중</strong></div>
+            <div><span>획득 뱃지</span><strong id="myBadgeText">몽글 별빛 뱃지 준비 중</strong></div>
           </div>
         </article>
       </section>
@@ -477,7 +477,7 @@
           <div class="capture-head">
             <span class="capture-kicker">오늘의 인증</span>
             <h2>습관 인증 미션</h2>
-            <p>오늘의 좋은 습관을 찍어서 몽글이에게 보여줘요.</p>
+            <p>오늘의 좋은 습관을 찍어서 몽글에게 보여줘요.</p>
           </div>
 
           <div class="mission-mini-card">
@@ -680,14 +680,34 @@
             </div>
             <div class="badge-dex-grid">
               <article class="badge-card locked">
-                <div class="badge-visual">?</div>
-                <strong>몽글이 뱃지</strong>
-                <span>몽글이 만렙 달성 필요</span>
+                <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_mongle.webp" alt="몽글 별빛 뱃지"></div>
+                <strong>몽글 별빛 뱃지</strong>
+                <span>몽글 만렙 달성 필요</span>
               </article>
               <article class="badge-card locked">
-                <div class="badge-visual">?</div>
-                <strong>포근이 뱃지</strong>
-                <span>추후 펫 추가 후 해금</span>
+                <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_roa.webp" alt="로아 용기 뱃지"></div>
+                <strong>로아 용기 뱃지</strong>
+                <span>로아 만렙 달성 필요</span>
+              </article>
+              <article class="badge-card locked">
+                <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_haeon.webp" alt="해온 햇살 뱃지"></div>
+                <strong>해온 햇살 뱃지</strong>
+                <span>해온 만렙 달성 필요</span>
+              </article>
+              <article class="badge-card locked">
+                <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_nuri.webp" alt="누리 잎새 뱃지"></div>
+                <strong>누리 잎새 뱃지</strong>
+                <span>누리 만렙 달성 필요</span>
+              </article>
+              <article class="badge-card locked">
+                <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_aro.webp" alt="아로 물결 뱃지"></div>
+                <strong>아로 물결 뱃지</strong>
+                <span>아로 만렙 달성 필요</span>
+              </article>
+              <article class="badge-card locked">
+                <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_pogeun.webp" alt="포근 하트 뱃지"></div>
+                <strong>포근 하트 뱃지</strong>
+                <span>포근 만렙 달성 필요</span>
               </article>
             </div>
           </div>

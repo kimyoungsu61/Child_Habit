@@ -353,12 +353,15 @@ function renderDex() {
   }
 
   petDexList.innerHTML = filtered.map(pet => {
-    const active = pet.id === "mongle";
-    const levelText = `Lv.${active ? appState.pet.level : pet.level}`;
+    const active = pet.active || pet.id === "mongle";
+    const owned = Boolean(pet.owned);
+    const currentLevel = active ? Math.max(1, Number(appState.pet.level) || 1) : Number(pet.level) || 1;
+    const levelText = owned ? `Lv.${currentLevel}` : "-";
+    const imageSrc = pet.petImage || framePath("idle", 0);
 
     return `
-      <article class="dex-card">
-        <div class="dex-thumb"><img class="dex-image" src="${framePath("idle", 0)}" alt="${pet.name}" /></div>
+      <article class="dex-card ${owned ? "owned" : "locked"}">
+        <div class="dex-thumb"><img class="dex-image" src="${imageSrc}" alt="${pet.name}" /></div>
         <div class="dex-copy">
           <h3>${pet.name} <small>${pet.type}</small></h3>
           <p>${pet.description}</p>
@@ -368,7 +371,7 @@ function renderDex() {
             <span>뱃지 상태: ${pet.badgeAcquired ? pet.badgeName : "뱃지 없음"}</span>
           </div>
           <div class="dex-badges">
-            <span class="mini-badge owned">보유 중</span>
+            <span class="mini-badge ${owned ? "owned" : "locked"}">${owned ? "보유 중" : "미보유"}</span>
             ${active ? '<span class="mini-badge active">대표 펫</span>' : ""}
             <span class="mini-badge">${pet.badgeAcquired ? "뱃지 획득" : "뱃지 없음"}</span>
           </div>

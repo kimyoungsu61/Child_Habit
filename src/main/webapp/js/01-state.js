@@ -53,8 +53,8 @@ const appState = {
     email: "parent@test.com"
   },
   pet: {
-    name: "몽글이",
-    type: "구름 강아지",
+    name: "몽글",
+    type: "별빛 마법 펫",
     level: 1,
     exp: 0,
     maxExp: 300,
@@ -136,18 +136,91 @@ const rewardBoxes = {
 };
 
 // 도감 화면에 보여줄 펫 목록입니다.
-// 현재는 기본 펫 1마리만 있지만, 추후 서버 응답 배열로 확장할 수 있습니다.
+// 화면 순서와 이미지 경로는 기획/DB 기준의 펫, 뱃지 순서와 맞춰둡니다.
 const petDex = [
   {
     id: "mongle",
-    name: "몽글이",
-    type: "구름 강아지",
+    name: "몽글",
+    type: "별빛 마법 펫",
     owned: true,
     active: true,
     acquisitionType: "기본 펫",
-    badgeName: "첫 습관 뱃지",
+    level: 1,
+    petImage: appPath("/assets/images/pets/pet_mongle.webp"),
+    badgeImage: appPath("/assets/images/badges/badge_mongle.webp"),
+    badgeName: "몽글 별빛 뱃지",
     badgeAcquired: false,
-    description: "좋은 습관을 실천할 때마다 함께 용기를 얻는 첫 번째 친구"
+    description: "별빛을 모아 아이의 습관 성장을 응원하는 첫 번째 친구."
+  },
+  {
+    id: "roa",
+    name: "로아",
+    type: "불꽃 용기 펫",
+    owned: false,
+    active: false,
+    acquisitionType: "랜덤 상자",
+    level: 1,
+    petImage: appPath("/assets/images/pets/pet_roa.webp"),
+    badgeImage: appPath("/assets/images/badges/badge_roa.webp"),
+    badgeName: "로아 용기 뱃지",
+    badgeAcquired: false,
+    description: "작은 불꽃으로 아이의 안전과 용기를 따뜻하게 밝혀주는 친구."
+  },
+  {
+    id: "haeon",
+    name: "해온",
+    type: "햇살 응원 펫",
+    owned: false,
+    active: false,
+    acquisitionType: "랜덤 상자",
+    level: 1,
+    petImage: appPath("/assets/images/pets/pet_haeon.webp"),
+    badgeImage: appPath("/assets/images/badges/badge_haeon.webp"),
+    badgeName: "해온 햇살 뱃지",
+    badgeAcquired: false,
+    description: "따뜻한 햇살처럼 매일의 도전을 응원하는 친구."
+  },
+  {
+    id: "nuri",
+    name: "누리",
+    type: "잎새 성장 펫",
+    owned: false,
+    active: false,
+    acquisitionType: "랜덤 상자",
+    level: 1,
+    petImage: appPath("/assets/images/pets/pet_nuri.webp"),
+    badgeImage: appPath("/assets/images/badges/badge_nuri.webp"),
+    badgeName: "누리 잎새 뱃지",
+    badgeAcquired: false,
+    description: "작은 새싹처럼 천천히 자라는 마음을 함께 돌보는 친구."
+  },
+  {
+    id: "aro",
+    name: "아로",
+    type: "물결 평온 펫",
+    owned: false,
+    active: false,
+    acquisitionType: "랜덤 상자",
+    level: 1,
+    petImage: appPath("/assets/images/pets/pet_aro.webp"),
+    badgeImage: appPath("/assets/images/badges/badge_aro.webp"),
+    badgeName: "아로 물결 뱃지",
+    badgeAcquired: false,
+    description: "잔잔한 물결처럼 아이의 마음을 차분하게 감싸주는 친구."
+  },
+  {
+    id: "pogeun",
+    name: "포근",
+    type: "하트 정서 펫",
+    owned: false,
+    active: false,
+    acquisitionType: "랜덤 상자",
+    level: 1,
+    petImage: appPath("/assets/images/pets/pet_pogeun.webp"),
+    badgeImage: appPath("/assets/images/badges/badge_pogeun.webp"),
+    badgeName: "포근 하트 뱃지",
+    badgeAcquired: false,
+    description: "포근한 마음으로 아이의 감정을 다정하게 안아주는 친구."
   }
 ];
 

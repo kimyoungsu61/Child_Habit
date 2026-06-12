@@ -646,6 +646,13 @@
   font-weight: 950;
 }
 
+.badge-visual img {
+  width: 86px;
+  height: 86px;
+  display: block;
+  object-fit: contain;
+}
+
 .badge-card.locked .badge-visual {
   filter: grayscale(1);
   opacity: 0.62;
