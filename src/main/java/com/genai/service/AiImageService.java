@@ -39,7 +39,7 @@ public class AiImageService {
     public AiImageGenerationResult generateCharacter(Map<String, String> options) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("gender", valueOrDefault(options.get("gender"), "boy"));
-        body.put("user_emotion", valueOrDefault(options.get("userEmotion"), "normal"));
+        body.put("user_emotion", valueOrDefault(options.get("userEmotion"), "focus"));
         body.put("background", valueOrDefault(options.get("background"), "city"));
         body.put("glasses", valueOrDefault(options.get("glasses"), "none"));
         body.put("prompt", valueOrDefault(options.get("prompt"), ""));
@@ -48,6 +48,8 @@ public class AiImageService {
                 .uri(URI.create(apiUrl))
                 .timeout(REQUEST_TIMEOUT)
                 .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("ngrok-skip-browser-warning", "true")
                 .POST(HttpRequest.BodyPublishers.ofString(gson.toJson(body)));
         if (!apiToken.isBlank()) {
             requestBuilder.header("Authorization", "Bearer " + apiToken);
