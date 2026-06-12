@@ -22,6 +22,8 @@ const JOIN_DRAFT_STORAGE_KEYS = [
   "parentJoinDraft"
 ];
 const LOCAL_CHILD_PROFILES_KEY = "childProfiles";
+const MAX_LEVEL_CELEBRATION_KEY = "maxLevelCelebrationSeen";
+const shownMaxLevelCelebrations = new Set();
 
 async function apiRequest(path, options = {}) {
   const response = await fetch(`${API_ROOT}${path}`, {
@@ -491,10 +493,99 @@ function applyActivePetState(activePet) {
   appState.pet.name = petName === "토리" || petName === "tori" || petName === "mongle" ? "몽글" : petName;
   const currentExp = Number(activePet.currentExp) || 0;
   const currentLevel = Math.max(1, Number(activePet.currentLevel) || 1);
-  appState.pet.level = currentExp <= 0 ? 1 : currentLevel;
-  appState.pet.exp = Math.min(300, Math.max(
-    0, currentExp - ((appState.pet.level - 1) * 300)));
+  const maxLevel = Math.max(1, Number(activePet.pet?.maxLevel) || 10);
+  const maxed = activePet.isMaxed === "Y" || currentLevel >= maxLevel;
+  appState.pet.petId = Number(activePet.petId || activePet.pet?.petId) || null;
+  appState.pet.childPetId = Number(activePet.childPetId) || null;
+  appState.pet.level = maxed ? maxLevel : (currentExp <= 0 ? 1 : currentLevel);
+  appState.pet.exp = maxed
+    ? 300
+    : Math.min(300, Math.max(0, currentExp - ((appState.pet.level - 1) * 300)));
   appState.pet.maxExp = 300;
+  appState.pet.maxLevel = maxLevel;
+  appState.pet.isMaxed = maxed;
+  appState.pet.badgeAcquired = maxed || activePet.badgeAcquired === "Y";
+  appState.pet.badgeName = activePet.pet?.badgeName || `${appState.pet.name} 성장 뱃지`;
+  appState.pet.badgeImage = activePet.pet?.badgeImageUrl
+    ? appAssetUrl(activePet.pet.badgeImageUrl)
+    : "";
+
+  const dexPet = petDex.find(pet => Number(pet.petId) === appState.pet.petId)
+    || petDex[appState.pet.petId - 1]
+    || petDex.find(pet => pet.active);
+  if (dexPet) {
+    dexPet.level = appState.pet.level;
+    dexPet.badgeAcquired = appState.pet.badgeAcquired;
+    if (appState.pet.badgeName) dexPet.badgeName = appState.pet.badgeName;
+    if (appState.pet.badgeImage) dexPet.badgeImage = appState.pet.badgeImage;
+  }
+}
+
+function maxLevelCelebrationStorageKey() {
+  const petKey = appState.pet.childPetId || appState.pet.petId || appState.pet.name;
+  return `${MAX_LEVEL_CELEBRATION_KEY}:${petKey}`;
+}
+
+function hasSeenMaxLevelCelebration(key) {
+  if (shownMaxLevelCelebrations.has(key)) return true;
+  try {
+    return window.localStorage.getItem(key) === "Y";
+  } catch (error) {
+    return false;
+  }
+}
+
+function rememberMaxLevelCelebration(key) {
+  shownMaxLevelCelebrations.add(key);
+  try {
+    window.localStorage.setItem(key, "Y");
+  } catch (error) {
+    // The in-memory set still prevents duplicate popups for this session.
+  }
+}
+
+function maybeShowMaxLevelCelebration() {
+  if (appState.role !== "child" || getActiveScreenId() !== "homeScreen") return;
+  if (!appState.pet.isMaxed && appState.pet.level < (Number(appState.pet.maxLevel) || 10)) return;
+
+  const modal = document.getElementById("maxLevelModal");
+  if (!modal || modal.classList.contains("active")) return;
+  const storageKey = maxLevelCelebrationStorageKey();
+  if (hasSeenMaxLevelCelebration(storageKey)) return;
+
+  const petName = document.getElementById("maxLevelPetName");
+  const badgeImage = document.getElementById("maxLevelBadgeImage");
+  if (petName) petName.textContent = "몽글";
+  if (badgeImage) {
+    const fallbackPet = petDex.find(pet => pet.badgeAcquired) || petDex[0];
+    badgeImage.src = appState.pet.badgeImage || fallbackPet?.badgeImage || "";
+    badgeImage.alt = appState.pet.badgeName || `${appState.pet.name} 성장 뱃지`;
+  }
+  rememberMaxLevelCelebration(storageKey);
+  modal.classList.add("active");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeMaxLevelCelebration() {
+  const modal = document.getElementById("maxLevelModal");
+  if (!modal) return;
+  modal.classList.remove("active");
+  modal.setAttribute("aria-hidden", "true");
+}
+
+function renderBadgeDex() {
+  const grid = document.querySelector("#inventoryBadgesPanel .badge-dex-grid");
+  if (!grid) return;
+  grid.innerHTML = petDex.map(pet => {
+    const acquired = Boolean(pet.badgeAcquired);
+    return `
+      <article class="badge-card ${acquired ? "owned" : "locked"}">
+        <div class="badge-visual"><img src="${escapeHtml(pet.badgeImage)}" alt="${escapeHtml(pet.badgeName)}"></div>
+        <strong>${escapeHtml(pet.badgeName)}</strong>
+        <span>${acquired ? "획득 완료" : `${escapeHtml(pet.name)} 만렙 달성 필요`}</span>
+      </article>
+    `;
+  }).join("");
 }
 
 function findCurrentChildSubmission() {
@@ -582,8 +673,10 @@ function renderExpResult(result = window.__lastExpResult) {
   const message = document.getElementById("expResultMessage");
   const boxCount = Math.max(1, Number(result.boxCount) || 1);
   const boxLabel = result.boxLabel || "보상 상자";
-  const levelExp = Math.min(300, Math.max(
-    0, result.currentExp - ((result.currentLevel - 1) * 300)));
+  const maxed = result.currentLevel >= (Number(appState.pet.maxLevel) || 10);
+  const levelExp = maxed
+    ? 300
+    : Math.min(300, Math.max(0, result.currentExp - ((result.currentLevel - 1) * 300)));
   if (title) title.textContent = `EXP +${result.expAmount}`;
   if (progress) progress.style.width = `${levelExp / 3}%`;
   if (message) {
@@ -901,6 +994,8 @@ async function loadChildHome(options = {}) {
   renderHomeProfileCharacter();
   renderMyPage();
   updateAppBadges();
+  renderBadgeDex();
+  maybeShowMaxLevelCelebration();
 }
 
 function renderChildMissionData() {
@@ -1252,6 +1347,7 @@ document.querySelectorAll("[data-action]").forEach(button => {
       }
       renderInventoryTab();
       syncProfileFrames();
+      maybeShowMaxLevelCelebration();
     } catch (error) {
       finishPetAction();
       throw error;
@@ -1423,6 +1519,13 @@ interceptClick("#startMockVideoBtn", startVideoRecording);
 interceptClick("#stopMockVideoBtn", () => {
   if (videoRecorder?.state === "recording") videoRecorder.stop();
   // TODO: 개발/테스트 전용 mock 영상 Blob이 필요하면 여기에서 별도 버튼으로 분리해 추가합니다.
+});
+
+document.getElementById("viewMaxLevelBadgeBtn")?.addEventListener("click", () => {
+  closeMaxLevelCelebration();
+  appState.selectedInventoryTab = "badges";
+  renderInventoryTab();
+  switchTab("childInventoryScreen");
 });
 
 interceptClick("#submitCaptureBtn", async () => {

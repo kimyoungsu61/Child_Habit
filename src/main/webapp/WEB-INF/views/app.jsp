@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=profile-frame-preview-20260612-9" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=front-ying-merge-20260612" />
   </head>
 
   <body>
@@ -815,6 +815,26 @@
       </nav>
     </main>
 
+    <div class="modal max-level-modal" id="maxLevelModal" aria-hidden="true">
+      <div class="modal-backdrop"></div>
+      <article class="modal-card max-level-modal-card card" role="dialog" aria-modal="true"
+        aria-labelledby="maxLevelTitle">
+        <div class="max-level-celebration" aria-hidden="true">🎉</div>
+        <h2 id="maxLevelTitle">최고 레벨 달성!</h2>
+        <p class="max-level-message">
+          축하해! 네 정성과 사랑으로 펫이<br>
+          최고 레벨 10에 도달했어!
+        </p>
+        <div class="max-level-badge-preview">
+          <img id="maxLevelBadgeImage"
+            src="${pageContext.request.contextPath}/assets/images/badges/badge_mongle.webp" alt="">
+        </div>
+        <strong class="max-level-badge-title">🏅 '<span id="maxLevelPetName">펫</span>' 성장 뱃지 획득</strong>
+        <p>뱃지 도감에 새롭게 등록됐어!</p>
+        <button class="btn primary full" id="viewMaxLevelBadgeBtn" type="button">뱃지 확인하기</button>
+      </article>
+    </div>
+
     <div class="modal" id="profileModal" aria-hidden="true">
       <div class="modal-backdrop" data-close-modal></div>
       <article class="modal-card profile-crop-card card" role="dialog" aria-modal="true" aria-label="아이 프로필 사진 설정">
@@ -878,13 +898,13 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=profile-frame-preview-20260612-4"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=pet-action-lock-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=profile-frame-preview-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=usb-camera-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=profile-frame-preview-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=profile-frame-preview-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=front-ying-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=front-ying-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=front-ying-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=front-ying-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=front-ying-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=front-ying-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=front-ying-merge-20260612"></script>
   </body>
 
   </html>

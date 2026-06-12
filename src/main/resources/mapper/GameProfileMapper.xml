@@ -98,7 +98,10 @@
 
     <update id="addExpToActivePet">
         UPDATE CHILD_PET cp
-        SET cp.current_exp = cp.current_exp + #{expAmount},
+        SET cp.current_exp = LEAST(
+                ((SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id) - 1) * 300,
+                cp.current_exp + #{expAmount}
+            ),
             cp.current_level = LEAST(
                 (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
                 FLOOR((cp.current_exp + #{expAmount}) / 300) + 1
@@ -111,6 +114,25 @@
                     ) = (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id)
                     THEN 'Y'
                     ELSE cp.is_maxed
+                END,
+            cp.badge_acquired =
+                CASE
+                    WHEN LEAST(
+                        (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                        FLOOR((cp.current_exp + #{expAmount}) / 300) + 1
+                    ) = (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id)
+                    THEN 'Y'
+                    ELSE cp.badge_acquired
+                END,
+            cp.badge_acquired_at =
+                CASE
+                    WHEN cp.badge_acquired = 'N'
+                     AND LEAST(
+                        (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                        FLOOR((cp.current_exp + #{expAmount}) / 300) + 1
+                    ) = (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id)
+                    THEN SYSTIMESTAMP
+                    ELSE cp.badge_acquired_at
                 END
         WHERE cp.child_id = #{childId}
           AND cp.is_active = 'Y'
