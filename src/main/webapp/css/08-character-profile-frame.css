@@ -114,8 +114,34 @@
 }
 
 .profile-open .profile-avatar-frame {
-  width: 136%;
-  height: 136%;
+  display: none;
+}
+
+.profile-open {
+  padding: 2px;
+  border-radius: 14px !important;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffe7a3, #f6b6ff, #9ee7ff) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
+}
+
+.profile-open .profile-avatar.profile-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.profile-open .profile-avatar-inner,
+.profile-open .profile-frame-mask {
+  border-radius: 10px !important;
+  clip-path: none !important;
+  overflow: hidden !important;
+}
+
+.profile-open .profile-avatar-crop {
+  border-radius: 10px !important;
+  object-fit: cover !important;
 }
 
 .profile-avatar.large .profile-avatar-frame {

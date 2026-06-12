@@ -155,6 +155,9 @@ function handleQuickTabButton(button) {
   if (button.dataset.submissionIndex) {
     appState.currentSubmission = appState.submissions[Number(button.dataset.submissionIndex)];
   }
+  if (targetTab === "homeScreen" && typeof renderPet === "function") {
+    renderPet();
+  }
   switchTab(targetTab);
 }
 

@@ -3,14 +3,14 @@
 @import url("./00-base-layout.css");
 @import url("./01-entry-auth.css");
 @import url("./02-shell-components.css");
-@import url("./03-pet-home.css?v=pet-stage-20260610-2");
+@import url("./03-pet-home.css?v=profile-frame-preview-20260612-9");
 @import url("./04-common-ui.css");
 @import url("./05-profile-modal.css");
 @import url("./06-compact-responsive.css?v=pet-stage-20260610-2");
 @import url("./07-parent-child-flows.css");
-@import url("./08-character-profile-frame.css?v=character-loading-20260611");
+@import url("./08-character-profile-frame.css?v=profile-frame-preview-20260612");
 @import url("./09-capture.css");
-@import url("./10-mobile-overrides.css");
+@import url("./10-mobile-overrides.css?v=profile-frame-preview-20260612");
 
 /* =========================
    Pet home background applied
@@ -62,6 +62,21 @@
 #petScreen .profile-pet-stage > * {
   position: relative;
   z-index: 1;
+}
+
+#petScreen .pet-stage.profile-preview-frame-wrap {
+  overflow: visible;
+  margin: 32px 0 38px;
+  background-position: center 58% !important;
+}
+
+#petScreen .pet-stage.profile-preview-frame-wrap > .profile-frame-overlay {
+  position: absolute;
+  z-index: 3;
+}
+
+#petScreen .pet-stage.profile-preview-frame-wrap > .pet-frame-wrap {
+  z-index: 2;
 }
 
 /* 펫이 배경 중앙 무대 위에 자연스럽게 올라오도록 보정 */

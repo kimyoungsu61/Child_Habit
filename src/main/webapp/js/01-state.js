@@ -18,12 +18,33 @@ const GENERATED_CHARACTER_STORAGE_KEY = "generatedCharacter";
 const CURRENT_INVITE_CODE_STORAGE_KEY = "currentInviteCode";
 const THEME_STORAGE_KEY = "dduuttnnTheme";
 const mockCharacterImageUrl = DEFAULT_PROFILE_IMAGE;
+const PROFILE_FRAME_IMAGE_PATHS = {
+  bronze: appPath("/assets/images/profile-frames/profile_frame_bronze.webp"),
+  silver: appPath("/assets/images/profile-frames/profile_frame_silver.webp"),
+  gold: appPath("/assets/images/profile-frames/profile_frame_gold.webp"),
+  crystal: appPath("/assets/images/profile-frames/profile_frame_crystal.webp"),
+  legend: appPath("/assets/images/profile-frames/profile_frame_legend.webp"),
+  aurora: appPath("/assets/images/profile-frames/profile_frame_aurora.webp")
+};
+
+function profileFrameKeyAlias(frameKey = "") {
+  const key = String(frameKey || "").toLowerCase();
+  if (key === "wood") return "bronze";
+  if (key === "iron") return "silver";
+  return key || "bronze";
+}
+
+function profileFrameImageForKey(frameKey = "bronze") {
+  return PROFILE_FRAME_IMAGE_PATHS[profileFrameKeyAlias(frameKey)] || PROFILE_FRAME_IMAGE_PATHS.bronze;
+}
+
 const PROFILE_FRAMES = {
   bronze: {
     frameId: 1,
     type: "bronze",
     label: "동 액자",
     image: appPath("/assets/frames/frame-bronze.webp"),
+    profileImage: profileFrameImageForKey("bronze"),
     requiredBadgeCount: 0,
     unlockLevel: 0
   }

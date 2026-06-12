@@ -117,6 +117,7 @@ function syncProfileFramesFromServer(frames = []) {
       type: frame.frameType,
       label: frame.frameName,
       image: frameImageSrc(frame.frameImageUrl),
+      profileImage: profileFrameImageForKey(frameKey),
       frameImageUrl: frame.frameImageUrl,
       requiredBadgeCount: Number(frame.requiredBadgeCount) || 0,
       unlockLevel: Number(frame.requiredBadgeCount) || 0

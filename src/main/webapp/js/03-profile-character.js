@@ -31,6 +31,7 @@ function getProfileFrameByLevel(level) {
     key: "bronze",
     label: "동 액자",
     image: appPath("/assets/frames/frame-bronze.webp"),
+    profileImage: profileFrameImageForKey("bronze"),
     frameId: 1,
     requiredBadgeCount: 0
   };
@@ -345,6 +346,18 @@ function renderHomeProfileCharacter() {
   syncProfileFrames();
 }
 
+function syncProfilePreviewFrame(frame = getCurrentProfileFrame()) {
+  const overlay = document.getElementById("profileFrameOverlay");
+  if (!overlay) return;
+  const profileImage = frame.profileImage || profileFrameImageForKey(frame.key) || "";
+  overlay.hidden = !profileImage;
+  overlay.dataset.frame = frame.key || "bronze";
+  overlay.title = frame.label || "";
+  if (profileImage && overlay.getAttribute("src") !== profileImage) {
+    overlay.src = profileImage;
+  }
+}
+
 // 프로필 프레임 이미지를 현재 펫 레벨 기준으로 다시 입힙니다.
 function syncProfileFrames() {
   const frame = getCurrentProfileFrame();
@@ -364,6 +377,7 @@ function syncProfileFrames() {
     frameImage.classList.add("profile-frame-img");
     frameImage.src = frame.image;
   });
+  syncProfilePreviewFrame(frame);
 }
 
 // 프로필 모달, 마이페이지, 상단 아바타에 들어가는 정보를 다시 그립니다.
