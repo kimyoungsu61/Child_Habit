@@ -19,12 +19,12 @@ const CURRENT_INVITE_CODE_STORAGE_KEY = "currentInviteCode";
 const THEME_STORAGE_KEY = "dduuttnnTheme";
 const mockCharacterImageUrl = DEFAULT_PROFILE_IMAGE;
 const PROFILE_FRAME_IMAGE_PATHS = {
-  bronze: appPath("/assets/images/profile-frames/profile_frame_bronze.webp"),
-  silver: appPath("/assets/images/profile-frames/profile_frame_silver.webp"),
-  gold: appPath("/assets/images/profile-frames/profile_frame_gold.webp"),
-  crystal: appPath("/assets/images/profile-frames/profile_frame_crystal.webp"),
-  legend: appPath("/assets/images/profile-frames/profile_frame_legend.webp"),
-  aurora: appPath("/assets/images/profile-frames/profile_frame_aurora.webp")
+  bronze: appPath("/assets/images/profile-frames/profile_frame_bronze.png"),
+  silver: appPath("/assets/images/profile-frames/profile_frame_silver.png"),
+  gold: appPath("/assets/images/profile-frames/profile_frame_gold.png"),
+  crystal: appPath("/assets/images/profile-frames/profile_frame_crystal.png"),
+  legend: appPath("/assets/images/profile-frames/profile_frame_legend.png"),
+  aurora: appPath("/assets/images/profile-frames/profile_frame_aurora.png")
 };
 
 function profileFrameKeyAlias(frameKey = "") {

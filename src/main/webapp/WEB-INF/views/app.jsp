@@ -129,7 +129,7 @@
                 src="${pageContext.request.contextPath}/assets/pets/mongle/idle/frame_0001.webp" alt="몽글" />
             </div>
             <img class="profile-frame-overlay" id="profileFrameOverlay"
-              src="${pageContext.request.contextPath}/assets/images/profile-frames/profile_frame_bronze.webp" alt=""
+              src="${pageContext.request.contextPath}/assets/images/profile-frames/profile_frame_bronze.png" alt=""
               aria-hidden="true" />
           </div>
 
