@@ -4,7 +4,7 @@
 // appState 초기값을 채우거나, 화면별 fetch 결과로 교체하면 됩니다.
 
 const DEFAULT_PET_ID = "mongle";
-const PET_FRAME_ASSET_VERSION = "roa-touch-20260612-2";
+const PET_FRAME_ASSET_VERSION = "roa-touch-20260612-3";
 const PET_FRAME_ROOTS = {
   mongle: appPath("/assets/pets/mongle"),
   roa: appPath("/assets/pets/roa")
