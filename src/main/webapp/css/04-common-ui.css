@@ -326,6 +326,27 @@
   background: rgba(255, 255, 255, 0.78);
 }
 
+.dex-card.locked .dex-image {
+  filter: grayscale(1) brightness(0) opacity(0.34);
+  transform: scale(0.96);
+}
+
+.dex-card.locked .dex-thumb {
+  position: relative;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.68), transparent 34%),
+    linear-gradient(180deg, #edf3ef, #f7f0df);
+}
+
+.dex-card.locked .dex-thumb::after {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(50, 45, 40, 0.1), rgba(50, 45, 40, 0));
+  pointer-events: none;
+}
+
 .dex-thumb {
   min-height: 122px;
   border-radius: 20px;
@@ -418,6 +439,11 @@
 .mini-badge.active {
   color: #795000;
   background: #fff1bd;
+}
+
+.mini-badge.locked {
+  color: #6b645c;
+  background: #ece7df;
 }
 
 .btn.ghost {

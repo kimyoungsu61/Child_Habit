@@ -487,10 +487,12 @@ async function handleNotificationAction(notification) {
 function applyActivePetState(activePet) {
   if (!activePet) return;
   const petName = activePet.pet?.name || appState.pet.name;
-  appState.pet.name = petName === "토리" || petName === "tori" ? "몽글이" : petName;
-  appState.pet.level = activePet.currentLevel;
+  appState.pet.name = petName === "토리" || petName === "tori" || petName === "mongle" ? "몽글" : petName;
+  const currentExp = Number(activePet.currentExp) || 0;
+  const currentLevel = Math.max(1, Number(activePet.currentLevel) || 1);
+  appState.pet.level = currentExp <= 0 ? 1 : currentLevel;
   appState.pet.exp = Math.min(300, Math.max(
-    0, activePet.currentExp - ((activePet.currentLevel - 1) * 300)));
+    0, currentExp - ((appState.pet.level - 1) * 300)));
   appState.pet.maxExp = 300;
 }
 

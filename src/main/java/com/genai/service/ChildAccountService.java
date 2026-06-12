@@ -47,7 +47,9 @@ public class ChildAccountService {
     }
 
     public List<ProfileFrame> findFrames() {
-        return childAccountDAO.findAllFrames();
+        List<ProfileFrame> frames = childAccountDAO.findAllFrames();
+        frames.forEach(this::normalizeFrameRequirement);
+        return frames;
     }
 
     public int countApprovedSubmissions(Long childId) {
@@ -55,7 +57,7 @@ public class ChildAccountService {
     }
 
     public ProfileFrame findFrameById(Long frameId) {
-        return frameId == null ? null : childAccountDAO.findFrameById(frameId);
+        return frameId == null ? null : normalizeFrameRequirement(childAccountDAO.findFrameById(frameId));
     }
 
     public ProfileFrame findFrameByType(String frameType) {
@@ -70,7 +72,7 @@ public class ChildAccountService {
         if (frame == null && "wood".equals(normalizedFrameType)) {
             frame = childAccountDAO.findFrameByType("bronze");
         }
-        return frame;
+        return normalizeFrameRequirement(frame);
     }
 
     public ChildProfile updateFrameById(Long childId, Long frameId) {
@@ -118,5 +120,31 @@ public class ChildAccountService {
             return "iron";
         }
         return normalized;
+    }
+
+    private ProfileFrame normalizeFrameRequirement(ProfileFrame frame) {
+        if (frame == null) {
+            return null;
+        }
+        String frameType = frame.getFrameType() == null
+                ? ""
+                : frame.getFrameType().trim().toLowerCase(Locale.ROOT);
+        switch (frameType) {
+            case "wood", "bronze" -> frame.setRequiredBadgeCount(0);
+            case "iron" -> frame.setRequiredBadgeCount(2);
+            case "gold" -> frame.setRequiredBadgeCount(3);
+            case "crystal" -> frame.setRequiredBadgeCount(4);
+            case "aurora" -> frame.setRequiredBadgeCount(5);
+            case "legend" -> frame.setRequiredBadgeCount(6);
+            default -> {
+                if (Long.valueOf(1L).equals(frame.getFrameId())) frame.setRequiredBadgeCount(0);
+                if (Long.valueOf(2L).equals(frame.getFrameId())) frame.setRequiredBadgeCount(2);
+                if (Long.valueOf(3L).equals(frame.getFrameId())) frame.setRequiredBadgeCount(3);
+                if (Long.valueOf(4L).equals(frame.getFrameId())) frame.setRequiredBadgeCount(4);
+                if (Long.valueOf(6L).equals(frame.getFrameId())) frame.setRequiredBadgeCount(5);
+                if (Long.valueOf(5L).equals(frame.getFrameId())) frame.setRequiredBadgeCount(6);
+            }
+        }
+        return frame;
     }
 }

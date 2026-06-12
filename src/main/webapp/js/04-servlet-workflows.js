@@ -146,7 +146,7 @@ function playRewardChestMotion(boxType = appState.selectedBoxType || "beginner")
 
 
 function renderFrameDex() {
-  // 1. 현재 펫 레벨 확인하기 (현재는 몽글이 기준, 추후 모든 펫은 대표 펫 레벨로 연결하는 단계)
+  // 1. 현재 펫 레벨 확인하기 (현재는 몽글 기준, 추후 모든 펫은 대표 펫 레벨로 연결하는 단계)
   const frameGrid = document.querySelector(".frame-dex-grid");
   if (!frameGrid) return;
 
@@ -308,7 +308,7 @@ function openSelectedRewardBox() {
     if (guide) guide.textContent = "개봉 완료! 경험치 결과를 확인하세요.";
     if (result) result.hidden = false;
     playRewardOpenFanfare();
-    if (resultText) resultText.textContent = `EXP ${exp} 획득 · 몽글이 성장 반영`;
+    if (resultText) resultText.textContent = `EXP ${exp} 획득 · 몽글 성장 반영`;
     if (openButton) openButton.hidden = true;
     if (expButton) expButton.hidden = false;
     getRewardChestMotionElements().stage?.classList.remove("is-opening");
@@ -900,7 +900,7 @@ function renderMyPage() {
   if (myPetSummary) myPetSummary.textContent = `${appState.pet.name} · Lv.${appState.pet.level} · ${getCurrentProfileFrame().label}`;
   if (myExpText) myExpText.textContent = `EXP ${appState.pet.exp} / ${appState.pet.maxExp}`;
   if (myMissionStatus) myMissionStatus.textContent = missionLabel(appState.missionStatus);
-  if (myBadgeText) myBadgeText.textContent = petDex[0]?.badgeAcquired ? petDex[0].badgeName : "첫 습관 뱃지 준비 중";
+  if (myBadgeText) myBadgeText.textContent = petDex[0]?.badgeAcquired ? petDex[0].badgeName : "몽글 별빛 뱃지 준비 중";
   renderParentChildList();
   syncProfileFrames();
   scheduleApplySavedProfileCropStyle();

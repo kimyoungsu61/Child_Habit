@@ -18,9 +18,9 @@ class ChildAccountServiceTest {
     void appliesFramesWhenRequiredBadgeCountsAreMet() {
         FakeChildAccountDAO dao = new FakeChildAccountDAO();
         dao.addFrame(1L, "wood", 0);
-        dao.addFrame(2L, "iron", 3);
-        dao.addFrame(3L, "gold", 7);
-        dao.approvedSubmissionCount = 7;
+        dao.addFrame(2L, "iron", 2);
+        dao.addFrame(3L, "gold", 3);
+        dao.approvedSubmissionCount = 3;
         ChildAccountService service = new ChildAccountService(dao, new InviteCodeGenerator());
 
         service.updateFrame(1L, "wood", 1);
@@ -35,8 +35,8 @@ class ChildAccountServiceTest {
     @Test
     void rejectsLockedOrUnknownFrames() {
         FakeChildAccountDAO dao = new FakeChildAccountDAO();
-        dao.addFrame(2L, "iron", 3);
-        dao.approvedSubmissionCount = 2;
+        dao.addFrame(2L, "iron", 2);
+        dao.approvedSubmissionCount = 1;
         ChildAccountService service = new ChildAccountService(dao, new InviteCodeGenerator());
 
         assertThrows(IllegalArgumentException.class,

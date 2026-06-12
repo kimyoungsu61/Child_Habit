@@ -362,7 +362,7 @@ document.querySelectorAll("[data-box]").forEach(button => {
     appState.rewardBoxCounts[boxType] -= 1;
     addExp(exp);
     petDex[0].badgeAcquired = appState.pet.level >= 5;
-    appState.rewardMessage = `${exp} EXP를 얻었어요. 몽글이가 더 반짝여요!`;
+    appState.rewardMessage = `${exp} EXP를 얻었어요. 몽글도 더 반짝여요!`;
     addHistory("reward", "보상상자 오픈", `${exp} EXP를 획득했어요.`);
     renderMission();
     restartReactClass();

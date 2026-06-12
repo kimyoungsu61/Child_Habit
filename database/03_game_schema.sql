@@ -314,12 +314,19 @@ VALUES (source.box_grade, source.box_name, source.min_exp, source.max_exp, sourc
 
 MERGE INTO PET target
 USING (
-    SELECT 'tori' pet_name, '/images/pets/tori.png' pet_image_url, 'default' acquisition_type,
-           10 max_level, 'tori badge' badge_name, '/images/badges/tori.png' badge_image_url,
-           'Brave starter pet' description
+    SELECT 'mongle' pet_name, '/assets/images/pets/pet_mongle.webp' pet_image_url, 'default' acquisition_type,
+           10 max_level, '몽글 별빛 뱃지' badge_name, '/assets/images/badges/badge_mongle.webp' badge_image_url,
+           '별빛을 모아 아이의 습관 성장을 응원하는 첫 번째 친구.' description
     FROM dual
 ) source
 ON (target.pet_name = source.pet_name)
+WHEN MATCHED THEN UPDATE SET
+    target.pet_image_url = source.pet_image_url,
+    target.acquisition_type = source.acquisition_type,
+    target.max_level = source.max_level,
+    target.badge_name = source.badge_name,
+    target.badge_image_url = source.badge_image_url,
+    target.description = source.description
 WHEN NOT MATCHED THEN INSERT (
     pet_name, pet_image_url, acquisition_type, max_level, badge_name, badge_image_url, description
 ) VALUES (
@@ -329,12 +336,19 @@ WHEN NOT MATCHED THEN INSERT (
 
 MERGE INTO PET target
 USING (
-    SELECT 'mongsil' pet_name, '/images/pets/mongsil.png' pet_image_url, 'default' acquisition_type,
-           10 max_level, 'mongsil badge' badge_name, '/images/badges/mongsil.png' badge_image_url,
-           'Calm starter pet' description
+    SELECT 'roa' pet_name, '/assets/images/pets/pet_roa.webp' pet_image_url, 'random_box' acquisition_type,
+           10 max_level, '로아 용기 뱃지' badge_name, '/assets/images/badges/badge_roa.webp' badge_image_url,
+           '작은 불꽃으로 아이의 안전과 용기를 따뜻하게 밝혀주는 친구.' description
     FROM dual
 ) source
 ON (target.pet_name = source.pet_name)
+WHEN MATCHED THEN UPDATE SET
+    target.pet_image_url = source.pet_image_url,
+    target.acquisition_type = source.acquisition_type,
+    target.max_level = source.max_level,
+    target.badge_name = source.badge_name,
+    target.badge_image_url = source.badge_image_url,
+    target.description = source.description
 WHEN NOT MATCHED THEN INSERT (
     pet_name, pet_image_url, acquisition_type, max_level, badge_name, badge_image_url, description
 ) VALUES (
@@ -344,18 +358,95 @@ WHEN NOT MATCHED THEN INSERT (
 
 MERGE INTO PET target
 USING (
-    SELECT 'kongi' pet_name, '/images/pets/kongi.png' pet_image_url, 'default' acquisition_type,
-           10 max_level, 'kongi badge' badge_name, '/images/badges/kongi.png' badge_image_url,
-           'Curious starter pet' description
+    SELECT 'haeon' pet_name, '/assets/images/pets/pet_haeon.webp' pet_image_url, 'random_box' acquisition_type,
+           10 max_level, '해온 햇살 뱃지' badge_name, '/assets/images/badges/badge_haeon.webp' badge_image_url,
+           '따뜻한 햇살처럼 매일의 도전을 응원하는 친구.' description
     FROM dual
 ) source
 ON (target.pet_name = source.pet_name)
+WHEN MATCHED THEN UPDATE SET
+    target.pet_image_url = source.pet_image_url,
+    target.acquisition_type = source.acquisition_type,
+    target.max_level = source.max_level,
+    target.badge_name = source.badge_name,
+    target.badge_image_url = source.badge_image_url,
+    target.description = source.description
 WHEN NOT MATCHED THEN INSERT (
     pet_name, pet_image_url, acquisition_type, max_level, badge_name, badge_image_url, description
 ) VALUES (
     source.pet_name, source.pet_image_url, source.acquisition_type, source.max_level,
     source.badge_name, source.badge_image_url, source.description
 );
+
+MERGE INTO PET target
+USING (
+    SELECT 'nuri' pet_name, '/assets/images/pets/pet_nuri.webp' pet_image_url, 'random_box' acquisition_type,
+           10 max_level, '누리 잎새 뱃지' badge_name, '/assets/images/badges/badge_nuri.webp' badge_image_url,
+           '작은 새싹처럼 천천히 자라는 마음을 함께 돌보는 친구.' description
+    FROM dual
+) source
+ON (target.pet_name = source.pet_name)
+WHEN MATCHED THEN UPDATE SET
+    target.pet_image_url = source.pet_image_url,
+    target.acquisition_type = source.acquisition_type,
+    target.max_level = source.max_level,
+    target.badge_name = source.badge_name,
+    target.badge_image_url = source.badge_image_url,
+    target.description = source.description
+WHEN NOT MATCHED THEN INSERT (
+    pet_name, pet_image_url, acquisition_type, max_level, badge_name, badge_image_url, description
+) VALUES (
+    source.pet_name, source.pet_image_url, source.acquisition_type, source.max_level,
+    source.badge_name, source.badge_image_url, source.description
+);
+
+MERGE INTO PET target
+USING (
+    SELECT 'aro' pet_name, '/assets/images/pets/pet_aro.webp' pet_image_url, 'random_box' acquisition_type,
+           10 max_level, '아로 물결 뱃지' badge_name, '/assets/images/badges/badge_aro.webp' badge_image_url,
+           '잔잔한 물결처럼 아이의 마음을 차분하게 감싸주는 친구.' description
+    FROM dual
+) source
+ON (target.pet_name = source.pet_name)
+WHEN MATCHED THEN UPDATE SET
+    target.pet_image_url = source.pet_image_url,
+    target.acquisition_type = source.acquisition_type,
+    target.max_level = source.max_level,
+    target.badge_name = source.badge_name,
+    target.badge_image_url = source.badge_image_url,
+    target.description = source.description
+WHEN NOT MATCHED THEN INSERT (
+    pet_name, pet_image_url, acquisition_type, max_level, badge_name, badge_image_url, description
+) VALUES (
+    source.pet_name, source.pet_image_url, source.acquisition_type, source.max_level,
+    source.badge_name, source.badge_image_url, source.description
+);
+
+MERGE INTO PET target
+USING (
+    SELECT 'pogeun' pet_name, '/assets/images/pets/pet_pogeun.webp' pet_image_url, 'random_box' acquisition_type,
+           10 max_level, '포근 하트 뱃지' badge_name, '/assets/images/badges/badge_pogeun.webp' badge_image_url,
+           '포근한 마음으로 아이의 감정을 다정하게 안아주는 친구.' description
+    FROM dual
+) source
+ON (target.pet_name = source.pet_name)
+WHEN MATCHED THEN UPDATE SET
+    target.pet_image_url = source.pet_image_url,
+    target.acquisition_type = source.acquisition_type,
+    target.max_level = source.max_level,
+    target.badge_name = source.badge_name,
+    target.badge_image_url = source.badge_image_url,
+    target.description = source.description
+WHEN NOT MATCHED THEN INSERT (
+    pet_name, pet_image_url, acquisition_type, max_level, badge_name, badge_image_url, description
+) VALUES (
+    source.pet_name, source.pet_image_url, source.acquisition_type, source.max_level,
+    source.badge_name, source.badge_image_url, source.description
+);
+
+UPDATE PET
+SET acquisition_type = 'random_box'
+WHERE pet_name IN ('tori', 'mongsil', 'kongi');
 
 BEGIN EXECUTE IMMEDIATE 'CREATE INDEX idx_submission_child ON MISSION_SUBMISSION(child_id)';
 EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;

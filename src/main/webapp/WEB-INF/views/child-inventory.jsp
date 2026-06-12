@@ -81,14 +81,34 @@
                 </div>
                 <div class="badge-dex-grid">
                     <article class="badge-card locked">
-                        <div class="badge-visual">?</div>
-                        <strong>몽글이 뱃지</strong>
-                        <span>몽글이 만렙 달성 필요</span>
+                        <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_mongle.webp" alt="몽글 별빛 뱃지"></div>
+                        <strong>몽글 별빛 뱃지</strong>
+                        <span>몽글 만렙 달성 필요</span>
                     </article>
                     <article class="badge-card locked">
-                        <div class="badge-visual">?</div>
-                        <strong>포근이 뱃지</strong>
-                        <span>추후 펫 추가 후 해금</span>
+                        <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_roa.webp" alt="로아 용기 뱃지"></div>
+                        <strong>로아 용기 뱃지</strong>
+                        <span>로아 만렙 달성 필요</span>
+                    </article>
+                    <article class="badge-card locked">
+                        <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_haeon.webp" alt="해온 햇살 뱃지"></div>
+                        <strong>해온 햇살 뱃지</strong>
+                        <span>해온 만렙 달성 필요</span>
+                    </article>
+                    <article class="badge-card locked">
+                        <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_nuri.webp" alt="누리 잎새 뱃지"></div>
+                        <strong>누리 잎새 뱃지</strong>
+                        <span>누리 만렙 달성 필요</span>
+                    </article>
+                    <article class="badge-card locked">
+                        <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_aro.webp" alt="아로 물결 뱃지"></div>
+                        <strong>아로 물결 뱃지</strong>
+                        <span>아로 만렙 달성 필요</span>
+                    </article>
+                    <article class="badge-card locked">
+                        <div class="badge-visual"><img src="${pageContext.request.contextPath}/assets/images/badges/badge_pogeun.webp" alt="포근 하트 뱃지"></div>
+                        <strong>포근 하트 뱃지</strong>
+                        <span>포근 만렙 달성 필요</span>
                     </article>
                 </div>
             </div>
