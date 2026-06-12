@@ -26,9 +26,9 @@ WHEN NOT MATCHED THEN INSERT (
 
 MERGE INTO PET target
 USING (
-    SELECT 2 pet_id, 'Roa' pet_name,
+    SELECT 2 pet_id, '로아' pet_name,
            '/assets/images/pets/pet_roa.webp' pet_image_url,
-           10 max_level, 'Courage Guardian Pet' badge_name,
+           10 max_level, '용기 수호 펫' badge_name,
            '/assets/images/badges/badge_roa.webp' badge_image_url,
            'A guardian pet that protects and strengthens your courage.' description
     FROM dual
@@ -51,9 +51,9 @@ WHEN NOT MATCHED THEN INSERT (
 
 MERGE INTO PET target
 USING (
-    SELECT 3 pet_id, 'Haeon' pet_name,
+    SELECT 3 pet_id, '해온' pet_name,
            '/assets/images/pets/pet_haeon.webp' pet_image_url,
-           10 max_level, 'Sunshine Cheer Pet' badge_name,
+           10 max_level, '햇살 응원 펫' badge_name,
            '/assets/images/badges/badge_haeon.webp' badge_image_url,
            'A cheerful pet that gives warm encouragement like sunshine.' description
     FROM dual
@@ -76,9 +76,9 @@ WHEN NOT MATCHED THEN INSERT (
 
 MERGE INTO PET target
 USING (
-    SELECT 4 pet_id, 'Nuri' pet_name,
+    SELECT 4 pet_id, '누리' pet_name,
            '/assets/images/pets/pet_nuri.webp' pet_image_url,
-           10 max_level, 'Sprout Growth Pet' badge_name,
+           10 max_level, '새잎 성장 펫' badge_name,
            '/assets/images/badges/badge_nuri.webp' badge_image_url,
            'A growth pet that grows with you like a fresh new sprout.' description
     FROM dual
@@ -101,9 +101,9 @@ WHEN NOT MATCHED THEN INSERT (
 
 MERGE INTO PET target
 USING (
-    SELECT 5 pet_id, 'Aro' pet_name,
+    SELECT 5 pet_id, '아로' pet_name,
            '/assets/images/pets/pet_aro.webp' pet_image_url,
-           10 max_level, 'Wave Healing Pet' badge_name,
+           10 max_level, '물결 회복 펫' badge_name,
            '/assets/images/badges/badge_aro.webp' badge_image_url,
            'A healing pet that restores your heart with gentle waves.' description
     FROM dual
@@ -126,9 +126,9 @@ WHEN NOT MATCHED THEN INSERT (
 
 MERGE INTO PET target
 USING (
-    SELECT 6 pet_id, 'Pogeun' pet_name,
+    SELECT 6 pet_id, '포근' pet_name,
            '/assets/images/pets/pet_pogeun.webp' pet_image_url,
-           10 max_level, 'Heart Wool Pet' badge_name,
+           10 max_level, '하트 양털 펫' badge_name,
            '/assets/images/badges/badge_pogeun.webp' badge_image_url,
            'A lovable pet with soft wool and a warm heart.' description
     FROM dual

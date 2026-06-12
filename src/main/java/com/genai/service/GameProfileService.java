@@ -7,6 +7,8 @@ import java.util.Set;
 import com.genai.model.ChildPet;
 import com.genai.model.GameProfileDAO;
 import com.genai.model.Pet;
+import com.genai.model.PetInteractionCooldown;
+import com.genai.model.PetInteractionResult;
 
 public class GameProfileService {
     private static final Set<String> CHARACTER_PRESETS =
@@ -52,12 +54,16 @@ public class GameProfileService {
         return gameProfileDAO.findActivePet(childId);
     }
 
-    public ChildPet addInteractionExp(Long childId, String action) {
+    public PetInteractionResult interactWithPet(Long childId, String action) {
         Integer expAmount = INTERACTION_EXP.get(action);
         if (expAmount == null) {
             throw new IllegalArgumentException("지원하지 않는 펫 상호작용입니다.");
         }
-        return gameProfileDAO.addExpToActivePet(childId, expAmount);
+        return gameProfileDAO.interactWithActivePet(childId, action, expAmount);
+    }
+
+    public List<PetInteractionCooldown> findInteractionCooldowns(Long childId) {
+        return gameProfileDAO.findInteractionCooldowns(childId);
     }
 
     private void validateNickname(String nickname) {

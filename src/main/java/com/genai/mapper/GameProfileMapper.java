@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.genai.model.ChildPet;
 import com.genai.model.Pet;
+import com.genai.model.PetInteractionCooldown;
 
 public interface GameProfileMapper {
     List<Pet> findStarterPets();
@@ -28,4 +29,9 @@ public interface GameProfileMapper {
     ChildPet findActivePet(Long childId);
 
     int addExpToActivePet(@Param("childId") Long childId, @Param("expAmount") int expAmount);
+
+    int claimInteractionReward(@Param("childId") Long childId,
+            @Param("actionType") String actionType);
+
+    List<PetInteractionCooldown> findInteractionCooldowns(Long childId);
 }

@@ -24,6 +24,8 @@ const JOIN_DRAFT_STORAGE_KEYS = [
 const LOCAL_CHILD_PROFILES_KEY = "childProfiles";
 const MAX_LEVEL_CELEBRATION_KEY = "maxLevelCelebrationSeen";
 const shownMaxLevelCelebrations = new Set();
+const INTERACTION_COOLDOWN_MS = 30 * 60 * 1000;
+let interactionCooldownEnds = {};
 
 async function apiRequest(path, options = {}) {
   const response = await fetch(`${API_ROOT}${path}`, {
@@ -520,6 +522,46 @@ function applyActivePetState(activePet) {
   }
 }
 
+function applyInteractionCooldowns(cooldowns = {}) {
+  interactionCooldownEnds = Object.fromEntries(
+    Object.entries(cooldowns).map(([action, cooldownEndsAt]) => [
+      action,
+      Number(cooldownEndsAt) || 0
+    ]));
+  renderInteractionCooldowns();
+}
+
+function interactionCooldownRemaining(action, now = Date.now()) {
+  return Math.max(0, (interactionCooldownEnds[action] || 0) - now);
+}
+
+function formatInteractionCooldown(remainingMs) {
+  const totalSeconds = Math.max(0, Math.ceil(remainingMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")} 후 EXP`;
+}
+
+function renderInteractionCooldowns(now = Date.now()) {
+  document.querySelectorAll(".interaction-btn[data-action]").forEach(button => {
+    const action = button.dataset.action;
+    const remaining = interactionCooldownRemaining(action, now);
+    const elapsed = INTERACTION_COOLDOWN_MS - Math.min(
+      INTERACTION_COOLDOWN_MS, remaining);
+    const progress = remaining > 0
+      ? Math.max(0, Math.min(100, (elapsed / INTERACTION_COOLDOWN_MS) * 100))
+      : 100;
+    button.style.setProperty("--cooldown-progress", `${progress}%`);
+    button.classList.toggle("cooling", remaining > 0);
+    const status = button.querySelector("small");
+    if (status) {
+      status.textContent = remaining > 0
+        ? formatInteractionCooldown(remaining)
+        : "EXP 준비 완료";
+    }
+  });
+}
+
 function maxLevelCelebrationStorageKey() {
   const petKey = appState.pet.childPetId || appState.pet.petId || appState.pet.name;
   return `${MAX_LEVEL_CELEBRATION_KEY}:${petKey}`;
@@ -983,6 +1025,7 @@ async function loadChildHome(options = {}) {
   if (serverChildHome.activePet) {
     applyActivePetState(serverChildHome.activePet);
   }
+  applyInteractionCooldowns(serverChildHome.interactionCooldowns);
   const currentSubmissionId = appState.currentSubmission?.submissionId;
   appState.submissions = serverChildHome.submissions;
   appState.currentSubmission = appState.submissions.find(
@@ -1330,16 +1373,22 @@ document.querySelectorAll("[data-action]").forEach(button => {
     if (!beginPetAction()) return;
     const action = button.dataset.action;
     try {
-      const activePet = await apiRequest("/child/pet/interactions", {
+      const interactionResult = await apiRequest("/child/pet/interactions", {
         method: "POST",
         body: formData({ action })
       });
       const previousLevel = appState.pet.level;
-      applyActivePetState(activePet);
+      applyActivePetState(interactionResult);
+      applyInteractionCooldowns(interactionResult.interactionCooldowns);
       handlePetAction(action, {
         addExperience: false,
         lockAlreadyAcquired: true
       });
+      if (interactionResult.expGranted) {
+        showToast(`EXP +${interactionResult.expAmount}를 받았어요!`);
+      } else {
+        showToast(`${formatInteractionCooldown(interactionCooldownRemaining(action))}를 기다려 주세요.`);
+      }
       if (appState.pet.level > previousLevel) {
         showToast(`${appState.pet.name}가 Lv.${appState.pet.level}로 성장했어요!`);
         createParticles("🌟", 14);
@@ -1870,6 +1919,8 @@ window.addEventListener("pageshow", () => {
 window.addEventListener("pagehide", clearCaptureStreams);
 backToEntry();
 showEntryPanel("entryStartCard", { skipHistory: true });
+renderInteractionCooldowns();
+window.setInterval(renderInteractionCooldowns, 1000);
 
 window.setInterval(() => {
   updateRelativeNotificationTimes();

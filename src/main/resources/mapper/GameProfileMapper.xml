@@ -137,4 +137,35 @@
         WHERE cp.child_id = #{childId}
           AND cp.is_active = 'Y'
     </update>
+
+    <update id="claimInteractionReward">
+        MERGE INTO PET_INTERACTION_COOLDOWN target
+        USING (
+            SELECT cp.child_pet_id, #{actionType} action_type
+            FROM CHILD_PET cp
+            WHERE cp.child_id = #{childId}
+              AND cp.is_active = 'Y'
+        ) source
+        ON (
+            target.child_pet_id = source.child_pet_id
+            AND target.action_type = source.action_type
+        )
+        WHEN MATCHED THEN UPDATE SET
+            target.last_rewarded_at = SYSTIMESTAMP
+            WHERE target.last_rewarded_at &lt;= SYSTIMESTAMP - INTERVAL '30' MINUTE
+        WHEN NOT MATCHED THEN INSERT (
+            child_pet_id, action_type, last_rewarded_at
+        ) VALUES (
+            source.child_pet_id, source.action_type, SYSTIMESTAMP
+        )
+    </update>
+
+    <select id="findInteractionCooldowns"
+            resultType="com.genai.model.PetInteractionCooldown">
+        SELECT pic.action_type, pic.last_rewarded_at
+        FROM PET_INTERACTION_COOLDOWN pic
+        JOIN CHILD_PET cp ON cp.child_pet_id = pic.child_pet_id
+        WHERE cp.child_id = #{childId}
+          AND cp.is_active = 'Y'
+    </select>
 </mapper>

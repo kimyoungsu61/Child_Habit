@@ -2,6 +2,7 @@ package com.genai.controller;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,6 +27,8 @@ import com.genai.model.MissionSubmission;
 import com.genai.model.Notification;
 import com.genai.model.Parent;
 import com.genai.model.Pet;
+import com.genai.model.PetInteractionCooldown;
+import com.genai.model.PetInteractionResult;
 import com.genai.model.ProfileFrame;
 import com.genai.model.RewardInventoryItem;
 import com.genai.service.AiImageGenerationResult;
@@ -286,6 +289,9 @@ public class ApiServlet extends HttpServlet {
         data.put("child", childMap(child));
         data.put("setupComplete", child.getCharacterImageUrl() != null && activePet != null);
         data.put("activePet", activePet == null ? null : childPetMap(activePet));
+        data.put("interactionCooldowns",
+                interactionCooldownMap(
+                        gameProfileService.findInteractionCooldowns(child.getChildId())));
         data.put("missions", missionMaps(missionService.findMissionsForChild(child.getChildId())
                 .stream().limit(5).toList()));
         data.put("submissions", submissionMaps(
@@ -529,9 +535,14 @@ public class ApiServlet extends HttpServlet {
         if (child == null) {
             return;
         }
-        ChildPet activePet = gameProfileService.addInteractionExp(
+        PetInteractionResult result = gameProfileService.interactWithPet(
                 child.getChildId(), value(request.getParameter("action")));
-        success(response, childPetMap(activePet));
+        Map<String, Object> data = childPetMap(result.getActivePet());
+        data.put("expGranted", result.isExpGranted());
+        data.put("expAmount", result.getExpAmount());
+        data.put("interactionCooldowns",
+                interactionCooldownMap(result.getCooldowns()));
+        success(response, data);
     }
 
     private void updateChildFrame(HttpServletRequest request, HttpServletResponse response)
@@ -730,6 +741,25 @@ public class ApiServlet extends HttpServlet {
         map.put("badgeAcquired", childPet.getBadgeAcquired());
         if (childPet.getPet() != null) {
             map.put("pet", petMap(childPet.getPet()));
+        }
+        return map;
+    }
+
+    private Map<String, Long> interactionCooldownMap(
+            List<PetInteractionCooldown> cooldowns) {
+        Map<String, Long> map = new LinkedHashMap<>();
+        ZoneId zone = ZoneId.of("Asia/Seoul");
+        for (PetInteractionCooldown cooldown : cooldowns) {
+            if (cooldown.getActionType() == null
+                    || cooldown.getLastRewardedAt() == null) {
+                continue;
+            }
+            long cooldownEndsAt = cooldown.getLastRewardedAt()
+                    .plusMinutes(30)
+                    .atZone(zone)
+                    .toInstant()
+                    .toEpochMilli();
+            map.put(cooldown.getActionType(), cooldownEndsAt);
         }
         return map;
     }

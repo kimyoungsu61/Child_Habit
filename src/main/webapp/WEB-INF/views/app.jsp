@@ -140,10 +140,22 @@
           <div class="speech" id="petSpeech">"오늘은 어떤 좋은 습관을 만들어볼까?"</div>
 
           <div class="pet-actions">
-            <button class="btn" data-action="touch">🤍 쓰담쓰담</button>
-            <button class="btn" data-action="praise">⭐ 잘했어!</button>
-            <button class="btn" data-action="play">🎈 같이 놀자</button>
-            <button class="btn" data-action="magic">🌟 마법 뿅!</button>
+            <button class="btn interaction-btn" data-action="touch">
+              <span class="interaction-cooldown-fill" aria-hidden="true"></span>
+              <span class="interaction-content"><b>🤍 쓰담쓰담</b><small>EXP 준비 완료</small></span>
+            </button>
+            <button class="btn interaction-btn" data-action="praise">
+              <span class="interaction-cooldown-fill" aria-hidden="true"></span>
+              <span class="interaction-content"><b>⭐ 잘했어!</b><small>EXP 준비 완료</small></span>
+            </button>
+            <button class="btn interaction-btn" data-action="play">
+              <span class="interaction-cooldown-fill" aria-hidden="true"></span>
+              <span class="interaction-content"><b>🎈 같이 놀자</b><small>EXP 준비 완료</small></span>
+            </button>
+            <button class="btn interaction-btn" data-action="magic">
+              <span class="interaction-cooldown-fill" aria-hidden="true"></span>
+              <span class="interaction-content"><b>🌟 마법 뿅!</b><small>EXP 준비 완료</small></span>
+            </button>
           </div>
         </article>
       </section>
@@ -901,7 +913,7 @@
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=max-level-celebration-20260612"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=max-level-celebration-20260612"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=max-level-celebration-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=max-level-celebration-20260612-3"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=interaction-cooldown-20260612"></script>
   </body>
 
   </html>

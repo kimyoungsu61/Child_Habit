@@ -4,10 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import com.genai.model.ChildPet;
 import com.genai.model.GameProfileDAO;
+import com.genai.model.PetInteractionResult;
 
 class GameProfileServiceTest {
     @Test
@@ -15,13 +18,13 @@ class GameProfileServiceTest {
         FakeGameProfileDAO dao = new FakeGameProfileDAO();
         GameProfileService service = new GameProfileService(dao);
 
-        assertSame(dao.pet, service.addInteractionExp(7L, "touch"));
+        assertSame(dao.pet, service.interactWithPet(7L, "touch").getActivePet());
         assertEquals(5, dao.lastExp);
-        service.addInteractionExp(7L, "praise");
+        service.interactWithPet(7L, "praise");
         assertEquals(15, dao.lastExp);
-        service.addInteractionExp(7L, "play");
+        service.interactWithPet(7L, "play");
         assertEquals(10, dao.lastExp);
-        service.addInteractionExp(7L, "magic");
+        service.interactWithPet(7L, "magic");
         assertEquals(20, dao.lastExp);
     }
 
@@ -31,7 +34,7 @@ class GameProfileServiceTest {
         GameProfileService service = new GameProfileService(dao);
 
         assertThrows(IllegalArgumentException.class,
-                () -> service.addInteractionExp(7L, "unknown"));
+                () -> service.interactWithPet(7L, "unknown"));
         assertEquals(0, dao.calls);
     }
 
@@ -41,10 +44,11 @@ class GameProfileServiceTest {
         private int lastExp;
 
         @Override
-        public ChildPet addExpToActivePet(Long childId, int expAmount) {
+        public PetInteractionResult interactWithActivePet(
+                Long childId, String actionType, int expAmount) {
             calls++;
             lastExp = expAmount;
-            return pet;
+            return new PetInteractionResult(pet, true, expAmount, List.of());
         }
     }
 }

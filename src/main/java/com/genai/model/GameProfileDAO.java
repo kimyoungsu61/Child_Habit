@@ -59,4 +59,33 @@ public class GameProfileDAO {
             return activePet;
         }
     }
+
+    public PetInteractionResult interactWithActivePet(
+            Long childId, String actionType, int expAmount) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            GameProfileMapper mapper = session.getMapper(GameProfileMapper.class);
+            boolean expGranted = mapper.claimInteractionReward(childId, actionType) == 1;
+            if (expGranted && mapper.addExpToActivePet(childId, expAmount) != 1) {
+                session.rollback();
+                throw new IllegalStateException("대표 펫의 경험치를 저장하지 못했습니다.");
+            }
+            ChildPet activePet = mapper.findActivePet(childId);
+            if (activePet == null) {
+                session.rollback();
+                throw new IllegalStateException("대표 펫을 찾을 수 없습니다.");
+            }
+            List<PetInteractionCooldown> cooldowns =
+                    mapper.findInteractionCooldowns(childId);
+            session.commit();
+            return new PetInteractionResult(
+                    activePet, expGranted, expGranted ? expAmount : 0, cooldowns);
+        }
+    }
+
+    public List<PetInteractionCooldown> findInteractionCooldowns(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(GameProfileMapper.class)
+                    .findInteractionCooldowns(childId);
+        }
+    }
 }
