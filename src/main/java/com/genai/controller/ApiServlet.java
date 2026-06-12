@@ -130,6 +130,8 @@ public class ApiServlet extends HttpServlet {
                 openBox(request, response, path);
             } else if ("/child/pet/interactions".equals(path)) {
                 interactWithPet(request, response);
+            } else if ("/child/pet/active".equals(path)) {
+                switchActivePet(request, response);
             } else if ("/child/profile/frame".equals(path)) {
                 updateChildFrame(request, response);
             } else {
@@ -292,6 +294,7 @@ public class ApiServlet extends HttpServlet {
         data.put("interactionCooldowns",
                 interactionCooldownMap(
                         gameProfileService.findInteractionCooldowns(child.getChildId())));
+        data.put("ownedPets", childPetMaps(gameProfileService.findOwnedPets(child.getChildId())));
         data.put("missions", missionMaps(missionService.findMissionsForChild(child.getChildId())
                 .stream().limit(5).toList()));
         data.put("submissions", submissionMaps(
@@ -542,7 +545,20 @@ public class ApiServlet extends HttpServlet {
         data.put("expAmount", result.getExpAmount());
         data.put("interactionCooldowns",
                 interactionCooldownMap(result.getCooldowns()));
+        data.put("ownedPets",
+                childPetMaps(gameProfileService.findOwnedPets(child.getChildId())));
         success(response, data);
+    }
+
+    private void switchActivePet(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        ChildProfile child = requireChild(request, response);
+        if (child == null) {
+            return;
+        }
+        Long petId = parseLong(request.getParameter("petId"));
+        ChildPet activePet = gameProfileService.switchActivePet(child.getChildId(), petId);
+        success(response, childPetMap(activePet));
     }
 
     private void updateChildFrame(HttpServletRequest request, HttpServletResponse response)
@@ -762,6 +778,10 @@ public class ApiServlet extends HttpServlet {
             map.put(cooldown.getActionType(), cooldownEndsAt);
         }
         return map;
+    }
+
+    private List<Map<String, Object>> childPetMaps(List<ChildPet> childPets) {
+        return childPets.stream().map(this::childPetMap).toList();
     }
 
     private Map<String, Object> petMap(Pet pet) {

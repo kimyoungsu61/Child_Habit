@@ -10,6 +10,8 @@ if not defined JAVA_HOME set "JAVA_HOME=C:\Program Files\Java\jdk-21.0.10"
 set "WAR_NAME=back.war"
 set "APP_NAME=back"
 set "APP_PORT=8081"
+set "MAVEN_CMD=mvn"
+if exist "C:\apache-maven-3.9.16\bin\mvn.cmd" set "MAVEN_CMD=C:\apache-maven-3.9.16\bin\mvn.cmd"
 
 echo ========================================
 echo DDUUTTNN build and Tomcat deploy
@@ -36,7 +38,7 @@ if errorlevel 1 goto cleanup_failed
 echo.
 echo [4] Running Maven build...
 cd /d "%PROJECT_DIR%"
-call mvn clean package
+call "%MAVEN_CMD%" clean package
 if errorlevel 1 goto build_failed
 
 echo.

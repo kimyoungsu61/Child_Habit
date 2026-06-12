@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=max-level-celebration-20260612" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=front-ying-merge-20260612" />
   </head>
 
   <body>
@@ -120,7 +120,7 @@
             </button>
           </div>
 
-          <div class="pet-stage">
+          <div class="pet-stage profile-preview-frame-wrap">
             <span class="twinkle one"></span>
             <span class="twinkle two"></span>
             <span class="twinkle three"></span>
@@ -128,6 +128,9 @@
               <img class="pet-frame" id="petFrame"
                 src="${pageContext.request.contextPath}/assets/pets/mongle/idle/frame_0001.webp" alt="몽글" />
             </div>
+            <img class="profile-frame-overlay" id="profileFrameOverlay"
+              src="${pageContext.request.contextPath}/assets/images/profile-frames/profile_frame_bronze.png" alt=""
+              aria-hidden="true" />
           </div>
 
           <div class="exp-row">
@@ -642,7 +645,7 @@
             <div class="progress-fill" id="expResultProgress" style="width: 0%"></div>
           </div>
           <p id="expResultMessage">펫이 성장했어요.</p>
-          <button class="btn primary full" type="button" data-quick-tab="petScreen">펫 상태 보기</button>
+          <button class="btn primary full btn-pet-status-view" type="button" data-quick-tab="homeScreen">펫 상태 보기</button>
         </article>
       </section>
 
@@ -907,13 +910,13 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=usb-camera-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=max-level-celebration-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=character-loading-20260611"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=max-level-celebration-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=max-level-celebration-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=max-level-celebration-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=interaction-cooldown-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=front-cooldown-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=front-cooldown-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=front-cooldown-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=front-cooldown-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=front-cooldown-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=front-cooldown-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=front-cooldown-merge-20260612"></script>
   </body>
 
   </html>

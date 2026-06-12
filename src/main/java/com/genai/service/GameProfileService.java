@@ -54,6 +54,17 @@ public class GameProfileService {
         return gameProfileDAO.findActivePet(childId);
     }
 
+    public List<ChildPet> findOwnedPets(Long childId) {
+        return gameProfileDAO.findOwnedPets(childId);
+    }
+
+    public ChildPet switchActivePet(Long childId, Long petId) {
+        if (petId == null || petId <= 0) {
+            throw new IllegalArgumentException("대표 펫으로 설정할 펫을 선택해 주세요.");
+        }
+        return gameProfileDAO.switchActivePet(childId, petId);
+    }
+
     public PetInteractionResult interactWithPet(Long childId, String action) {
         Integer expAmount = INTERACTION_EXP.get(action);
         if (expAmount == null) {

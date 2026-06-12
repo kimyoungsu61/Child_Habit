@@ -27,6 +27,11 @@
   clip-path: circle(50% at 50% 50%) !important;
 }
 
+.profile-open .profile-avatar-inner.profile-frame-mask {
+  border-radius: 10px !important;
+  clip-path: none !important;
+}
+
 .profile-avatar-inner .profile-avatar-crop {
   left: var(--avatar-left, 0) !important;
   top: var(--avatar-top, 0) !important;
@@ -35,6 +40,11 @@
   max-width: none !important;
   object-fit: fill !important;
   object-position: center center !important;
+}
+
+.profile-open .profile-avatar-inner .profile-avatar-crop {
+  border-radius: 10px !important;
+  object-fit: cover !important;
 }
 
 .profile-crop-view {

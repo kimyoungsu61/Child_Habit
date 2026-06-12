@@ -28,10 +28,16 @@ public interface GameProfileMapper {
 
     ChildPet findActivePet(Long childId);
 
+    List<ChildPet> findOwnedPets(Long childId);
+
     int addExpToActivePet(@Param("childId") Long childId, @Param("expAmount") int expAmount);
 
     int claimInteractionReward(@Param("childId") Long childId,
             @Param("actionType") String actionType);
 
     List<PetInteractionCooldown> findInteractionCooldowns(Long childId);
+
+    Long findNextPetIdAfterActiveMaxed(Long childId);
+
+    int unlockNextPetAfterActiveMaxed(Long childId);
 }

@@ -96,6 +96,56 @@
           AND cp.is_active = 'Y'
     </select>
 
+    <select id="findOwnedPets" parameterType="long" resultMap="childPetMap">
+        SELECT cp.child_pet_id, cp.child_id, cp.pet_id, cp.current_level, cp.current_exp,
+               cp.is_active, cp.is_maxed, cp.badge_acquired, cp.badge_acquired_at,
+               cp.acquired_at, p.pet_name, p.pet_image_url, p.acquisition_type,
+               p.max_level, p.badge_name, p.badge_image_url, p.description
+        FROM CHILD_PET cp
+        JOIN PET p ON p.pet_id = cp.pet_id
+        WHERE cp.child_id = #{childId}
+        ORDER BY cp.pet_id
+    </select>
+
+    <select id="findNextPetIdAfterActiveMaxed" parameterType="long" resultType="long">
+        SELECT MIN(next_pet.pet_id)
+        FROM CHILD_PET cp
+        JOIN PET next_pet ON next_pet.pet_id &gt; cp.pet_id
+        WHERE cp.child_id = #{childId}
+          AND cp.is_active = 'Y'
+          AND cp.is_maxed = 'Y'
+          AND cp.badge_acquired = 'Y'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM CHILD_PET owned
+              WHERE owned.child_id = cp.child_id
+                AND owned.pet_id = next_pet.pet_id
+          )
+    </select>
+
+    <insert id="unlockNextPetAfterActiveMaxed" parameterType="long">
+        INSERT INTO CHILD_PET (
+            child_pet_id, child_id, pet_id, current_level, current_exp, is_active
+        )
+        SELECT seq_child_pet.NEXTVAL, cp.child_id, next_pet.pet_id, 1, 0, 'N'
+        FROM CHILD_PET cp
+        JOIN PET next_pet ON next_pet.pet_id = (
+            SELECT MIN(p.pet_id)
+            FROM PET p
+            WHERE p.pet_id &gt; cp.pet_id
+        )
+        WHERE cp.child_id = #{childId}
+          AND cp.is_active = 'Y'
+          AND cp.is_maxed = 'Y'
+          AND cp.badge_acquired = 'Y'
+          AND NOT EXISTS (
+              SELECT 1
+              FROM CHILD_PET owned
+              WHERE owned.child_id = cp.child_id
+                AND owned.pet_id = next_pet.pet_id
+          )
+    </insert>
+
     <update id="addExpToActivePet">
         UPDATE CHILD_PET cp
         SET cp.current_exp = LEAST(

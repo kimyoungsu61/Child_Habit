@@ -121,6 +121,7 @@ function syncProfileFramesFromServer(frames = []) {
       type: frame.frameType,
       label: frame.frameName,
       image: frameImageSrc(frame.frameImageUrl),
+      profileImage: profileFrameImageForKey(frameKey),
       frameImageUrl: frame.frameImageUrl,
       requiredBadgeCount: Number(frame.requiredBadgeCount) || 0,
       unlockLevel: Number(frame.requiredBadgeCount) || 0
@@ -490,13 +491,20 @@ async function handleNotificationAction(notification) {
 
 function applyActivePetState(activePet) {
   if (!activePet) return;
+  const previousPetId = appState.pet.id || DEFAULT_PET_ID;
   const petName = activePet.pet?.name || appState.pet.name;
-  appState.pet.name = petName === "토리" || petName === "tori" || petName === "mongle" ? "몽글" : petName;
+  const petId = Number(activePet.petId || activePet.pet?.petId) || null;
+  const dexPet = petDex.find(pet => Number(pet.petId) === petId)
+    || petDex[petId - 1]
+    || petDex.find(pet => normalizePetId(pet.id) === normalizePetId(petName))
+    || petDex.find(pet => pet.active);
+  appState.pet.id = normalizePetId(dexPet?.id || petName);
+  appState.pet.name = dexPet?.name || (petName === "토리" || petName === "tori" || petName === "mongle" ? "몽글" : petName);
   const currentExp = Number(activePet.currentExp) || 0;
   const currentLevel = Math.max(1, Number(activePet.currentLevel) || 1);
   const maxLevel = Math.max(1, Number(activePet.pet?.maxLevel) || 10);
   const maxed = activePet.isMaxed === "Y" || currentLevel >= maxLevel;
-  appState.pet.petId = Number(activePet.petId || activePet.pet?.petId) || null;
+  appState.pet.petId = petId;
   appState.pet.childPetId = Number(activePet.childPetId) || null;
   appState.pet.level = maxed ? maxLevel : (currentExp <= 0 ? 1 : currentLevel);
   appState.pet.exp = maxed
@@ -511,15 +519,39 @@ function applyActivePetState(activePet) {
     ? appAssetUrl(activePet.pet.badgeImageUrl)
     : "";
 
-  const dexPet = petDex.find(pet => Number(pet.petId) === appState.pet.petId)
-    || petDex[appState.pet.petId - 1]
-    || petDex.find(pet => pet.active);
   if (dexPet) {
+    petDex.forEach(pet => {
+      pet.active = pet === dexPet;
+    });
+    dexPet.owned = true;
     dexPet.level = appState.pet.level;
     dexPet.badgeAcquired = appState.pet.badgeAcquired;
     if (appState.pet.badgeName) dexPet.badgeName = appState.pet.badgeName;
     if (appState.pet.badgeImage) dexPet.badgeImage = appState.pet.badgeImage;
   }
+  if (previousPetId !== appState.pet.id) {
+    preloadFrameSequences();
+    playFrameSequence("idle", { loop: true });
+  }
+}
+
+function applyOwnedPetStates(ownedPets = []) {
+  if (!Array.isArray(ownedPets)) return;
+  ownedPets.forEach(childPet => {
+    const petId = Number(childPet.petId || childPet.pet?.petId);
+    const dexPet = petDex.find(pet => Number(pet.petId) === petId)
+      || petDex.find(pet => normalizePetId(pet.id) === normalizePetId(childPet.pet?.name));
+    if (!dexPet) return;
+    const maxLevel = Number(childPet.pet?.maxLevel) || 10;
+    const currentLevel = Math.max(1, Number(childPet.currentLevel) || 1);
+    dexPet.childPetId = Number(childPet.childPetId) || dexPet.childPetId;
+    dexPet.owned = true;
+    dexPet.active = String(childPet.isActive || "").toUpperCase() === "Y";
+    dexPet.level = currentLevel;
+    dexPet.badgeAcquired = childPet.badgeAcquired === "Y" || childPet.isMaxed === "Y" || currentLevel >= maxLevel;
+    if (childPet.pet?.badgeName) dexPet.badgeName = childPet.pet.badgeName;
+    if (childPet.pet?.badgeImageUrl) dexPet.badgeImage = appAssetUrl(childPet.pet.badgeImageUrl);
+  });
 }
 
 function applyInteractionCooldowns(cooldowns = {}) {
@@ -562,8 +594,8 @@ function renderInteractionCooldowns(now = Date.now()) {
   });
 }
 
-function maxLevelCelebrationStorageKey() {
-  const petKey = appState.pet.childPetId || appState.pet.petId || appState.pet.name;
+function maxLevelCelebrationStorageKey(pet = appState.pet) {
+  const petKey = pet.childPetId || pet.petId || pet.id || pet.name;
   return `${MAX_LEVEL_CELEBRATION_KEY}:${petKey}`;
 }
 
@@ -587,20 +619,23 @@ function rememberMaxLevelCelebration(key) {
 
 function maybeShowMaxLevelCelebration() {
   if (appState.role !== "child" || getActiveScreenId() !== "homeScreen") return;
-  if (!appState.pet.isMaxed && appState.pet.level < (Number(appState.pet.maxLevel) || 10)) return;
 
   const modal = document.getElementById("maxLevelModal");
   if (!modal || modal.classList.contains("active")) return;
-  const storageKey = maxLevelCelebrationStorageKey();
-  if (hasSeenMaxLevelCelebration(storageKey)) return;
+  const celebrationPet = petDex.find(pet => {
+    const maxed = pet.badgeAcquired || Number(pet.level) >= 10;
+    return pet.owned && maxed
+      && !hasSeenMaxLevelCelebration(maxLevelCelebrationStorageKey(pet));
+  });
+  if (!celebrationPet) return;
+  const storageKey = maxLevelCelebrationStorageKey(celebrationPet);
 
   const petName = document.getElementById("maxLevelPetName");
   const badgeImage = document.getElementById("maxLevelBadgeImage");
-  if (petName) petName.textContent = "몽글";
+  if (petName) petName.textContent = celebrationPet.name;
   if (badgeImage) {
-    const fallbackPet = petDex.find(pet => pet.badgeAcquired) || petDex[0];
-    badgeImage.src = appState.pet.badgeImage || fallbackPet?.badgeImage || "";
-    badgeImage.alt = appState.pet.badgeName || `${appState.pet.name} 성장 뱃지`;
+    badgeImage.src = celebrationPet.badgeImage || "";
+    badgeImage.alt = celebrationPet.badgeName || `${celebrationPet.name} 성장 뱃지`;
   }
   rememberMaxLevelCelebration(storageKey);
   modal.classList.add("active");
@@ -1026,6 +1061,7 @@ async function loadChildHome(options = {}) {
     applyActivePetState(serverChildHome.activePet);
   }
   applyInteractionCooldowns(serverChildHome.interactionCooldowns);
+  applyOwnedPetStates(serverChildHome.ownedPets);
   const currentSubmissionId = appState.currentSubmission?.submissionId;
   appState.submissions = serverChildHome.submissions;
   appState.currentSubmission = appState.submissions.find(
@@ -1033,6 +1069,7 @@ async function loadChildHome(options = {}) {
   renderChildMissionData();
   renderInventoryData();
   renderPet();
+  renderDex();
   renderHomeProfileCharacter();
   renderMyPage();
   updateAppBadges();
@@ -1312,6 +1349,27 @@ document.addEventListener("click", event => {
     return;
   }
 
+  const selectPetButton = event.target.closest("[data-select-pet]");
+  if (selectPetButton) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    selectPetButton.disabled = true;
+    apiRequest("/child/pet/active", {
+      method: "POST",
+      body: formData({ petId: selectPetButton.dataset.selectPet })
+    }).then(activePet => {
+      applyActivePetState(activePet);
+      renderPet();
+      renderDex();
+      renderMyPage();
+      showToast(`${appState.pet.name}을(를) 대표 펫으로 설정했어요.`);
+    }).catch(error => {
+      selectPetButton.disabled = false;
+      showToast(error.message);
+    });
+    return;
+  }
+
   const missionButton = event.target.closest("[data-server-mission]");
   if (missionButton) {
     event.preventDefault();
@@ -1380,6 +1438,7 @@ document.querySelectorAll("[data-action]").forEach(button => {
       const previousLevel = appState.pet.level;
       applyActivePetState(interactionResult);
       applyInteractionCooldowns(interactionResult.interactionCooldowns);
+      applyOwnedPetStates(interactionResult.ownedPets);
       handlePetAction(action, {
         addExperience: false,
         lockAlreadyAcquired: true

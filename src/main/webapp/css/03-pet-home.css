@@ -2,7 +2,7 @@
 
 .pet-room {
   padding: 10px;
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   background: var(--home-card);
 }
@@ -71,6 +71,30 @@
   box-sizing: border-box;
 }
 
+.profile-preview-frame-wrap {
+  position: relative;
+  width: 100%;
+  border-radius: 22px;
+  overflow: visible;
+  margin: 32px 0 38px;
+}
+
+.profile-frame-overlay {
+  position: absolute;
+  left: -30px;
+  right: -30px;
+  top: -32px;
+  bottom: -32px;
+  width: auto;
+  height: auto;
+  max-width: none;
+  display: block;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  z-index: 3;
+}
+
 .pet-frame-wrap {
   width: min(100%, 304px);
   height: 100%;
@@ -81,6 +105,15 @@
   place-items: center;
   transform: translateY(18px);
   z-index: 2;
+}
+
+.pet-summary,
+.exp-row,
+.progress-track,
+.speech,
+.pet-actions {
+  position: relative;
+  z-index: 4;
 }
 
 .pet-frame {

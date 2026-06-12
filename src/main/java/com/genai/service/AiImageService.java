@@ -14,7 +14,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 public class AiImageService {
-    private static final String DEFAULT_API_URL = "http://127.0.0.1:5000/generate";
+    private static final String DEFAULT_API_URL = "https://moonlike-hunting-chivalry.ngrok-free.dev/generate";
     private static final Duration REQUEST_TIMEOUT = Duration.ofMinutes(5);
 
     private final Gson gson = new Gson();

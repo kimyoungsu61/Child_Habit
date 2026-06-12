@@ -3,13 +3,24 @@
 // 백엔드 연결 후에는 ParentLoginServlet, ChildHomeServlet, MissionListServlet 등의 응답으로
 // appState 초기값을 채우거나, 화면별 fetch 결과로 교체하면 됩니다.
 
-const PET_FRAME_ROOT = appPath("/assets/pets/mongle");
-const PET_ANIMATIONS = {
+const DEFAULT_PET_ID = "mongle";
+const PET_FRAME_ASSET_VERSION = "roa-idle-20260612-2";
+const PET_FRAME_ROOTS = {
+  mongle: appPath("/assets/pets/mongle"),
+  roa: appPath("/assets/pets/roa")
+};
+const DEFAULT_PET_ANIMATIONS = {
   idle: { frames: 121, fps: 24, loop: true },
   touch: { frames: 121, fps: 24, loop: false },
   praise: { frames: 121, fps: 24, loop: false },
   play: { frames: 121, fps: 24, loop: false },
   magic: { frames: 121, fps: 24, loop: false }
+};
+const PET_ANIMATION_SETS = {
+  mongle: DEFAULT_PET_ANIMATIONS,
+  roa: {
+    idle: { frames: 121, fps: 24, loop: true }
+  }
 };
 const DEFAULT_PROFILE_IMAGE = appPath("/assets/images/profile.webp");
 const PROFILE_IMAGE_STORAGE_KEY = "profileImage";
@@ -18,12 +29,33 @@ const GENERATED_CHARACTER_STORAGE_KEY = "generatedCharacter";
 const CURRENT_INVITE_CODE_STORAGE_KEY = "currentInviteCode";
 const THEME_STORAGE_KEY = "dduuttnnTheme";
 const mockCharacterImageUrl = DEFAULT_PROFILE_IMAGE;
+const PROFILE_FRAME_IMAGE_PATHS = {
+  bronze: appPath("/assets/images/profile-frames/profile_frame_bronze.png"),
+  silver: appPath("/assets/images/profile-frames/profile_frame_silver.png"),
+  gold: appPath("/assets/images/profile-frames/profile_frame_gold.png"),
+  crystal: appPath("/assets/images/profile-frames/profile_frame_crystal.png"),
+  legend: appPath("/assets/images/profile-frames/profile_frame_legend.png"),
+  aurora: appPath("/assets/images/profile-frames/profile_frame_aurora.png")
+};
+
+function profileFrameKeyAlias(frameKey = "") {
+  const key = String(frameKey || "").toLowerCase();
+  if (key === "wood") return "bronze";
+  if (key === "iron") return "silver";
+  return key || "bronze";
+}
+
+function profileFrameImageForKey(frameKey = "bronze") {
+  return PROFILE_FRAME_IMAGE_PATHS[profileFrameKeyAlias(frameKey)] || PROFILE_FRAME_IMAGE_PATHS.bronze;
+}
+
 const PROFILE_FRAMES = {
   bronze: {
     frameId: 1,
     type: "bronze",
     label: "동 액자",
     image: appPath("/assets/frames/frame-bronze.webp"),
+    profileImage: profileFrameImageForKey("bronze"),
     requiredBadgeCount: 0,
     unlockLevel: 0
   }
@@ -53,6 +85,7 @@ const appState = {
     email: "parent@test.com"
   },
   pet: {
+    id: DEFAULT_PET_ID,
     name: "몽글",
     type: "별빛 마법 펫",
     level: 1,
@@ -140,6 +173,7 @@ const rewardBoxes = {
 const petDex = [
   {
     id: "mongle",
+    petId: 1,
     name: "몽글",
     type: "별빛 마법 펫",
     owned: true,
@@ -154,6 +188,7 @@ const petDex = [
   },
   {
     id: "roa",
+    petId: 2,
     name: "로아",
     type: "불꽃 용기 펫",
     owned: false,
@@ -168,6 +203,7 @@ const petDex = [
   },
   {
     id: "haeon",
+    petId: 3,
     name: "해온",
     type: "햇살 응원 펫",
     owned: false,
@@ -182,6 +218,7 @@ const petDex = [
   },
   {
     id: "nuri",
+    petId: 4,
     name: "누리",
     type: "잎새 성장 펫",
     owned: false,
@@ -196,6 +233,7 @@ const petDex = [
   },
   {
     id: "aro",
+    petId: 5,
     name: "아로",
     type: "물결 평온 펫",
     owned: false,
@@ -210,6 +248,7 @@ const petDex = [
   },
   {
     id: "pogeun",
+    petId: 6,
     name: "포근",
     type: "하트 정서 펫",
     owned: false,

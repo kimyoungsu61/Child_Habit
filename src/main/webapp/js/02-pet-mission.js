@@ -23,21 +23,51 @@ function finishPetAction() {
   setPetActionButtonsLocked(false);
 }
 
+function normalizePetId(value) {
+  const normalized = String(value || "").trim().toLowerCase();
+  if (normalized === "로아" || normalized === "roa") return "roa";
+  if (normalized === "몽글" || normalized === "몽글이" || normalized === "mongle" || normalized === "tori" || normalized === "토리") {
+    return "mongle";
+  }
+  return PET_FRAME_ROOTS[normalized] ? normalized : DEFAULT_PET_ID;
+}
+
+function activePetId() {
+  const directId = normalizePetId(appState.pet?.id || "");
+  if (directId !== DEFAULT_PET_ID || !appState.pet?.petId) return directId;
+  const dexPet = petDex.find(pet => Number(pet.petId) === Number(appState.pet.petId))
+    || petDex[Number(appState.pet.petId) - 1];
+  return normalizePetId(dexPet?.id || appState.pet?.name);
+}
+
+function activePetFrameRoot() {
+  return PET_FRAME_ROOTS[activePetId()] || PET_FRAME_ROOTS[DEFAULT_PET_ID];
+}
+
+function activePetAnimations() {
+  return PET_ANIMATION_SETS[activePetId()] || DEFAULT_PET_ANIMATIONS;
+}
+
 function getAnimation(name) {
-  return PET_ANIMATIONS[name] || PET_ANIMATIONS.idle;
+  const animations = activePetAnimations();
+  return animations[name] || animations.idle || DEFAULT_PET_ANIMATIONS.idle;
 }
 
 // 애니메이션 프레임 파일 경로를 만듭니다.
 // assets/pets/mongle/{animation}/frame_0001.webp 규칙을 한 곳에서 관리합니다.
 function framePath(animationName, frameIndex) {
   const padded = String(frameIndex + 1).padStart(4, "0");
-  return `${PET_FRAME_ROOT}/${animationName}/frame_${padded}.webp`;
+  const root = activePetFrameRoot();
+  const animation = activePetAnimations()[animationName] ? animationName : "idle";
+  return `${root}/${animation}/frame_${padded}.webp?v=${PET_FRAME_ASSET_VERSION}`;
 }
 
 // 현재 펫 이미지 한 장을 교체합니다.
 // playFrameSequence가 이 함수를 반복 호출해서 움직이는 것처럼 보이게 합니다.
 function setPetFrame(animationName, frameIndex) {
   petFrame.src = framePath(animationName, frameIndex);
+  const dexPet = petDex.find(pet => pet.id === activePetId());
+  if (dexPet?.name) petFrame.alt = dexPet.name;
 }
 
 // 같은 애니메이션을 연속 클릭해도 CSS animation이 다시 시작되도록 class를 뗐다 붙입니다.
@@ -105,13 +135,15 @@ function playFrameSequence(animationName, options = {}) {
 
 // 자주 쓰는 프레임 이미지를 미리 로드해 첫 클릭 때 끊김을 줄입니다.
 function preloadFrameSequences() {
-  Object.entries(PET_ANIMATIONS).forEach(([animationName, animation]) => {
-    cachedImages[animationName] = [];
+  const petId = activePetId();
+  cachedImages[petId] = {};
+  Object.entries(activePetAnimations()).forEach(([animationName, animation]) => {
+    cachedImages[petId][animationName] = [];
     for (let index = 0; index < animation.frames; index += 1) {
       const image = new Image();
       image.decoding = "async";
       image.src = framePath(animationName, index);
-      cachedImages[animationName].push(image);
+      cachedImages[petId][animationName].push(image);
     }
   });
 }
@@ -366,7 +398,7 @@ function renderDex() {
   }
 
   petDexList.innerHTML = filtered.map(pet => {
-    const active = pet.active || pet.id === "mongle";
+    const active = pet.active || pet.id === activePetId();
     const owned = Boolean(pet.owned);
     const currentLevel = active ? Math.max(1, Number(appState.pet.level) || 1) : Number(pet.level) || 1;
     const levelText = owned ? `Lv.${currentLevel}` : "-";
@@ -388,6 +420,11 @@ function renderDex() {
             ${active ? '<span class="mini-badge active">대표 펫</span>' : ""}
             <span class="mini-badge">${pet.badgeAcquired ? "뱃지 획득" : "뱃지 없음"}</span>
           </div>
+          ${owned && !active ? `
+            <button class="btn compact" type="button" data-select-pet="${pet.petId}">
+              대표로 설정
+            </button>
+          ` : ""}
         </div>
       </article>
     `;
