@@ -108,9 +108,13 @@
     </select>
 
     <select id="findNextPetIdAfterActiveMaxed" parameterType="long" resultType="long">
-        SELECT MIN(next_pet.pet_id)
+        SELECT next_pet.pet_id
         FROM CHILD_PET cp
-        JOIN PET next_pet ON next_pet.pet_id &gt; cp.pet_id
+        JOIN PET next_pet ON next_pet.pet_id = (
+            SELECT MIN(p.pet_id)
+            FROM PET p
+            WHERE p.pet_id &gt; cp.pet_id
+        )
         WHERE cp.child_id = #{childId}
           AND cp.is_active = 'Y'
           AND cp.is_maxed = 'Y'

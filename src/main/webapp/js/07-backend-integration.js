@@ -1358,13 +1358,19 @@ document.addEventListener("click", event => {
       method: "POST",
       body: formData({ petId: selectPetButton.dataset.selectPet })
     }).then(activePet => {
+      finishPetAction();
       applyActivePetState(activePet);
+      applyInteractionCooldowns(activePet.interactionCooldowns);
+      applyOwnedPetStates(activePet.ownedPets);
       renderPet();
       renderDex();
       renderMyPage();
+      playFrameSequence("idle", { loop: true });
       showToast(`${appState.pet.name}을(를) 대표 펫으로 설정했어요.`);
+      loadChildHome().catch(() => {});
     }).catch(error => {
       selectPetButton.disabled = false;
+      finishPetAction();
       showToast(error.message);
     });
     return;

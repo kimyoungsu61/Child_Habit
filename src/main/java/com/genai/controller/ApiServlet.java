@@ -558,7 +558,13 @@ public class ApiServlet extends HttpServlet {
         }
         Long petId = parseLong(request.getParameter("petId"));
         ChildPet activePet = gameProfileService.switchActivePet(child.getChildId(), petId);
-        success(response, childPetMap(activePet));
+        Map<String, Object> data = childPetMap(activePet);
+        data.put("interactionCooldowns",
+                interactionCooldownMap(
+                        gameProfileService.findInteractionCooldowns(child.getChildId())));
+        data.put("ownedPets",
+                childPetMaps(gameProfileService.findOwnedPets(child.getChildId())));
+        success(response, data);
     }
 
     private void updateChildFrame(HttpServletRequest request, HttpServletResponse response)
