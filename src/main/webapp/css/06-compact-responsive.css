@@ -63,6 +63,26 @@
     transform: translateY(15px);
   }
 
+  .pet-stage.profile-preview-frame-wrap {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    padding: clamp(20px, 6.4%, 26px) clamp(18px, 5.6%, 24px) clamp(26px, 7.8%, 34px);
+    --frame-bleed-x: clamp(4px, 1.4%, 6px);
+    --frame-bleed-y: clamp(4px, 1.4%, 6px);
+    --pet-wrap-y: 6px;
+    --pet-scale: 0.86;
+  }
+
+  .pet-stage.profile-preview-frame-wrap[data-pet-id="roa"] {
+    --pet-wrap-y: -8px;
+    --pet-scale: 0.82;
+  }
+
+  .pet-stage.profile-preview-frame-wrap .pet-frame-wrap {
+    width: min(74%, 252px);
+    transform: translateY(var(--pet-wrap-y, 6px));
+  }
+
   .speech {
     margin: 8px 0;
     padding: 10px 12px;

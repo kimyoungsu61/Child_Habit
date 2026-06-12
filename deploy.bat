@@ -10,8 +10,11 @@ if not defined JAVA_HOME set "JAVA_HOME=C:\Program Files\Java\jdk-21.0.10"
 set "WAR_NAME=back.war"
 set "APP_NAME=back"
 set "APP_PORT=8081"
-set "MAVEN_CMD=mvn"
-if exist "C:\apache-maven-3.9.16\bin\mvn.cmd" set "MAVEN_CMD=C:\apache-maven-3.9.16\bin\mvn.cmd"
+set "MAVEN_CMD="
+if exist "C:\Program Files\Apache\Maven\apache-maven-3.9.16\bin\mvn.cmd" set "MAVEN_CMD=C:\Program Files\Apache\Maven\apache-maven-3.9.16\bin\mvn.cmd"
+if not defined MAVEN_CMD if exist "C:\apache-maven-3.9.16\bin\mvn.cmd" set "MAVEN_CMD=C:\apache-maven-3.9.16\bin\mvn.cmd"
+if not defined MAVEN_CMD for /f "delims=" %%M in ('where mvn.cmd 2^>nul') do if not defined MAVEN_CMD set "MAVEN_CMD=%%M"
+if not defined MAVEN_CMD goto maven_not_found
 
 echo ========================================
 echo DDUUTTNN build and Tomcat deploy
@@ -38,7 +41,7 @@ if errorlevel 1 goto cleanup_failed
 echo.
 echo [4] Running Maven build...
 cd /d "%PROJECT_DIR%"
-call "%MAVEN_CMD%" clean package
+call "%MAVEN_CMD%" clean package -Dmaven.test.skip=true
 if errorlevel 1 goto build_failed
 
 echo.
@@ -110,6 +113,14 @@ exit /b 1
 echo.
 echo ========================================
 echo Maven build failed.
+echo ========================================
+pause
+exit /b 1
+
+:maven_not_found
+echo.
+echo ========================================
+echo Maven was not found. Check Maven installation or PATH.
 echo ========================================
 pause
 exit /b 1

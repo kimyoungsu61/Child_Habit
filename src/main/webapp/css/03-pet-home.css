@@ -56,6 +56,9 @@
   position: relative;
   height: clamp(218px, 34dvh, 292px);
   padding: 10px 8px 18px;
+  --pet-wrap-y: 18px;
+  --pet-scale: 0.94;
+  --pet-idle-lift: -4px;
   border-radius: 24px;
   overflow: hidden;
   border: 1px solid rgba(255, 205, 102, 0.56);
@@ -74,19 +77,30 @@
 .profile-preview-frame-wrap {
   position: relative;
   width: 100%;
-  border-radius: 22px;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  padding: clamp(22px, 6.6%, 30px) clamp(20px, 5.8%, 28px) clamp(28px, 8%, 38px);
+  --frame-bleed-x: clamp(4px, 1.4%, 7px);
+  --frame-bleed-y: clamp(4px, 1.4%, 7px);
+  --pet-wrap-y: clamp(6px, 2.2vw, 12px);
+  --pet-scale: 0.88;
+  --pet-idle-lift: -3px;
+  border-radius: 24px;
   overflow: visible;
-  margin: 32px 0 38px;
+  margin: 8px 0 9px;
+}
+
+.profile-preview-frame-wrap[data-pet-id="roa"] {
+  --pet-wrap-y: clamp(-10px, -2.2vw, -6px);
+  --pet-scale: 0.84;
 }
 
 .profile-frame-overlay {
   position: absolute;
-  left: -30px;
-  right: -30px;
-  top: -32px;
-  bottom: -32px;
-  width: auto;
-  height: auto;
+  left: calc(var(--frame-bleed-x, 0px) * -1);
+  top: calc(var(--frame-bleed-y, 0px) * -1);
+  width: calc(100% + (var(--frame-bleed-x, 0px) * 2));
+  height: calc(100% + (var(--frame-bleed-y, 0px) * 2));
   max-width: none;
   display: block;
   object-fit: fill;
@@ -97,14 +111,20 @@
 
 .pet-frame-wrap {
   width: min(100%, 304px);
-  height: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
   max-height: 100%;
   min-height: 0;
   position: relative;
   display: grid;
   place-items: center;
-  transform: translateY(18px);
-  z-index: 2;
+  transform: translateY(var(--pet-wrap-y, 18px));
+  z-index: 4;
+}
+
+.profile-preview-frame-wrap .pet-frame-wrap {
+  width: min(76%, 286px);
+  max-height: none;
 }
 
 .pet-summary,
@@ -113,18 +133,18 @@
 .speech,
 .pet-actions {
   position: relative;
-  z-index: 4;
+  z-index: 5;
 }
 
 .pet-frame {
-  width: 90%;
-  height: 90%;
+  width: 100%;
+  height: 100%;
   max-width: 304px;
-  max-height: 90%;
+  max-height: 100%;
   display: block;
   object-fit: contain;
   object-position: center center;
-  transform: scale(0.94);
+  transform: scale(var(--pet-scale, 0.94));
   transform-origin: 50% 50%;
   animation: calmIdle 3.8s ease-in-out infinite;
   will-change: transform;
@@ -152,20 +172,20 @@
 }
 
 @keyframes calmIdle {
-  0%, 100% { transform: translateY(0) scale(0.94); }
-  50% { transform: translateY(-4px) scale(0.948); }
+  0%, 100% { transform: translateY(0) scale(var(--pet-scale, 0.94)); }
+  50% { transform: translateY(var(--pet-idle-lift, -4px)) scale(calc(var(--pet-scale, 0.94) + 0.008)); }
 }
 
 @keyframes bounceIdle {
-  0%, 100% { transform: translateY(1px) scale(0.94); }
-  42% { transform: translateY(-4px) scale(0.955); }
-  68% { transform: translateY(0) scale(0.932); }
+  0%, 100% { transform: translateY(1px) scale(var(--pet-scale, 0.94)); }
+  42% { transform: translateY(var(--pet-idle-lift, -4px)) scale(calc(var(--pet-scale, 0.94) + 0.015)); }
+  68% { transform: translateY(0) scale(calc(var(--pet-scale, 0.94) - 0.008)); }
 }
 
 @keyframes quickReact {
-  0% { transform: scale(0.94); }
-  56% { transform: scale(0.972); }
-  100% { transform: scale(0.94); }
+  0% { transform: scale(var(--pet-scale, 0.94)); }
+  56% { transform: scale(calc(var(--pet-scale, 0.94) + 0.032)); }
+  100% { transform: scale(var(--pet-scale, 0.94)); }
 }
 
 .twinkle {
@@ -355,4 +375,3 @@
 .theme-swatch-lavender {
   background: linear-gradient(135deg, #b99af8 0%, #5bd6bc 100%);
 }
-

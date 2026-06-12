@@ -259,6 +259,7 @@ function addExp(amount) {
 // 홈 화면의 펫 이름, 상태, EXP 바, 말풍선을 한 번에 다시 그립니다.
 function renderPet() {
   const pet = appState.pet;
+  const currentPetId = activePetId();
   const maxed = pet.level >= (Number(pet.maxLevel) || 10);
   const displayExp = maxed ? pet.maxExp : pet.exp;
   const percent = maxed ? 100 : Math.min(100, Math.round((displayExp / pet.maxExp) * 100));
@@ -271,6 +272,10 @@ function renderPet() {
   expPercent.textContent = `${percent}%`;
   expFill.style.width = `${percent}%`;
   petCard.className = `card pet-room state-${pet.state}`;
+  petCard.dataset.petId = currentPetId;
+  document.querySelectorAll(".pet-stage.profile-preview-frame-wrap").forEach(stage => {
+    stage.dataset.petId = currentPetId;
+  });
   if (profilePetLevel) profilePetLevel.textContent = `Lv.${pet.level}`;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);
   if (parentMissionSummary) parentMissionSummary.textContent = missionLabel(appState.missionStatus);
