@@ -3,13 +3,23 @@
 // 백엔드 연결 후에는 ParentLoginServlet, ChildHomeServlet, MissionListServlet 등의 응답으로
 // appState 초기값을 채우거나, 화면별 fetch 결과로 교체하면 됩니다.
 
-const PET_FRAME_ROOT = appPath("/assets/pets/mongle");
-const PET_ANIMATIONS = {
+const DEFAULT_PET_ID = "mongle";
+const PET_FRAME_ROOTS = {
+  mongle: appPath("/assets/pets/mongle"),
+  roa: appPath("/assets/pets/roa")
+};
+const DEFAULT_PET_ANIMATIONS = {
   idle: { frames: 121, fps: 24, loop: true },
   touch: { frames: 121, fps: 24, loop: false },
   praise: { frames: 121, fps: 24, loop: false },
   play: { frames: 121, fps: 24, loop: false },
   magic: { frames: 121, fps: 24, loop: false }
+};
+const PET_ANIMATION_SETS = {
+  mongle: DEFAULT_PET_ANIMATIONS,
+  roa: {
+    idle: { frames: 121, fps: 24, loop: true }
+  }
 };
 const DEFAULT_PROFILE_IMAGE = appPath("/assets/images/profile.webp");
 const PROFILE_IMAGE_STORAGE_KEY = "profileImage";
@@ -74,6 +84,7 @@ const appState = {
     email: "parent@test.com"
   },
   pet: {
+    id: DEFAULT_PET_ID,
     name: "몽글",
     type: "별빛 마법 펫",
     level: 1,
@@ -161,6 +172,7 @@ const rewardBoxes = {
 const petDex = [
   {
     id: "mongle",
+    petId: 1,
     name: "몽글",
     type: "별빛 마법 펫",
     owned: true,
@@ -175,6 +187,7 @@ const petDex = [
   },
   {
     id: "roa",
+    petId: 2,
     name: "로아",
     type: "불꽃 용기 펫",
     owned: false,
@@ -189,6 +202,7 @@ const petDex = [
   },
   {
     id: "haeon",
+    petId: 3,
     name: "해온",
     type: "햇살 응원 펫",
     owned: false,
@@ -203,6 +217,7 @@ const petDex = [
   },
   {
     id: "nuri",
+    petId: 4,
     name: "누리",
     type: "잎새 성장 펫",
     owned: false,
@@ -217,6 +232,7 @@ const petDex = [
   },
   {
     id: "aro",
+    petId: 5,
     name: "아로",
     type: "물결 평온 펫",
     owned: false,
@@ -231,6 +247,7 @@ const petDex = [
   },
   {
     id: "pogeun",
+    petId: 6,
     name: "포근",
     type: "하트 정서 펫",
     owned: false,

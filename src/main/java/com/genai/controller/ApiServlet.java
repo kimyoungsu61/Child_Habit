@@ -127,6 +127,8 @@ public class ApiServlet extends HttpServlet {
                 openBox(request, response, path);
             } else if ("/child/pet/interactions".equals(path)) {
                 interactWithPet(request, response);
+            } else if ("/child/pet/active".equals(path)) {
+                switchActivePet(request, response);
             } else if ("/child/profile/frame".equals(path)) {
                 updateChildFrame(request, response);
             } else {
@@ -286,6 +288,7 @@ public class ApiServlet extends HttpServlet {
         data.put("child", childMap(child));
         data.put("setupComplete", child.getCharacterImageUrl() != null && activePet != null);
         data.put("activePet", activePet == null ? null : childPetMap(activePet));
+        data.put("ownedPets", childPetMaps(gameProfileService.findOwnedPets(child.getChildId())));
         data.put("missions", missionMaps(missionService.findMissionsForChild(child.getChildId())
                 .stream().limit(5).toList()));
         data.put("submissions", submissionMaps(
@@ -534,6 +537,17 @@ public class ApiServlet extends HttpServlet {
         success(response, childPetMap(activePet));
     }
 
+    private void switchActivePet(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        ChildProfile child = requireChild(request, response);
+        if (child == null) {
+            return;
+        }
+        Long petId = parseLong(request.getParameter("petId"));
+        ChildPet activePet = gameProfileService.switchActivePet(child.getChildId(), petId);
+        success(response, childPetMap(activePet));
+    }
+
     private void updateChildFrame(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
         ChildProfile child = requireChild(request, response);
@@ -732,6 +746,10 @@ public class ApiServlet extends HttpServlet {
             map.put("pet", petMap(childPet.getPet()));
         }
         return map;
+    }
+
+    private List<Map<String, Object>> childPetMaps(List<ChildPet> childPets) {
+        return childPets.stream().map(this::childPetMap).toList();
     }
 
     private Map<String, Object> petMap(Pet pet) {

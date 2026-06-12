@@ -47,12 +47,45 @@ public class GameProfileDAO {
         }
     }
 
+    public List<ChildPet> findOwnedPets(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(GameProfileMapper.class).findOwnedPets(childId);
+        }
+    }
+
+    public ChildPet switchActivePet(Long childId, Long petId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            GameProfileMapper mapper = session.getMapper(GameProfileMapper.class);
+            if (mapper.countOwnedPet(childId, petId) != 1) {
+                session.rollback();
+                throw new IllegalArgumentException("보유 중인 펫만 대표 펫으로 설정할 수 있습니다.");
+            }
+            mapper.deactivateChildPets(childId);
+            if (mapper.activateChildPet(childId, petId) != 1) {
+                session.rollback();
+                throw new IllegalStateException("대표 펫을 설정하지 못했습니다.");
+            }
+            ChildPet activePet = mapper.findActivePet(childId);
+            session.commit();
+            return activePet;
+        }
+    }
+
     public ChildPet addExpToActivePet(Long childId, int expAmount) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
             GameProfileMapper mapper = session.getMapper(GameProfileMapper.class);
             if (mapper.addExpToActivePet(childId, expAmount) != 1) {
                 session.rollback();
                 throw new IllegalStateException("대표 펫의 경험치를 저장하지 못했습니다.");
+            }
+            Long nextPetId = mapper.findNextPetIdAfterActiveMaxed(childId);
+            if (nextPetId != null) {
+                mapper.unlockNextPetAfterActiveMaxed(childId);
+                mapper.deactivateChildPets(childId);
+                if (mapper.activateChildPet(childId, nextPetId) != 1) {
+                    session.rollback();
+                    throw new IllegalStateException("다음 펫을 대표 펫으로 설정하지 못했습니다.");
+                }
             }
             ChildPet activePet = mapper.findActivePet(childId);
             session.commit();

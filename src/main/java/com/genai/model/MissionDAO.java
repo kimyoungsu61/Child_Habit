@@ -222,6 +222,15 @@ public class MissionDAO {
                 session.rollback();
                 throw new IllegalStateException("활성 펫 경험치를 갱신하지 못했습니다.");
             }
+            Long nextPetId = gameProfileMapper.findNextPetIdAfterActiveMaxed(childId);
+            if (nextPetId != null) {
+                gameProfileMapper.unlockNextPetAfterActiveMaxed(childId);
+                gameProfileMapper.deactivateChildPets(childId);
+                if (gameProfileMapper.activateChildPet(childId, nextPetId) != 1) {
+                    session.rollback();
+                    throw new IllegalStateException("다음 펫을 대표 펫으로 설정하지 못했습니다.");
+                }
+            }
             missionMapper.insertExpRewardHistory(childId, submissionId, boxGrade, expAmount);
             missionMapper.insertRewardPaidNotification(
                     childId, submissionId, null, boxGrade, expAmount);

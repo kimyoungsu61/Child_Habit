@@ -27,5 +27,11 @@ public interface GameProfileMapper {
 
     ChildPet findActivePet(Long childId);
 
+    List<ChildPet> findOwnedPets(Long childId);
+
     int addExpToActivePet(@Param("childId") Long childId, @Param("expAmount") int expAmount);
+
+    Long findNextPetIdAfterActiveMaxed(Long childId);
+
+    int unlockNextPetAfterActiveMaxed(Long childId);
 }
