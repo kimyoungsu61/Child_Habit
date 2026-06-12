@@ -15,7 +15,12 @@ public class ChildAccountDAO {
                 return null;
             }
 
-            Long frameId = mapper.findFrameIdByType("wood");
+            String frameType = "bronze";
+            Long frameId = mapper.findFrameIdByType(frameType);
+            if (frameId == null) {
+                frameType = "wood";
+                frameId = mapper.findFrameIdByType(frameType);
+            }
             if (frameId == null) {
                 throw new IllegalStateException("기본 wood 액자 데이터가 없습니다.");
             }
@@ -35,8 +40,32 @@ public class ChildAccountDAO {
 
             session.commit();
             child.setInviteCode(inviteCode);
-            child.setFrameType("wood");
+            child.setFrameType(frameType);
             return child;
+        }
+    }
+
+    public List<ProfileFrame> findAllFrames() {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(ChildAccountMapper.class).findAllFrames();
+        }
+    }
+
+    public ProfileFrame findFrameById(Long frameId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(ChildAccountMapper.class).findFrameById(frameId);
+        }
+    }
+
+    public ProfileFrame findFrameByType(String frameType) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(ChildAccountMapper.class).findFrameByType(frameType);
+        }
+    }
+
+    public int countApprovedSubmissions(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(ChildAccountMapper.class).countApprovedSubmissions(childId);
         }
     }
 
@@ -62,6 +91,19 @@ public class ChildAccountDAO {
         try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
             int updated = session.getMapper(ChildAccountMapper.class)
                     .updateFrame(childId, frameType);
+            if (updated == 1) {
+                session.commit();
+                return true;
+            }
+            session.rollback();
+            return false;
+        }
+    }
+
+    public boolean updateFrameById(Long childId, Long frameId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            int updated = session.getMapper(ChildAccountMapper.class)
+                    .updateFrameById(childId, frameId);
             if (updated == 1) {
                 session.commit();
                 return true;

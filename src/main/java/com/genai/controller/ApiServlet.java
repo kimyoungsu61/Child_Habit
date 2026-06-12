@@ -26,6 +26,7 @@ import com.genai.model.MissionSubmission;
 import com.genai.model.Notification;
 import com.genai.model.Parent;
 import com.genai.model.Pet;
+import com.genai.model.ProfileFrame;
 import com.genai.model.RewardInventoryItem;
 import com.genai.service.AiImageGenerationResult;
 import com.genai.service.AiImageService;
@@ -78,6 +79,7 @@ public class ApiServlet extends HttpServlet {
                 case "/session" -> session(request, response);
                 case "/parent/dashboard" -> parentDashboard(request, response);
                 case "/child/home" -> childHome(request, response);
+                case "/child/frames" -> childFrames(request, response);
                 default -> error(response, HttpServletResponse.SC_NOT_FOUND,
                         "지원하지 않는 API입니다.");
             }
@@ -296,6 +298,16 @@ public class ApiServlet extends HttpServlet {
                 missionService.findNotificationsForChild(child.getChildId())));
         data.put("serverDate", LocalDate.now().toString());
         success(response, data);
+    }
+
+    private void childFrames(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        ChildProfile loginChild = requireChild(request, response);
+        if (loginChild == null) {
+            return;
+        }
+        ChildProfile child = childAccountService.findById(loginChild.getChildId());
+        success(response, frameStateMap(child));
     }
 
     private void createInvite(HttpServletRequest request, HttpServletResponse response)
@@ -528,15 +540,38 @@ public class ApiServlet extends HttpServlet {
         if (child == null) {
             return;
         }
-        ChildPet activePet = gameProfileService.findActivePet(child.getChildId());
-        if (activePet == null) {
-            throw new IllegalStateException("대표 펫을 찾을 수 없습니다.");
+
+        // 1. 요청값 받기 (사용자가 선택한 액자 ID를 가져오는 단계)
+        Long frameId = parseLong(request.getParameter("frameId"));
+        if (frameId == null) {
+            ProfileFrame frame = childAccountService.findFrameByType(
+                    value(request.getParameter("frameType")));
+            frameId = frame == null ? null : frame.getFrameId();
         }
-        ChildProfile updated = childAccountService.updateFrame(
-                child.getChildId(),
-                value(request.getParameter("frameType")),
-                activePet.getCurrentLevel());
-        success(response, Map.of("child", childMap(updated)));
+        if (frameId == null) {
+            throw new IllegalArgumentException("선택할 액자를 확인해 주세요.");
+        }
+
+        // 2. 해금 여부 확인하기 (현재 아이의 뱃지 개수로 선택 가능한 액자인지 확인하는 단계)
+        ProfileFrame frame = childAccountService.findFrameById(frameId);
+        if (frame == null) {
+            throw new IllegalArgumentException("선택할 수 없는 액자입니다.");
+        }
+        int badgeCount = childAccountService.countApprovedSubmissions(child.getChildId());
+        if (badgeCount < frame.getRequiredBadgeCount()) {
+            throw new IllegalArgumentException(
+                    "뱃지 " + frame.getRequiredBadgeCount() + "개부터 사용할 수 있는 액자입니다.");
+        }
+
+        // 3. 선택 액자 저장하기 (DB에 현재 사용 액자 ID를 저장하는 단계)
+        ChildProfile updated = childAccountService.updateFrameById(child.getChildId(), frameId);
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.setAttribute(SessionKeys.CHILD, updated);
+        }
+
+        // 4. 결과 반환하기 (화면에서 선택 결과를 반영할 수 있도록 응답하는 단계)
+        success(response, frameStateMap(updated));
     }
 
     private Parent requireParent(HttpServletRequest request, HttpServletResponse response)
@@ -625,7 +660,28 @@ public class ApiServlet extends HttpServlet {
         map.put("characterImageUrl", child.getCharacterImageUrl());
         map.put("characterLevel", child.getCharacterLevel());
         map.put("inviteCode", child.getInviteCode());
+        map.put("frameId", child.getFrameId());
         map.put("frameType", child.getFrameType());
+        return map;
+    }
+
+    private Map<String, Object> frameStateMap(ChildProfile child) {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("child", childMap(child));
+        data.put("frames", frameMaps(childAccountService.findFrames()));
+        data.put("badgeCount", childAccountService.countApprovedSubmissions(child.getChildId()));
+        data.put("currentFrameId", child.getFrameId());
+        data.put("currentFrameType", child.getFrameType());
+        return data;
+    }
+
+    private Map<String, Object> frameMap(ProfileFrame frame) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("frameId", frame.getFrameId());
+        map.put("frameType", frame.getFrameType());
+        map.put("frameName", frame.getFrameName());
+        map.put("frameImageUrl", frame.getFrameImageUrl());
+        map.put("requiredBadgeCount", frame.getRequiredBadgeCount());
         return map;
     }
 
@@ -690,6 +746,10 @@ public class ApiServlet extends HttpServlet {
 
     private List<Map<String, Object>> childMaps(List<ChildProfile> children) {
         return children.stream().map(this::childMap).toList();
+    }
+
+    private List<Map<String, Object>> frameMaps(List<ProfileFrame> frames) {
+        return frames.stream().map(this::frameMap).toList();
     }
 
     private List<Map<String, Object>> missionMaps(List<Mission> missions) {

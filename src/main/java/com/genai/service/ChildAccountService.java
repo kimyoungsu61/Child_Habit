@@ -2,18 +2,14 @@ package com.genai.service;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import com.genai.model.ChildAccountDAO;
 import com.genai.model.ChildProfile;
+import com.genai.model.ProfileFrame;
 
 public class ChildAccountService {
     public static final String UNSET_NICKNAME = "미설정 아이";
     private static final int MAX_CODE_ATTEMPTS = 10;
-    private static final Map<String, Integer> FRAME_LEVELS = Map.of(
-            "wood", 1,
-            "iron", 2,
-            "gold", 3);
 
     private final ChildAccountDAO childAccountDAO;
     private final InviteCodeGenerator codeGenerator;
@@ -35,7 +31,7 @@ public class ChildAccountService {
                 return child;
             }
         }
-        throw new IllegalStateException("고유한 초대코드를 생성하지 못했습니다.");
+        throw new IllegalStateException("고유한 초대 코드를 생성하지 못했습니다.");
     }
 
     public List<ChildProfile> findChildren(Long parentId) {
@@ -50,19 +46,55 @@ public class ChildAccountService {
         return childAccountDAO.findById(childId);
     }
 
-    public ChildProfile updateFrame(Long childId, String frameType, int currentLevel) {
-        Integer requiredLevel = FRAME_LEVELS.get(frameType);
-        if (requiredLevel == null) {
+    public List<ProfileFrame> findFrames() {
+        return childAccountDAO.findAllFrames();
+    }
+
+    public int countApprovedSubmissions(Long childId) {
+        return childAccountDAO.countApprovedSubmissions(childId);
+    }
+
+    public ProfileFrame findFrameById(Long frameId) {
+        return frameId == null ? null : childAccountDAO.findFrameById(frameId);
+    }
+
+    public ProfileFrame findFrameByType(String frameType) {
+        String normalizedFrameType = normalizeFrameType(frameType);
+        if (normalizedFrameType.isBlank()) {
+            return null;
+        }
+        ProfileFrame frame = childAccountDAO.findFrameByType(normalizedFrameType);
+        if (frame == null && "bronze".equals(normalizedFrameType)) {
+            frame = childAccountDAO.findFrameByType("wood");
+        }
+        if (frame == null && "wood".equals(normalizedFrameType)) {
+            frame = childAccountDAO.findFrameByType("bronze");
+        }
+        return frame;
+    }
+
+    public ChildProfile updateFrameById(Long childId, Long frameId) {
+        ProfileFrame frame = findFrameById(frameId);
+        if (frame == null) {
             throw new IllegalArgumentException("선택할 수 없는 액자입니다.");
         }
-        if (currentLevel < requiredLevel) {
+        int badgeCount = countApprovedSubmissions(childId);
+        if (badgeCount < frame.getRequiredBadgeCount()) {
             throw new IllegalArgumentException(
-                    "Lv." + requiredLevel + "부터 사용할 수 있는 액자입니다.");
+                    "뱃지 " + frame.getRequiredBadgeCount() + "개부터 사용할 수 있는 액자입니다.");
         }
-        if (!childAccountDAO.updateFrame(childId, frameType)) {
+        if (!childAccountDAO.updateFrameById(childId, frameId)) {
             throw new IllegalArgumentException("아이 프로필 액자를 변경하지 못했습니다.");
         }
         return childAccountDAO.findById(childId);
+    }
+
+    public ChildProfile updateFrame(Long childId, String frameType, int currentLevel) {
+        ProfileFrame frame = findFrameByType(frameType);
+        if (frame == null) {
+            throw new IllegalArgumentException("선택할 수 없는 액자입니다.");
+        }
+        return updateFrameById(childId, frame.getFrameId());
     }
 
     public String regenerateInviteCode(Long childId, Long parentId) {
@@ -73,10 +105,18 @@ public class ChildAccountService {
                 return code;
             }
         }
-        throw new IllegalStateException("고유한 초대코드를 재발급하지 못했습니다.");
+        throw new IllegalStateException("고유한 초대 코드를 재발급하지 못했습니다.");
     }
 
     private String normalizeCode(String inviteCode) {
         return inviteCode == null ? "" : inviteCode.replaceAll("\\s+", "").toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizeFrameType(String frameType) {
+        String normalized = frameType == null ? "" : frameType.trim();
+        if ("silver".equals(normalized)) {
+            return "iron";
+        }
+        return normalized;
     }
 }

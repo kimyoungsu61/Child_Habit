@@ -84,12 +84,69 @@ function populateMissionEditForm(mission) {
   setEntryMessage(document.getElementById("missionEditMessage"), "");
 }
 
-function frameKeyForServerType(frameType) {
-  return ({ wood: "bronze", iron: "silver", gold: "gold" })[frameType] || "bronze";
+function frameKeyForServerType(frameType, frameId = null) {
+  if (frameId != null) {
+    const entryById = Object.entries(PROFILE_FRAMES)
+      .find(([, frame]) => Number(frame.frameId) === Number(frameId));
+    if (entryById) return entryById[0];
+  }
+  const normalizedType = frameType === "wood" ? "bronze" : frameType;
+  if (normalizedType && PROFILE_FRAMES[normalizedType]) return normalizedType;
+  if (frameType === "iron" && PROFILE_FRAMES.iron) return "iron";
+  if (frameType === "silver" && PROFILE_FRAMES.iron) return "iron";
+  return "bronze";
 }
 
 function serverFrameTypeForKey(frameKey) {
-  return ({ bronze: "wood", silver: "iron", gold: "gold" })[frameKey] || "wood";
+  return PROFILE_FRAMES[frameKey]?.type || (frameKey === "silver" ? "iron" : frameKey);
+}
+
+function frameImageSrc(frameImageUrl = "") {
+  return typeof appAssetUrl === "function"
+    ? appAssetUrl(frameImageUrl)
+    : appPath(frameImageUrl);
+}
+
+function syncProfileFramesFromServer(frames = []) {
+  Object.keys(PROFILE_FRAMES).forEach(key => delete PROFILE_FRAMES[key]);
+  frames.forEach(frame => {
+    const frameKey = frame.frameType === "wood" ? "bronze" : frame.frameType;
+    if (!frameKey) return;
+    PROFILE_FRAMES[frameKey] = {
+      frameId: frame.frameId,
+      type: frame.frameType,
+      label: frame.frameName,
+      image: frameImageSrc(frame.frameImageUrl),
+      frameImageUrl: frame.frameImageUrl,
+      requiredBadgeCount: Number(frame.requiredBadgeCount) || 0,
+      unlockLevel: Number(frame.requiredBadgeCount) || 0
+    };
+  });
+  appState.profileFrames = frames;
+}
+
+function applyFrameState(frameState = {}) {
+  if (Array.isArray(frameState.frames)) {
+    syncProfileFramesFromServer(frameState.frames);
+  }
+  if (frameState.badgeCount != null) {
+    appState.profileFrameBadgeCount = Number(frameState.badgeCount) || 0;
+  }
+  const child = frameState.child || {};
+  const currentFrameId = frameState.currentFrameId ?? child.frameId;
+  const currentFrameType = frameState.currentFrameType ?? child.frameType;
+  if (currentFrameId != null) {
+    appState.selectedProfileFrameId = Number(currentFrameId);
+  }
+  appState.selectedProfileFrameKey = frameKeyForServerType(
+    currentFrameType,
+    appState.selectedProfileFrameId);
+}
+
+async function loadProfileFrames() {
+  const frameState = await apiRequest("/child/frames");
+  applyFrameState(frameState);
+  return frameState;
 }
 
 function formatRelativeNotificationTime(createdAt) {
@@ -811,7 +868,9 @@ async function loadChildHome(options = {}) {
   loadedServerDate = serverChildHome.serverDate || "";
   const child = serverChildHome.child;
   appState.child.nickname = child.nickname;
-  appState.selectedProfileFrameKey = frameKeyForServerType(child.frameType);
+  appState.selectedProfileFrameId = child.frameId ?? appState.selectedProfileFrameId;
+  appState.selectedProfileFrameKey = frameKeyForServerType(child.frameType, child.frameId);
+  await loadProfileFrames().catch(() => {});
   if (child.inviteCode) setCurrentInviteCode(child.inviteCode);
   if (child.characterImageUrl) {
     const imageUrl = appAssetUrl(child.characterImageUrl);
@@ -1192,11 +1251,12 @@ document.addEventListener("click", event => {
   if (!frameCard || frameCard.dataset.frameUnlocked !== "true") return;
   event.preventDefault();
   const frameKey = frameCard.dataset.frameKey;
+  const frameId = frameCard.dataset.frameId || PROFILE_FRAMES[frameKey]?.frameId;
   apiRequest("/child/profile/frame", {
     method: "POST",
-    body: formData({ frameType: serverFrameTypeForKey(frameKey) })
+    body: formData({ frameId })
   }).then(data => {
-    appState.selectedProfileFrameKey = frameKeyForServerType(data.child.frameType);
+    applyFrameState(data);
     renderFrameDex();
     syncProfileFrames();
     showToast(`${PROFILE_FRAMES[frameKey].label}를 적용했어요.`);

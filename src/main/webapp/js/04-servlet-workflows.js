@@ -147,25 +147,26 @@ function playRewardChestMotion(boxType = appState.selectedBoxType || "beginner")
 
 function renderFrameDex() {
   // 1. 현재 펫 레벨 확인하기 (현재는 몽글이 기준, 추후 모든 펫은 대표 펫 레벨로 연결하는 단계)
-  const currentLevel = getPetFrameLevel();
   const frameGrid = document.querySelector(".frame-dex-grid");
   if (!frameGrid) return;
 
   // 2. 액자 목록 만들기 (레벨 조건에 따라 보유/잠김 상태를 나누는 단계)
   frameGrid.innerHTML = Object.entries(PROFILE_FRAMES).map(([key, frame]) => {
-    const unlocked = isProfileFrameUnlocked(key, currentLevel);
-    const selected = appState.selectedProfileFrameKey === key;
+    const requiredBadgeCount = Number(frame.requiredBadgeCount ?? frame.unlockLevel ?? 0);
+    const unlocked = isProfileFrameUnlocked(key);
+    const selected = Number(frame.frameId) === Number(appState.selectedProfileFrameId)
+      || appState.selectedProfileFrameKey === key;
     const statusText = selected
       ? "현재 사용 중"
       : (unlocked
-        ? (frame.unlockLevel === 1 ? "기본 보유" : `Lv.${frame.unlockLevel} 해금 완료`)
-        : `Lv.${frame.unlockLevel} 해금`);
+        ? (requiredBadgeCount === 0 ? "기본 보유" : `뱃지 ${requiredBadgeCount}개 해금 완료`)
+        : `뱃지 ${requiredBadgeCount}개 필요`);
     const cardClass = unlocked ? "owned" : "locked";
     const questionMark = unlocked ? "" : "<b>?</b>";
 
     return `
       <article class="frame-dex-card ${cardClass} ${selected ? "selected" : ""}"
-               data-frame-key="${key}" data-frame-unlocked="${unlocked}"
+               data-frame-key="${key}" data-frame-id="${frame.frameId || ""}" data-frame-unlocked="${unlocked}"
                role="button" tabindex="${unlocked ? "0" : "-1"}">
         <div class="frame-dex-preview ${unlocked ? "" : "silhouette"}">
           <img src="${frame.image}" alt="${frame.label}" />

@@ -19,9 +19,14 @@ const CURRENT_INVITE_CODE_STORAGE_KEY = "currentInviteCode";
 const THEME_STORAGE_KEY = "dduuttnnTheme";
 const mockCharacterImageUrl = DEFAULT_PROFILE_IMAGE;
 const PROFILE_FRAMES = {
-  bronze: { label: "동 액자", image: appPath("/assets/frames/frame-bronze.webp"), unlockLevel: 1 },
-  silver: { label: "은 액자", image: appPath("/assets/frames/frame-silver.webp"), unlockLevel: 2 },
-  gold: { label: "금 액자", image: appPath("/assets/frames/frame-gold.webp"), unlockLevel: 3 }
+  bronze: {
+    frameId: 1,
+    type: "bronze",
+    label: "동 액자",
+    image: appPath("/assets/frames/frame-bronze.webp"),
+    requiredBadgeCount: 0,
+    unlockLevel: 0
+  }
 };
 const APP_THEMES = {
   default: { label: "기본" },
@@ -63,6 +68,9 @@ const appState = {
   selectedInventoryTab: "boxes",
   selectedBoxType: "beginner",
   selectedProfileFrameKey: "bronze",
+  selectedProfileFrameId: null,
+  profileFrames: [],
+  profileFrameBadgeCount: 0,
   theme: "default",
   lastRewardExp: 25,
   dexFilter: "all",

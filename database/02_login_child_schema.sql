@@ -32,7 +32,7 @@ BEGIN
             created_at TIMESTAMP DEFAULT SYSTIMESTAMP NOT NULL,
             CONSTRAINT pk_frame PRIMARY KEY (frame_id),
             CONSTRAINT uq_frame_type UNIQUE (frame_type),
-            CONSTRAINT ck_frame_type CHECK (frame_type IN (''wood'', ''iron'', ''gold'')),
+            CONSTRAINT ck_frame_type CHECK (frame_type IN (''wood'', ''bronze'', ''iron'', ''gold'', ''crystal'', ''legend'', ''Aurora'')),
             CONSTRAINT ck_frame_badge CHECK (required_badge_count >= 0)
         )';
 EXCEPTION
@@ -137,8 +137,8 @@ END;
 
 MERGE INTO FRAME target
 USING (
-    SELECT 'wood' frame_type, 'wood frame' frame_name,
-           '/images/frame_wood.png' frame_image_url, 0 required_badge_count
+    SELECT 'bronze' frame_type, '동 액자' frame_name,
+           '/assets/frames/frame-bronze.webp' frame_image_url, 0 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
@@ -148,8 +148,8 @@ WHEN NOT MATCHED THEN
 
 MERGE INTO FRAME target
 USING (
-    SELECT 'iron' frame_type, 'iron frame' frame_name,
-           '/images/frame_iron.png' frame_image_url, 3 required_badge_count
+    SELECT 'iron' frame_type, '은 액자' frame_name,
+           '/assets/frames/frame-silver.webp' frame_image_url, 3 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
@@ -159,8 +159,41 @@ WHEN NOT MATCHED THEN
 
 MERGE INTO FRAME target
 USING (
-    SELECT 'gold' frame_type, 'gold frame' frame_name,
-           '/images/frame_gold.png' frame_image_url, 7 required_badge_count
+    SELECT 'gold' frame_type, '금 액자' frame_name,
+           '/assets/frames/frame-gold.webp' frame_image_url, 7 required_badge_count
+    FROM dual
+) source
+ON (target.frame_type = source.frame_type)
+WHEN NOT MATCHED THEN
+    INSERT (frame_type, frame_name, frame_image_url, required_badge_count)
+    VALUES (source.frame_type, source.frame_name, source.frame_image_url, source.required_badge_count);
+
+MERGE INTO FRAME target
+USING (
+    SELECT 'crystal' frame_type, '수정 액자' frame_name,
+           '/assets/frames/frame-tier-4.webp' frame_image_url, 10 required_badge_count
+    FROM dual
+) source
+ON (target.frame_type = source.frame_type)
+WHEN NOT MATCHED THEN
+    INSERT (frame_type, frame_name, frame_image_url, required_badge_count)
+    VALUES (source.frame_type, source.frame_name, source.frame_image_url, source.required_badge_count);
+
+MERGE INTO FRAME target
+USING (
+    SELECT 'legend' frame_type, '전설 액자' frame_name,
+           '/assets/frames/frame-tier-6.webp' frame_image_url, 21 required_badge_count
+    FROM dual
+) source
+ON (target.frame_type = source.frame_type)
+WHEN NOT MATCHED THEN
+    INSERT (frame_type, frame_name, frame_image_url, required_badge_count)
+    VALUES (source.frame_type, source.frame_name, source.frame_image_url, source.required_badge_count);
+
+MERGE INTO FRAME target
+USING (
+    SELECT 'Aurora' frame_type, '오로라 액자' frame_name,
+           '/assets/frames/frame-tier-5.webp' frame_image_url, 15 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
