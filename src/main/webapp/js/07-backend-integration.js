@@ -1229,20 +1229,29 @@ document.querySelectorAll(
 
 document.querySelectorAll("[data-action]").forEach(button => {
   interceptClick(button, async () => {
+    if (!beginPetAction()) return;
     const action = button.dataset.action;
-    const activePet = await apiRequest("/child/pet/interactions", {
-      method: "POST",
-      body: formData({ action })
-    });
-    const previousLevel = appState.pet.level;
-    applyActivePetState(activePet);
-    handlePetAction(action, { addExperience: false });
-    if (appState.pet.level > previousLevel) {
-      showToast(`${appState.pet.name}가 Lv.${appState.pet.level}로 성장했어요!`);
-      createParticles("🌟", 14);
+    try {
+      const activePet = await apiRequest("/child/pet/interactions", {
+        method: "POST",
+        body: formData({ action })
+      });
+      const previousLevel = appState.pet.level;
+      applyActivePetState(activePet);
+      handlePetAction(action, {
+        addExperience: false,
+        lockAlreadyAcquired: true
+      });
+      if (appState.pet.level > previousLevel) {
+        showToast(`${appState.pet.name}가 Lv.${appState.pet.level}로 성장했어요!`);
+        createParticles("🌟", 14);
+      }
+      renderInventoryTab();
+      syncProfileFrames();
+    } catch (error) {
+      finishPetAction();
+      throw error;
     }
-    renderInventoryTab();
-    syncProfileFrames();
   });
 });
 

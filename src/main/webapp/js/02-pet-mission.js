@@ -2,6 +2,27 @@
 // 지금은 버튼 클릭으로 appState를 직접 바꾸지만, 실제 서비스에서는
 // PetStatusServlet, MissionListServlet, MissionDetailServlet, BoxOpenServlet 응답을 받아 그리면 됩니다.
 
+let isPetActionRunning = false;
+
+function setPetActionButtonsLocked(locked) {
+  isPetActionRunning = locked;
+  document.querySelectorAll("[data-action]").forEach(button => {
+    button.disabled = locked;
+    button.setAttribute("aria-disabled", String(locked));
+  });
+  document.querySelector(".pet-actions")?.setAttribute("aria-busy", String(locked));
+}
+
+function beginPetAction() {
+  if (isPetActionRunning) return false;
+  setPetActionButtonsLocked(true);
+  return true;
+}
+
+function finishPetAction() {
+  setPetActionButtonsLocked(false);
+}
+
 function getAnimation(name) {
   return PET_ANIMATIONS[name] || PET_ANIMATIONS.idle;
 }
@@ -235,7 +256,11 @@ function resetPet() {
 
 function handlePetAction(type, options = {}) {
   const action = actionMap[type];
-  if (!action) return;
+  if (!action) {
+    if (options.lockAlreadyAcquired) finishPetAction();
+    return false;
+  }
+  if (!options.lockAlreadyAcquired && !beginPetAction()) return false;
 
   if (typeof window.playSound === "function") {
     window.playSound(type);
@@ -249,7 +274,14 @@ function handlePetAction(type, options = {}) {
   createParticles(action.effect, 9);
   if (action.toast) showToast(action.toast);
   if (options.addExperience !== false) addExp(action.exp);
-  playFrameSequence(action.animation, { loop: false, onComplete: resetPet });
+  playFrameSequence(action.animation, {
+    loop: false,
+    onComplete: () => {
+      resetPet();
+      finishPetAction();
+    }
+  });
+  return true;
 }
 
 function createParticles(symbol, count = 10) {
