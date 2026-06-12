@@ -11,20 +11,41 @@ function isProfileFrameUnlocked(frameKey, level = getPetFrameLevel()) {
   // 2. 액자 해금 여부 계산하기 (모든 펫은 자신의 현재 레벨 기준으로 액자를 해금하는 단계)
   const frame = PROFILE_FRAMES[frameKey];
   if (!frame) return false;
+  if (Number.isFinite(Number(frame.requiredBadgeCount))) {
+    return Number(appState.profileFrameBadgeCount) >= Number(frame.requiredBadgeCount);
+  }
   return level >= frame.unlockLevel;
 }
 
 function getProfileFrameByLevel(level) {
   // 3. 현재 레벨에서 사용할 수 있는 가장 높은 액자를 계산하기 (자동 적용용 임시 정책)
-  const petLevel = Number(level) || 1;
-  if (isProfileFrameUnlocked("gold", petLevel)) return { key: "gold", ...PROFILE_FRAMES.gold };
-  if (isProfileFrameUnlocked("silver", petLevel)) return { key: "silver", ...PROFILE_FRAMES.silver };
-  return { key: "bronze", ...PROFILE_FRAMES.bronze };
+  const frames = Object.entries(PROFILE_FRAMES)
+    .filter(([, frame]) => frame)
+    .sort((a, b) => Number(b[1].requiredBadgeCount ?? b[1].unlockLevel ?? 0)
+      - Number(a[1].requiredBadgeCount ?? a[1].unlockLevel ?? 0));
+  const unlocked = frames.find(([key]) => isProfileFrameUnlocked(key, level));
+  if (unlocked) return { key: unlocked[0], ...unlocked[1] };
+  const firstFrame = frames[frames.length - 1];
+  if (firstFrame) return { key: firstFrame[0], ...firstFrame[1] };
+  return {
+    key: "bronze",
+    label: "동 액자",
+    image: appPath("/assets/frames/frame-bronze.webp"),
+    frameId: 1,
+    requiredBadgeCount: 0
+  };
 }
 
 // 현재 펫 레벨에 맞는 프로필 프레임을 계산합니다.
 function getCurrentProfileFrame() {
   const selectedKey = appState.selectedProfileFrameKey || "bronze";
+  if (appState.selectedProfileFrameId != null) {
+    const selectedById = Object.entries(PROFILE_FRAMES)
+      .find(([, frame]) => Number(frame.frameId) === Number(appState.selectedProfileFrameId));
+    if (selectedById && isProfileFrameUnlocked(selectedById[0])) {
+      return { key: selectedById[0], ...selectedById[1] };
+    }
+  }
   if (isProfileFrameUnlocked(selectedKey)) {
     return { key: selectedKey, ...PROFILE_FRAMES[selectedKey] };
   }

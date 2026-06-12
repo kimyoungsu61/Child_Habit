@@ -32,6 +32,45 @@
         WHERE frame_type = #{frameType}
     </select>
 
+    <select id="findFrameById" parameterType="long"
+            resultType="com.genai.model.ProfileFrame">
+        SELECT frame_id,
+               frame_type,
+               frame_name,
+               frame_image_url,
+               required_badge_count
+        FROM FRAME
+        WHERE frame_id = #{frameId}
+    </select>
+
+    <select id="findFrameByType" parameterType="string"
+            resultType="com.genai.model.ProfileFrame">
+        SELECT frame_id,
+               frame_type,
+               frame_name,
+               frame_image_url,
+               required_badge_count
+        FROM FRAME
+        WHERE frame_type = #{frameType}
+    </select>
+
+    <select id="findAllFrames" resultType="com.genai.model.ProfileFrame">
+        SELECT frame_id,
+               frame_type,
+               frame_name,
+               frame_image_url,
+               required_badge_count
+        FROM FRAME
+        ORDER BY required_badge_count, frame_id
+    </select>
+
+    <select id="countApprovedSubmissions" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION_SUBMISSION
+        WHERE child_id = #{childId}
+          AND status = 'approved'
+    </select>
+
     <insert id="insertChild" parameterType="com.genai.model.ChildProfile">
         <selectKey keyProperty="childId" resultType="long" order="BEFORE">
             SELECT seq_child.NEXTVAL FROM dual
@@ -122,6 +161,17 @@
             SELECT 1
             FROM FRAME
             WHERE frame_type = #{frameType}
+          )
+    </update>
+
+    <update id="updateFrameById">
+        UPDATE CHILD
+        SET frame_id = #{frameId}
+        WHERE child_id = #{childId}
+          AND EXISTS (
+            SELECT 1
+            FROM FRAME
+            WHERE frame_id = #{frameId}
           )
     </update>
 

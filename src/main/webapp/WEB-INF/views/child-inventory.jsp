@@ -99,21 +99,25 @@
                     <span>획득 조건을 달성하면 잠금 해제</span>
                 </div>
                 <div class="frame-dex-grid">
-                    <article class="frame-dex-card owned">
-                        <div class="frame-dex-preview"><img src="${pageContext.request.contextPath}/assets/frames/frame-bronze.webp" alt="동 액자"></div>
-                        <strong>동 액자</strong>
-                        <span>기본 보유</span>
-                    </article>
-                    <article class="frame-dex-card locked">
-                        <div class="frame-dex-preview silhouette"><img src="${pageContext.request.contextPath}/assets/frames/frame-silver.webp" alt="은 액자"><b>?</b></div>
-                        <strong>은 액자</strong>
-                        <span>Lv.2 해금</span>
-                    </article>
-                    <article class="frame-dex-card locked">
-                        <div class="frame-dex-preview silhouette"><img src="${pageContext.request.contextPath}/assets/frames/frame-gold.webp" alt="금 액자"><b>?</b></div>
-                        <strong>금 액자</strong>
-                        <span>Lv.3 해금</span>
-                    </article>
+                    <c:forEach var="frame" items="${frames}">
+                        <c:set var="unlocked" value="${badgeCount >= frame.requiredBadgeCount}" />
+                        <c:set var="selected" value="${currentFrameId == frame.frameId}" />
+                        <article class="frame-dex-card ${unlocked ? 'owned' : 'locked'} ${selected ? 'selected' : ''}">
+                            <div class="frame-dex-preview ${unlocked ? '' : 'silhouette'}">
+                                <img src="${pageContext.request.contextPath}${frame.frameImageUrl}" alt="${frame.frameName}">
+                                <c:if test="${!unlocked}"><b>?</b></c:if>
+                            </div>
+                            <strong>${frame.frameName}</strong>
+                            <span>
+                                <c:choose>
+                                    <c:when test="${selected}">현재 사용 중</c:when>
+                                    <c:when test="${unlocked && frame.requiredBadgeCount == 0}">기본 보유</c:when>
+                                    <c:when test="${unlocked}">뱃지 ${frame.requiredBadgeCount}개 해금 완료</c:when>
+                                    <c:otherwise>뱃지 ${frame.requiredBadgeCount}개 필요</c:otherwise>
+                                </c:choose>
+                            </span>
+                        </article>
+                    </c:forEach>
                 </div>
             </div>
         </article>
