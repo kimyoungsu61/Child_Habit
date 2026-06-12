@@ -59,7 +59,7 @@ function framePath(animationName, frameIndex) {
   const padded = String(frameIndex + 1).padStart(4, "0");
   const root = activePetFrameRoot();
   const animation = activePetAnimations()[animationName] ? animationName : "idle";
-  return `${root}/${animation}/frame_${padded}.webp`;
+  return `${root}/${animation}/frame_${padded}.webp?v=${PET_FRAME_ASSET_VERSION}`;
 }
 
 // 현재 펫 이미지 한 장을 교체합니다.

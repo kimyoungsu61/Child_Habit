@@ -898,8 +898,8 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=front-ying-merge-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=front-ying-merge-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=roa-idle-cache-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=roa-idle-cache-20260612"></script>
     <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=front-ying-merge-20260612"></script>
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=front-ying-merge-20260612"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=front-ying-merge-20260612"></script>
