@@ -188,6 +188,7 @@ function renderInventoryTab() {
     panel.classList.toggle("active", panel.dataset.inventoryPanel === selectedTab);
   });
   renderRewardCounts();
+  if (typeof renderBadgeDex === "function") renderBadgeDex();
   renderFrameDex();
 }
 
@@ -300,7 +301,7 @@ function openSelectedRewardBox() {
 
   motionPromise.then(() => {
     addExp(exp);
-    petDex[0].badgeAcquired = appState.pet.level >= 5;
+    petDex[0].badgeAcquired = appState.pet.level >= (Number(appState.pet.maxLevel) || 10);
     addHistory("reward", `${meta.resultLabel} 개봉`, `EXP ${exp}를 획득했어요.`);
     renderRewardCounts();
     renderInventoryTab();
@@ -898,7 +899,10 @@ function renderParentChildList() {
 function renderMyPage() {
   if (myNickname) myNickname.textContent = appState.child.nickname;
   if (myPetSummary) myPetSummary.textContent = `${appState.pet.name} · Lv.${appState.pet.level} · ${getCurrentProfileFrame().label}`;
-  if (myExpText) myExpText.textContent = `EXP ${appState.pet.exp} / ${appState.pet.maxExp}`;
+  const maxed = appState.pet.level >= (Number(appState.pet.maxLevel) || 10);
+  if (myExpText) {
+    myExpText.textContent = `EXP ${maxed ? appState.pet.maxExp : appState.pet.exp} / ${appState.pet.maxExp}`;
+  }
   if (myMissionStatus) myMissionStatus.textContent = missionLabel(appState.missionStatus);
   if (myBadgeText) myBadgeText.textContent = petDex[0]?.badgeAcquired ? petDex[0].badgeName : "몽글 별빛 뱃지 준비 중";
   renderParentChildList();
@@ -912,7 +916,10 @@ function renderExpResult() {
   const expText = document.querySelector("#childExpResultScreen p");
   const fill = document.querySelector("#childExpResultScreen .progress-fill");
   const exp = appState.lastRewardExp || 0;
-  const percent = Math.min(100, Math.round((appState.pet.exp / appState.pet.maxExp) * 100));
+  const maxed = appState.pet.level >= (Number(appState.pet.maxLevel) || 10);
+  const percent = maxed
+    ? 100
+    : Math.min(100, Math.round((appState.pet.exp / appState.pet.maxExp) * 100));
 
   if (expTitle) expTitle.textContent = `EXP +${exp}`;
   if (expText) expText.textContent = `${appState.pet.name}가 조금 더 성장했어요. 현재 Lv.${appState.pet.level}입니다.`;

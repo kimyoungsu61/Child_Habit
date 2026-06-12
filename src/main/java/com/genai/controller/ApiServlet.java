@@ -741,6 +741,7 @@ public class ApiServlet extends HttpServlet {
         map.put("imageUrl", pet.getPetImageUrl());
         map.put("maxLevel", pet.getMaxLevel());
         map.put("badgeName", pet.getBadgeName());
+        map.put("badgeImageUrl", pet.getBadgeImageUrl());
         return map;
     }
 

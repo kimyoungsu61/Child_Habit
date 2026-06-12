@@ -209,6 +209,9 @@ function switchTab(screenId, options = {}) {
     renderCharacterOptions();
     renderCharacterPreview(pendingGeneratedCharacter || getGeneratedCharacter());
   }
+  if (screenId === "homeScreen" && typeof maybeShowMaxLevelCelebration === "function") {
+    window.setTimeout(maybeShowMaxLevelCelebration, 0);
+  }
   updateBackNavigationControls();
   requestAnimationFrame(() => {
     appRoot.scrollTop = 0;

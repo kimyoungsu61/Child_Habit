@@ -78,6 +78,70 @@
   font-weight: 900;
 }
 
+.max-level-modal {
+  z-index: 80;
+}
+
+.max-level-modal-card {
+  width: min(calc(100% - 36px), 390px);
+  padding: 28px 24px 24px;
+  overflow: hidden;
+  text-align: center;
+  border: 2px solid rgba(255, 194, 77, 0.55);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 228, 123, 0.34), transparent 38%),
+    rgba(255, 255, 255, 0.98);
+}
+
+.max-level-celebration {
+  font-size: 42px;
+  line-height: 1;
+}
+
+.max-level-modal-card h2 {
+  margin: 10px 0 12px;
+  font-size: 25px;
+}
+
+.max-level-modal-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.65;
+}
+
+.max-level-message {
+  color: var(--ink) !important;
+}
+
+.max-level-badge-preview {
+  width: 118px;
+  height: 118px;
+  display: grid;
+  place-items: center;
+  margin: 18px auto 12px;
+  border-radius: 30px;
+  background: linear-gradient(145deg, #fffdf6, #fff1c9);
+  box-shadow: 0 12px 28px rgba(149, 103, 31, 0.13);
+}
+
+.max-level-badge-preview img {
+  width: 106px;
+  height: 106px;
+  object-fit: contain;
+}
+
+.max-level-badge-title {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 17px;
+}
+
+.max-level-modal-card .btn {
+  margin-top: 20px;
+}
+
 .profile-modal-head {
   display: flex;
   align-items: center;

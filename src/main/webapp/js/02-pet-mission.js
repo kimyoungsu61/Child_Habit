@@ -194,12 +194,23 @@ function bindThemeControls() {
 // 실제 서버 연결 후에는 서버에서 계산한 level/exp를 그대로 반영하는 편이 좋습니다.
 function addExp(amount) {
   const levelBefore = appState.pet.level;
+  const maxLevel = Math.max(1, Number(appState.pet.maxLevel) || 10);
+  if (appState.pet.level >= maxLevel) {
+    appState.pet.level = maxLevel;
+    appState.pet.exp = appState.pet.maxExp;
+    renderPet();
+    return;
+  }
   appState.pet.exp += amount;
-  while (appState.pet.exp >= appState.pet.maxExp) {
+  while (appState.pet.exp >= appState.pet.maxExp && appState.pet.level < maxLevel) {
     appState.pet.exp -= appState.pet.maxExp;
     appState.pet.level += 1;
     showToast(`${appState.pet.name}가 Lv.${appState.pet.level}로 성장했어요!`);
     createParticles("🌟", 14);
+  }
+  if (appState.pet.level >= maxLevel) {
+    appState.pet.level = maxLevel;
+    appState.pet.exp = appState.pet.maxExp;
   }
   if (appState.pet.level > levelBefore) {
     window.setTimeout(function () {
@@ -216,13 +227,15 @@ function addExp(amount) {
 // 홈 화면의 펫 이름, 상태, EXP 바, 말풍선을 한 번에 다시 그립니다.
 function renderPet() {
   const pet = appState.pet;
-  const percent = Math.min(100, Math.round((pet.exp / pet.maxExp) * 100));
+  const maxed = pet.level >= (Number(pet.maxLevel) || 10);
+  const displayExp = maxed ? pet.maxExp : pet.exp;
+  const percent = maxed ? 100 : Math.min(100, Math.round((displayExp / pet.maxExp) * 100));
 
   if (levelPill) levelPill.textContent = `Lv.${pet.level}`;
   if (petMeta) petMeta.textContent = `${pet.name} · Lv.${pet.level}`;
   if (themeLabel) themeLabel.textContent = getThemeMeta(appState.theme).label;
   petSpeech.textContent = `"${stateMeta.normal.dialogue}"`;
-  expText.textContent = `EXP ${pet.exp} / ${pet.maxExp}`;
+  expText.textContent = `EXP ${displayExp} / ${pet.maxExp}`;
   expPercent.textContent = `${percent}%`;
   expFill.style.width = `${percent}%`;
   petCard.className = `card pet-room state-${pet.state}`;

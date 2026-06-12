@@ -361,7 +361,7 @@ document.querySelectorAll("[data-box]").forEach(button => {
     const exp = Math.floor(min + Math.random() * (max - min + 1));
     appState.rewardBoxCounts[boxType] -= 1;
     addExp(exp);
-    petDex[0].badgeAcquired = appState.pet.level >= 5;
+    petDex[0].badgeAcquired = appState.pet.level >= (Number(appState.pet.maxLevel) || 10);
     appState.rewardMessage = `${exp} EXP를 얻었어요. 몽글도 더 반짝여요!`;
     addHistory("reward", "보상상자 오픈", `${exp} EXP를 획득했어요.`);
     renderMission();
