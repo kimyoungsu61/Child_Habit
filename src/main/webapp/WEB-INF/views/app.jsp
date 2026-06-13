@@ -214,7 +214,6 @@
           <div class="dex-filters">
             <button class="filter-btn active" data-filter="all">전체</button>
             <button class="filter-btn" data-filter="owned">보유</button>
-            <button class="filter-btn" data-filter="badge">뱃지</button>
           </div>
           <div class="dex-list" id="petDexList"></div>
         </article>

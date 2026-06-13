@@ -403,14 +403,15 @@ function renderMission() {
 
 // 펫 도감 목록을 현재 필터 상태에 맞춰 다시 그립니다.
 function renderDex() {
+  const dexFilter = appState.dexFilter === "owned" ? "owned" : "all";
+  appState.dexFilter = dexFilter;
   const filtered = petDex.filter(pet => {
-    if (appState.dexFilter === "owned") return pet.owned;
-    if (appState.dexFilter === "badge") return pet.badgeAcquired;
+    if (dexFilter === "owned") return pet.owned;
     return true;
   });
 
   if (!filtered.length) {
-    petDexList.innerHTML = '<div class="empty-dex">아직 획득한 뱃지가 없어요.</div>';
+    petDexList.innerHTML = '<div class="empty-dex">아직 보유한 펫이 없어요.</div>';
     return;
   }
 
