@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=child-frame-loading-20260613" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=mission-capture-type-20260613" />
   </head>
 
   <body>
@@ -172,11 +172,10 @@
         <article class="card panel">
           <h2>습관 인증 미션</h2>
           <p>오늘 실천한 좋은 습관을 영상이나 사진으로 남기고 확인을 기다려요.</p>
-          <div class="verify-mode-tabs" aria-label="인증 방식 선택">
-            <button class="mode-btn active" type="button" data-verify-mode="video"><span
-                class="mode-icon">🎥</span><span>영상</span></button>
-            <button class="mode-btn" type="button" data-verify-mode="photo"><span
-                class="mode-icon">📷</span><span>사진</span></button>
+          <div class="verify-mode-tabs" aria-label="인증 방식">
+            <span class="mode-btn active" id="verifyModeIndicator">
+              <span class="mode-icon">🎥</span><span>영상</span>
+            </span>
           </div>
           <div class="camera-box" id="cameraBox">
             <span class="rec-pill"><span class="rec-dot"></span><span id="recText">REC 00:00</span></span>
@@ -507,11 +506,10 @@
             <em>보호자 확인 후 보상</em>
           </div>
 
-          <div class="verify-mode-tabs capture-tabs" aria-label="촬영 방식 선택">
-            <button class="mode-btn active" type="button" data-capture-mode="video"><span
-                class="mode-icon">🎥</span><span>영상</span></button>
-            <button class="mode-btn" type="button" data-capture-mode="photo"><span
-                class="mode-icon">📷</span><span>사진</span></button>
+          <div class="verify-mode-tabs capture-tabs" aria-label="촬영 방식">
+            <span class="mode-btn active" id="captureModeIndicator">
+              <span class="mode-icon">🎥</span><span>영상</span>
+            </span>
           </div>
 
           <div class="camera-device-row">
@@ -543,7 +541,7 @@
               <button class="btn" type="button" id="retakePhotoBtn">다시 찍기</button>
             </div>
             <div class="capture-action-row video-actions" id="videoCaptureActions">
-              <button class="btn primary" type="button" id="startMockVideoBtn">녹화 시작</button>
+              <button class="btn primary" type="button" id="startMockVideoBtn">영상 촬영</button>
             </div>
             <button class="btn mint full capture-submit" type="button" id="submitCaptureBtn" disabled>인증 제출</button>
           </div>
@@ -915,12 +913,12 @@
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/01-state.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=mission-capture-type-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=ying-roa-switch-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=mission-capture-type-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=ying-roa-switch-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=mission-capture-type-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=mission-capture-type-20260613"></script>
   </body>
 
   </html>

@@ -359,6 +359,8 @@ const photoCaptureCanvas = document.getElementById("photoCaptureCanvas");
 const photoCapturePreview = document.getElementById("photoCapturePreview");
 const childCaptureStage = document.getElementById("childCaptureStage");
 const capturePlaceholder = document.getElementById("capturePlaceholder");
+const captureModeIndicator = document.getElementById("captureModeIndicator");
+const verifyModeIndicator = document.getElementById("verifyModeIndicator");
 const cameraPermissionMessage = document.getElementById("cameraPermissionMessage");
 
 function hidePhotoCapturePreview() {

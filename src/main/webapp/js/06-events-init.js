@@ -150,7 +150,7 @@ function handleQuickTabButton(button) {
   };
   if (missionMap[targetTab]) appState.currentMissionId = missionMap[targetTab];
   if (targetTab === "childCameraScreen") {
-    appState.captureMode = "video";
+    setCaptureMode(requiredCaptureMode || appState.captureMode || "video");
   }
   if (button.dataset.submissionIndex) {
     appState.currentSubmission = appState.submissions[Number(button.dataset.submissionIndex)];
@@ -179,11 +179,6 @@ document.querySelectorAll("[data-entry-target]").forEach(button => {
   button.addEventListener("click", () => {
     showEntryPanel(button.dataset.entryTarget);
   });
-});
-
-// 촬영 방식을 영상/사진으로 전환하는 버튼입니다.
-document.querySelectorAll("[data-capture-mode]").forEach(button => {
-  button.addEventListener("click", () => setCaptureMode(button.dataset.captureMode));
 });
 
 cameraDeviceSelect?.addEventListener("change", event => {
@@ -252,14 +247,6 @@ submitCaptureBtn?.addEventListener("click", submitCapture);
 
 document.getElementById("goCertifyBtn")?.addEventListener("click", () => switchTab("certifyScreen"));
 document.getElementById("profileOpenBtn").addEventListener("click", openProfileModal);
-
-document.querySelectorAll("[data-verify-mode]").forEach(button => {
-  button.addEventListener("click", () => {
-    appState.missionMode = button.dataset.verifyMode;
-    appState.missionStatus = "none";
-    renderMission();
-  });
-});
 
 document.getElementById("generateInviteBtn").addEventListener("click", () => {
   appState.inviteCode = createInviteCode();

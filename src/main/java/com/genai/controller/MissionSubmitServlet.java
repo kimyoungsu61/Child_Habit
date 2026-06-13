@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
 import com.genai.model.ChildProfile;
+import com.genai.model.Mission;
 import com.genai.service.MissionMediaStorage;
 import com.genai.service.MissionService;
 import com.genai.session.SessionKeys;
@@ -47,7 +48,6 @@ public class MissionSubmitServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         ChildProfile child =
                 (ChildProfile) request.getSession(false).getAttribute(SessionKeys.CHILD);
-        String mediaType = request.getParameter("mediaType");
         String mediaUrl = null;
 
         try {
@@ -56,9 +56,24 @@ public class MissionSubmitServlet extends HttpServlet {
                         "사진 또는 영상은 미션 화면에서 직접 촬영해 주세요.");
             }
             Long missionId = parseLong(request.getParameter("missionId"));
+            if (missionId == null) {
+                throw new IllegalArgumentException("제출할 미션을 선택해 주세요.");
+            }
+            Mission mission = missionService.findMissionForChild(
+                    missionId, child.getChildId());
+            if (mission == null) {
+                throw new IllegalArgumentException("제출할 미션을 찾을 수 없습니다.");
+            }
+            String requestedMediaType = request.getParameter("mediaType");
+            String requiredMediaType = mission.getMediaType();
+            if (!requiredMediaType.equals(requestedMediaType)) {
+                throw new IllegalArgumentException(
+                        "미션의 인증 방식과 제출 파일 형식이 일치하지 않습니다.");
+            }
             Part mediaFile = request.getPart("mediaFile");
-            mediaUrl = mediaStorage.save(mediaFile, mediaType);
-            missionService.submit(child.getChildId(), missionId, mediaType, mediaUrl);
+            mediaUrl = mediaStorage.save(mediaFile, requiredMediaType);
+            missionService.submit(
+                    child.getChildId(), missionId, requiredMediaType, mediaUrl);
             writeJson(response, HttpServletResponse.SC_OK,
                     "{\"redirect\":\"" + request.getContextPath()
                             + "/child/mission?submitted=1\"}");

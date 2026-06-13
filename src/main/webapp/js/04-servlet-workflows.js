@@ -659,8 +659,8 @@ function updateCaptureSubmitState() {
   }
   if (startMockVideoBtn) {
     startMockVideoBtn.textContent = isVideoRecording
-      ? "녹화 종료"
-      : (videoRecordingReady ? "다시 녹화" : "녹화 시작");
+      ? "촬영 종료"
+      : (videoRecordingReady ? "다시 촬영" : "영상 촬영");
     startMockVideoBtn.classList.toggle("mint", isVideoRecording);
     startMockVideoBtn.classList.toggle("primary", !isVideoRecording);
   }
@@ -673,27 +673,34 @@ function updateCaptureSubmitState() {
 
 // 촬영 방식을 사진/영상 중 하나로 바꾸고 관련 UI를 초기화합니다.
 function setCaptureMode(mode) {
-  if (typeof requiredCaptureMode !== "undefined" && requiredCaptureMode) {
-    mode = requiredCaptureMode;
-  }
+  const missionMediaType = typeof getRequiredMissionMediaType === "function"
+    ? getRequiredMissionMediaType()
+    : "";
+  mode = missionMediaType || (
+    typeof requiredCaptureMode !== "undefined" && requiredCaptureMode
+      ? requiredCaptureMode
+      : mode);
   clearCaptureStreams();
   appState.captureMode = mode === "video" ? "video" : "photo";
+  appState.missionMode = appState.captureMode;
   captureState.mediaType = appState.captureMode;
   capturedPhotoDataUrl = "";
+  if (typeof capturedVideoBlob !== "undefined") capturedVideoBlob = null;
+  if (typeof capturedVideoObjectUrl !== "undefined" && capturedVideoObjectUrl) {
+    URL.revokeObjectURL(capturedVideoObjectUrl);
+    capturedVideoObjectUrl = "";
+  }
   videoRecordingReady = false;
   isVideoRecording = false;
   captureState.hasPhoto = false;
   captureState.hasVideo = false;
   captureState.isRecording = false;
   captureState.recorder = null;
-  document.querySelectorAll("[data-capture-mode]").forEach(button => {
-    const isRequiredMode = typeof requiredCaptureMode === "undefined"
-      || !requiredCaptureMode
-      || button.dataset.captureMode === requiredCaptureMode;
-    button.disabled = !isRequiredMode;
-    button.title = isRequiredMode ? "" : "이 미션에서 선택할 수 없는 인증 방식입니다.";
-    button.classList.toggle("active", button.dataset.captureMode === appState.captureMode);
-  });
+  if (captureModeIndicator) {
+    captureModeIndicator.innerHTML = appState.captureMode === "photo"
+      ? '<span class="mode-icon">📷</span><span>사진</span>'
+      : '<span class="mode-icon">🎥</span><span>영상</span>';
+  }
   if (photoCaptureActions) photoCaptureActions.hidden = appState.captureMode !== "photo";
   if (videoCaptureActions) videoCaptureActions.hidden = appState.captureMode !== "video";
   if (stopMockVideoBtn) stopMockVideoBtn.hidden = true;
@@ -790,6 +797,10 @@ function stopPhotoCamera() {
 }
 
 async function takePhoto() {
+  if (typeof getRequiredMissionMediaType === "function"
+      && getRequiredMissionMediaType() !== "photo") {
+    throw new Error("이 미션은 영상 인증 미션입니다.");
+  }
   appState.captureMode = "photo";
   captureState.mediaType = "photo";
   if (!photoCameraPreview || !photoCaptureCanvas || !photoCapturePreview) return;
@@ -825,6 +836,10 @@ async function takePhoto() {
 }
 
 function retakePhoto() {
+  if (typeof getRequiredMissionMediaType === "function"
+      && getRequiredMissionMediaType() !== "photo") {
+    return;
+  }
   capturedPhotoDataUrl = "";
   captureState.hasPhoto = false;
   hidePhotoCapturePreview();

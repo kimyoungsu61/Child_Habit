@@ -36,6 +36,16 @@ const shownMaxLevelCelebrations = new Set();
 const INTERACTION_COOLDOWN_MS = 30 * 60 * 1000;
 let interactionCooldownEnds = {};
 
+function getRequiredMissionMediaType() {
+  const missionId = Number(appState.currentMissionId);
+  const mission = serverChildHome?.missions?.find(
+    item => Number(item.missionId) === missionId);
+  const mediaType = mission?.mediaType
+    || requiredCaptureMode
+    || appState.currentSubmission?.mediaType;
+  return mediaType === "photo" ? "photo" : (mediaType === "video" ? "video" : "");
+}
+
 function clearChildContextStorage() {
   [window.localStorage, window.sessionStorage].forEach(storage => {
     try {
@@ -54,6 +64,7 @@ function resetChildClientContext() {
   petFrame.removeAttribute("src");
   serverChildHome = null;
   loadedServerDate = "";
+  requiredCaptureMode = "";
   interactionCooldownEnds = {};
   appState.child.childId = null;
   appState.child.inviteCode = "";
@@ -1494,6 +1505,7 @@ document.addEventListener("click", event => {
     event.preventDefault();
     event.stopImmediatePropagation();
     appState.currentMissionId = Number(missionButton.dataset.serverMission);
+    appState.currentSubmission = null;
     requiredCaptureMode = missionButton.dataset.serverMedia === "photo" ? "photo" : "video";
     appState.captureMode = requiredCaptureMode;
     switchTab("childCameraScreen");
@@ -1632,6 +1644,9 @@ function showRecordedVideo(blob) {
 }
 
 async function startVideoRecording() {
+  if (getRequiredMissionMediaType() !== "video") {
+    throw new Error("이 미션은 사진 인증 미션입니다.");
+  }
   appState.captureMode = "video";
   captureState.mediaType = "video";
   if (videoRecorder?.state === "recording") {
@@ -1755,16 +1770,26 @@ document.getElementById("viewMaxLevelBadgeBtn")?.addEventListener("click", () =>
 });
 
 interceptClick("#submitCaptureBtn", async () => {
-  const mediaType = appState.captureMode;
+  const mediaType = getRequiredMissionMediaType();
+  if (!mediaType) throw new Error("현재 미션의 인증 방식을 확인할 수 없습니다.");
+  if (appState.captureMode !== mediaType || captureState.mediaType !== mediaType) {
+    throw new Error("미션의 인증 방식과 촬영 파일 형식이 일치하지 않습니다.");
+  }
   let blob;
   let fileName;
   if (mediaType === "photo") {
     if (!capturedPhotoDataUrl) throw new Error("사진을 먼저 촬영해 주세요.");
     blob = await fetch(capturedPhotoDataUrl).then(response => response.blob());
+    if (!blob.type.startsWith("image/")) {
+      throw new Error("사진 인증에는 이미지 파일만 제출할 수 있습니다.");
+    }
     fileName = "mission-photo.png";
   } else {
     if (!capturedVideoBlob) throw new Error("영상을 먼저 녹화해 주세요.");
     blob = capturedVideoBlob;
+    if (!blob.type.startsWith("video/")) {
+      throw new Error("영상 인증에는 영상 파일만 제출할 수 있습니다.");
+    }
     fileName = blob.type.includes("mp4") ? "mission-video.mp4" : "mission-video.webm";
   }
   const data = new FormData();

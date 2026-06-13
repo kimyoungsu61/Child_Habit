@@ -377,6 +377,11 @@ function renderMission() {
   setStatusBadge(reviewBadge, appState.missionStatus);
   setStatusBadge(rewardBadge, appState.missionStatus);
   const isPhotoMode = appState.missionMode === "photo";
+  if (verifyModeIndicator) {
+    verifyModeIndicator.innerHTML = isPhotoMode
+      ? '<span class="mode-icon">📷</span><span>사진</span>'
+      : '<span class="mode-icon">🎥</span><span>영상</span>';
+  }
   if (reviewMode) reviewMode.textContent = isPhotoMode ? "사진" : "영상";
   if (rewardMessage) rewardMessage.textContent = appState.rewardMessage;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);
@@ -392,11 +397,8 @@ function renderMission() {
     ? (isPhotoMode ? "PHOTO 완료" : "REC 진행 중")
     : (isPhotoMode ? "PHOTO" : "REC 00:00");
   previewText.textContent = isPhotoMode ? "사진 미리보기" : "카메라 미리보기";
-  recordBtn.textContent = isPhotoMode ? "사진 촬영" : "녹화 시작";
+  recordBtn.textContent = isPhotoMode ? "사진 찍기" : "영상 촬영";
   cameraBox.classList.toggle("photo-mode", isPhotoMode);
-  document.querySelectorAll("[data-verify-mode]").forEach(button => {
-    button.classList.toggle("active", button.dataset.verifyMode === appState.missionMode);
-  });
   renderRewardCounts();
   renderMyPage();
 }
