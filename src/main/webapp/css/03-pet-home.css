@@ -64,7 +64,7 @@
   border: 1px solid rgba(255, 205, 102, 0.56);
   background-image:
     linear-gradient(rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.06)),
-    url("../assets/backgrounds/pet_home_bg.png?v=pet-stage-20260610-2");
+    var(--pet-home-bg, url("../assets/backgrounds/pet_home_bg.png?v=pet-home-bg-20260613"));
   background-size: cover;
   background-position: center 58%;
   background-repeat: no-repeat;

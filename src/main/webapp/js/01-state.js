@@ -9,6 +9,11 @@ const PET_FRAME_ROOTS = {
   mongle: appPath("/assets/pets/mongle"),
   roa: appPath("/assets/pets/roa")
 };
+const PET_HOME_BACKGROUND_ASSET_VERSION = "pet-home-bg-20260613";
+const PET_HOME_BACKGROUNDS = {
+  mongle: appPath(`/assets/backgrounds/pet_home_bg.png?v=${PET_HOME_BACKGROUND_ASSET_VERSION}`),
+  roa: appPath(`/assets/backgrounds/pet_home_bg_roa.png?v=${PET_HOME_BACKGROUND_ASSET_VERSION}`)
+};
 const DEFAULT_PET_ANIMATIONS = {
   idle: { frames: 121, fps: 24, loop: true },
   touch: { frames: 121, fps: 24, loop: false },
