@@ -35,8 +35,8 @@ class ChildAccountServiceTest {
     @Test
     void rejectsLockedOrUnknownFrames() {
         FakeChildAccountDAO dao = new FakeChildAccountDAO();
-        dao.addFrame(2L, "iron", 2);
-        dao.approvedSubmissionCount = 1;
+        dao.addFrame(2L, "iron", 1);
+        dao.approvedSubmissionCount = 0;
         ChildAccountService service = new ChildAccountService(dao, new InviteCodeGenerator());
 
         assertThrows(IllegalArgumentException.class,

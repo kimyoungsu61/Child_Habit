@@ -149,7 +149,7 @@ WHEN NOT MATCHED THEN
 MERGE INTO FRAME target
 USING (
     SELECT 'iron' frame_type, '은 액자' frame_name,
-           '/assets/frames/frame-silver.webp' frame_image_url, 2 required_badge_count
+           '/assets/frames/frame-silver.webp' frame_image_url, 1 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
@@ -160,7 +160,7 @@ WHEN NOT MATCHED THEN
 MERGE INTO FRAME target
 USING (
     SELECT 'gold' frame_type, '금 액자' frame_name,
-           '/assets/frames/frame-gold.webp' frame_image_url, 3 required_badge_count
+           '/assets/frames/frame-gold.webp' frame_image_url, 2 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
@@ -171,7 +171,7 @@ WHEN NOT MATCHED THEN
 MERGE INTO FRAME target
 USING (
     SELECT 'crystal' frame_type, '수정 액자' frame_name,
-           '/assets/frames/frame-tier-4.webp' frame_image_url, 4 required_badge_count
+           '/assets/frames/frame-tier-4.webp' frame_image_url, 3 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
@@ -182,7 +182,7 @@ WHEN NOT MATCHED THEN
 MERGE INTO FRAME target
 USING (
     SELECT 'legend' frame_type, '전설 액자' frame_name,
-           '/assets/frames/frame-tier-6.webp' frame_image_url, 6 required_badge_count
+           '/assets/frames/frame-tier-5.webp' frame_image_url, 4 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
@@ -193,7 +193,7 @@ WHEN NOT MATCHED THEN
 MERGE INTO FRAME target
 USING (
     SELECT 'Aurora' frame_type, '오로라 액자' frame_name,
-           '/assets/frames/frame-tier-5.webp' frame_image_url, 5 required_badge_count
+           '/assets/frames/frame-tier-6.webp' frame_image_url, 5 required_badge_count
     FROM dual
 ) source
 ON (target.frame_type = source.frame_type)
