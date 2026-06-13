@@ -1388,6 +1388,33 @@ interceptClick("#generateInviteBtn", async () => {
   showToast("새 초대코드가 생성됐어요.");
 });
 
+async function copyInviteCode() {
+  const inviteCode = String(appState.inviteCode || "").trim();
+  if (!inviteCode) {
+    showToast("복사할 초대코드가 없어요.");
+    return;
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(inviteCode);
+  } else {
+    const copyTarget = document.createElement("textarea");
+    copyTarget.value = inviteCode;
+    copyTarget.setAttribute("readonly", "");
+    copyTarget.style.position = "fixed";
+    copyTarget.style.opacity = "0";
+    document.body.appendChild(copyTarget);
+    copyTarget.select();
+    const copied = document.execCommand("copy");
+    copyTarget.remove();
+    if (!copied) throw new Error("초대코드를 복사하지 못했어요.");
+  }
+
+  showToast("초대코드를 복사했어요.");
+}
+
+interceptClick("#copyInviteCodeBtn", copyInviteCode);
+
 interceptClick("#saveMissionBtn", async () => {
   const message = document.getElementById("missionCreateMessage");
   await apiRequest("/parent/missions", {

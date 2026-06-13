@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=mission-capture-type-20260613" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=invite-code-copy-20260613" />
   </head>
 
   <body>
@@ -278,7 +278,11 @@
           <p>아이 화면에서 초대코드를 입력하면 보호자와 연결돼요.</p>
           <div class="invite-code-box">
             <span>현재 초대코드</span>
-            <strong id="inviteCodeText">ABC123</strong>
+            <div class="invite-code-value">
+              <strong id="inviteCodeText"></strong>
+              <button class="invite-copy-btn" id="copyInviteCodeBtn" type="button"
+                aria-label="초대코드 복사" disabled>복사</button>
+            </div>
           </div>
           <button class="btn primary full" id="generateInviteBtn" type="button">초대코드 생성</button>
         </article>
@@ -912,13 +916,13 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=invite-code-copy-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=mission-capture-type-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=mission-capture-type-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=invite-code-copy-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=child-frame-loading-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=mission-capture-type-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=mission-capture-type-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=invite-code-copy-20260613"></script>
   </body>
 
   </html>

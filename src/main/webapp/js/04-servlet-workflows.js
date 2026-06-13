@@ -337,6 +337,7 @@ function createInviteCode() {
 // 부모 초대 화면의 초대코드와 보호자 이름을 최신 상태로 맞춥니다.
 function renderInvite() {
   if (inviteCodeText) inviteCodeText.textContent = appState.inviteCode;
+  if (copyInviteCodeBtn) copyInviteCodeBtn.disabled = !appState.inviteCode;
   if (parentNameText) parentNameText.textContent = appState.parent.name;
 }
 

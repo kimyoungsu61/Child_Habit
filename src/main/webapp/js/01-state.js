@@ -313,6 +313,7 @@ const profilePetLevel = document.getElementById("profilePetLevel");
 const profileMissionStatus = document.getElementById("profileMissionStatus");
 const petDexList = document.getElementById("petDexList");
 const inviteCodeText = document.getElementById("inviteCodeText");
+const copyInviteCodeBtn = document.getElementById("copyInviteCodeBtn");
 const parentNameText = document.getElementById("parentNameText");
 const childInviteInput = document.getElementById("childInviteInput");
 const childNicknameInput = document.getElementById("childNicknameInput");
