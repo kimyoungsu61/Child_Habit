@@ -46,6 +46,7 @@
             <input id="parentPassword" type="password" autocomplete="current-password" />
           </label>
           <button class="btn mint full" id="parentLoginBtn">보호자 로그인</button>
+          <p class="entry-message" id="parentLoginMessage"></p>
           <button class="btn ghost full" id="showParentJoinBtn" type="button" data-entry-target="parentJoinCard">보호자
             회원가입</button>
           <button class="btn ghost full" type="button" data-entry-target="entryStartCard">처음으로</button>

@@ -1173,6 +1173,7 @@ function clearJoinForm() {
 
 async function loginChildFromInvite() {
   const inviteCode = childInviteInput.value.trim().toUpperCase();
+  setEntryMessage(inviteMessage, "");
   const data = await apiRequest("/child/login", {
     method: "POST",
     body: formData({ inviteCode, rememberMe: "on" })
@@ -1192,6 +1193,7 @@ async function loginChildFromInvite() {
 async function loginParent() {
   const email = document.getElementById("parentEmail").value.trim();
   const password = document.getElementById("parentPassword").value;
+  setEntryMessage(parentLoginMessage, "");
   await apiRequest("/parent/login", {
     method: "POST",
     body: formData({ email, password, rememberMe: "on" })
@@ -1200,7 +1202,13 @@ async function loginParent() {
   await loadParentDashboard();
 }
 
-interceptClick("#parentLoginBtn", loginParent);
+interceptClick("#parentLoginBtn", async () => {
+  try {
+    await loginParent();
+  } catch (error) {
+    setEntryMessage(parentLoginMessage, error.message);
+  }
+});
 
 ["#parentEmail", "#parentPassword"].forEach(selector => {
   document.querySelector(selector)?.addEventListener("keydown", event => {
@@ -1233,7 +1241,13 @@ interceptClick("#parentJoinBtn", async () => {
   showToast("회원가입이 완료되었습니다. 로그인해 주세요.");
 });
 
-interceptClick("#childStartBtn", loginChildFromInvite);
+interceptClick("#childStartBtn", async () => {
+  try {
+    await loginChildFromInvite();
+  } catch (error) {
+    setEntryMessage(inviteMessage, error.message);
+  }
+});
 
 childInviteInput.addEventListener("keydown", event => {
   if (event.key !== "Enter") return;

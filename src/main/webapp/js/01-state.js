@@ -322,6 +322,7 @@ const inviteMessage = document.getElementById("inviteMessage");
 const showParentJoinBtn = document.getElementById("showParentJoinBtn");
 const parentJoinCard = document.getElementById("parentJoinCard");
 const parentJoinBtn = document.getElementById("parentJoinBtn");
+const parentLoginMessage = document.getElementById("parentLoginMessage");
 const joinMessage = document.getElementById("joinMessage");
 const joinParentName = document.getElementById("joinParentName");
 const joinParentEmail = document.getElementById("joinParentEmail");
