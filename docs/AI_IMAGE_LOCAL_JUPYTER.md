@@ -42,6 +42,34 @@ You can also pass the same value as a JVM system property:
 -DAI_IMAGE_API_TOKEN=optional-token
 ```
 
+## Sharing the web app with teammates
+
+The ngrok URL above is only for the AI image generation API (`/generate`).
+It is not the URL teammates should open in a browser.
+
+To let teammates access the Tomcat web app from outside your local network,
+open a separate ngrok tunnel for the Tomcat port:
+
+```powershell
+ngrok http 8081
+```
+
+If ngrok prints:
+
+```text
+Forwarding  https://xxxx.ngrok-free.app -> http://localhost:8081
+```
+
+share this browser URL with teammates:
+
+```text
+https://xxxx.ngrok-free.app/back/app
+```
+
+Do not share a private LAN URL such as `http://192.168.x.x:8081/back/app`
+with teammates outside the same network. That address only works on the same
+Wi-Fi/LAN.
+
 ## Flask response contract
 
 The Java app sends JSON like this:
