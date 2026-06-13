@@ -79,6 +79,11 @@ const APP_THEMES = {
 const appState = {
   role: "guest",
   child: {
+    childId: null,
+    inviteCode: "",
+    frameType: "",
+    petType: "",
+    dataReady: false,
     nickname: "토리",
     profile: {
       x: 50,
@@ -281,6 +286,7 @@ const pageTitle = document.getElementById("pageTitle");
 const pageSubtitle = document.getElementById("pageSubtitle");
 const petCard = document.getElementById("petCard");
 const petFrame = document.getElementById("petFrame");
+const petLoadingState = document.getElementById("petLoadingState");
 const themeButton = document.getElementById("themeButton");
 const themeLabel = document.getElementById("themeLabel");
 const themeModal = document.getElementById("themeModal");

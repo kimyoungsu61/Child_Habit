@@ -280,7 +280,8 @@ function renderPet() {
   expText.textContent = `EXP ${displayExp} / ${pet.maxExp}`;
   expPercent.textContent = `${percent}%`;
   expFill.style.width = `${percent}%`;
-  petCard.className = `card pet-room state-${pet.state}`;
+  petCard.className = `card pet-room state-${pet.state}${appState.child.dataReady ? "" : " pet-data-loading"}`;
+  petCard.setAttribute("aria-busy", String(!appState.child.dataReady));
   petCard.dataset.petId = currentPetId;
   setPetHomeBackground(petCard, currentPetId);
   document.querySelectorAll(".pet-stage.profile-preview-frame-wrap").forEach(stage => {

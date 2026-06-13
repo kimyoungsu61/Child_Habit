@@ -346,16 +346,88 @@ function renderHomeProfileCharacter() {
   syncProfileFrames();
 }
 
+function profileFrameSourceForChild(frame = getCurrentProfileFrame()) {
+  const source = frame.profileImage || profileFrameImageForKey(frame.key) || "";
+  if (!source) return "";
+  const version = [
+    appState.child.childId || "guest",
+    frame.frameId || frame.key || "frame"
+  ].join("-");
+  const separator = source.includes("?") ? "&" : "?";
+  return `${source}${separator}v=${encodeURIComponent(version)}`;
+}
+
+function setPetHomeLoading(loading) {
+  appState.child.dataReady = !loading;
+  if (!petCard) return;
+  petCard.classList.toggle("pet-data-loading", loading);
+  petCard.setAttribute("aria-busy", String(loading));
+  if (petLoadingState) {
+    petLoadingState.toggleAttribute("aria-hidden", !loading);
+  }
+}
+
+function clearProfilePreviewFrame() {
+  const overlay = document.getElementById("profileFrameOverlay");
+  if (!overlay) return;
+  overlay.onload = null;
+  overlay.onerror = null;
+  overlay.hidden = true;
+  overlay.removeAttribute("src");
+  delete overlay.dataset.loadedSource;
+}
+
+function loadProfilePreviewFrame(frame = getCurrentProfileFrame()) {
+  const overlay = document.getElementById("profileFrameOverlay");
+  const source = profileFrameSourceForChild(frame);
+  if (!overlay || !source) return Promise.resolve(false);
+
+  overlay.hidden = true;
+  overlay.dataset.frame = frame.key || "";
+  overlay.title = frame.label || "";
+
+  return new Promise(resolve => {
+    let settled = false;
+    const timeoutId = window.setTimeout(() => finish(false), 10000);
+    const finish = loaded => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timeoutId);
+      overlay.onload = null;
+      overlay.onerror = null;
+      overlay.hidden = !loaded;
+      if (loaded) overlay.dataset.loadedSource = source;
+      resolve(loaded);
+    };
+    overlay.onload = () => finish(true);
+    overlay.onerror = () => {
+      overlay.removeAttribute("src");
+      finish(false);
+    };
+    overlay.src = source;
+    if (overlay.complete && overlay.naturalWidth > 0) finish(true);
+  });
+}
+
 function syncProfilePreviewFrame(frame = getCurrentProfileFrame()) {
   const overlay = document.getElementById("profileFrameOverlay");
   if (!overlay) return;
-  const profileImage = frame.profileImage || profileFrameImageForKey(frame.key) || "";
-  overlay.hidden = !profileImage;
+  if (!appState.child.dataReady) {
+    clearProfilePreviewFrame();
+    return;
+  }
+  const profileImage = profileFrameSourceForChild(frame);
+  if (!profileImage) {
+    clearProfilePreviewFrame();
+    return;
+  }
   overlay.dataset.frame = frame.key || "bronze";
   overlay.title = frame.label || "";
-  if (profileImage && overlay.getAttribute("src") !== profileImage) {
-    overlay.src = profileImage;
+  if (overlay.dataset.loadedSource === profileImage) {
+    overlay.hidden = false;
+    return;
   }
+  loadProfilePreviewFrame(frame);
 }
 
 // 프로필 프레임 이미지를 현재 펫 레벨 기준으로 다시 입힙니다.

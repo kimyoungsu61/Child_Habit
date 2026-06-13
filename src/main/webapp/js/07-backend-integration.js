@@ -23,9 +23,80 @@ const JOIN_DRAFT_STORAGE_KEYS = [
 ];
 const LOCAL_CHILD_PROFILES_KEY = "childProfiles";
 const MAX_LEVEL_CELEBRATION_KEY = "maxLevelCelebrationSeen";
+const CHILD_CONTEXT_STORAGE_KEYS = [
+  CURRENT_INVITE_CODE_STORAGE_KEY,
+  PROFILE_IMAGE_STORAGE_KEY,
+  PROFILE_CROP_STYLE_STORAGE_KEY,
+  "childId",
+  "childCode",
+  "frameType",
+  "petType"
+];
 const shownMaxLevelCelebrations = new Set();
 const INTERACTION_COOLDOWN_MS = 30 * 60 * 1000;
 let interactionCooldownEnds = {};
+
+function clearChildContextStorage() {
+  [window.localStorage, window.sessionStorage].forEach(storage => {
+    try {
+      CHILD_CONTEXT_STORAGE_KEYS.forEach(key => storage.removeItem(key));
+    } catch (error) {
+      // Storage may be unavailable in privacy mode; runtime state is still cleared.
+    }
+  });
+}
+
+function resetChildClientContext() {
+  clearChildContextStorage();
+  stopFrameAnimation();
+  setPetHomeLoading(true);
+  clearProfilePreviewFrame();
+  petFrame.removeAttribute("src");
+  serverChildHome = null;
+  loadedServerDate = "";
+  interactionCooldownEnds = {};
+  appState.child.childId = null;
+  appState.child.inviteCode = "";
+  appState.child.frameType = "";
+  appState.child.petType = "";
+  appState.selectedProfileFrameId = null;
+  appState.selectedProfileFrameKey = "";
+  appState.profileFrames = [];
+  appState.profileFrameBadgeCount = 0;
+  Object.keys(PROFILE_FRAMES).forEach(key => delete PROFILE_FRAMES[key]);
+  appState.pet.id = DEFAULT_PET_ID;
+  appState.pet.petId = null;
+  appState.pet.childPetId = null;
+  appState.pet.level = 1;
+  appState.pet.exp = 0;
+  appState.pet.maxExp = 300;
+  appState.pet.state = "normal";
+  appState.pet.activeAction = null;
+  petDex.forEach(pet => {
+    pet.active = pet.id === DEFAULT_PET_ID;
+    pet.owned = pet.id === DEFAULT_PET_ID;
+    pet.level = 1;
+    pet.badgeAcquired = false;
+  });
+}
+
+function waitForImageElement(image) {
+  if (!image?.getAttribute("src")) return Promise.resolve(false);
+  if (image.complete && image.naturalWidth > 0) return Promise.resolve(true);
+  return new Promise(resolve => {
+    const timeoutId = window.setTimeout(() => finish(false), 10000);
+    const finish = loaded => {
+      window.clearTimeout(timeoutId);
+      image.removeEventListener("load", onLoad);
+      image.removeEventListener("error", onError);
+      resolve(loaded);
+    };
+    const onLoad = () => finish(true);
+    const onError = () => finish(false);
+    image.addEventListener("load", onLoad, { once: true });
+    image.addEventListener("error", onError, { once: true });
+  });
+}
 
 async function apiRequest(path, options = {}) {
   const response = await fetch(`${API_ROOT}${path}`, {
@@ -1035,10 +1106,15 @@ renderParentSubmissionDetail = function renderServerParentSubmissionDetail() {
 };
 
 async function loadChildHome(options = {}) {
+  const initialLoad = options.initial === true || !appState.child.dataReady;
+  if (initialLoad) setPetHomeLoading(true);
   serverChildHome = await apiRequest("/child/home");
   rememberKnownNotifications("child", serverChildHome.notifications, options.showHeadsUp);
   loadedServerDate = serverChildHome.serverDate || "";
   const child = serverChildHome.child;
+  appState.child.childId = child.childId;
+  appState.child.inviteCode = child.inviteCode || "";
+  appState.child.frameType = child.frameType || "";
   appState.child.nickname = child.nickname;
   appState.selectedProfileFrameId = child.frameId ?? appState.selectedProfileFrameId;
   appState.selectedProfileFrameKey = frameKeyForServerType(child.frameType, child.frameId);
@@ -1059,6 +1135,7 @@ async function loadChildHome(options = {}) {
   }
   if (serverChildHome.activePet) {
     applyActivePetState(serverChildHome.activePet);
+    appState.child.petType = activePetId();
   }
   applyInteractionCooldowns(serverChildHome.interactionCooldowns);
   applyOwnedPetStates(serverChildHome.ownedPets);
@@ -1068,6 +1145,10 @@ async function loadChildHome(options = {}) {
     item => item.submissionId === currentSubmissionId) || appState.submissions[0] || null;
   renderChildMissionData();
   renderInventoryData();
+  if (initialLoad) {
+    stopFrameAnimation();
+    setPetFrame("idle", 0);
+  }
   renderPet();
   renderDex();
   renderHomeProfileCharacter();
@@ -1075,6 +1156,15 @@ async function loadChildHome(options = {}) {
   updateAppBadges();
   renderBadgeDex();
   maybeShowMaxLevelCelebration();
+  if (initialLoad) {
+    await Promise.all([
+      loadProfilePreviewFrame(getCurrentProfileFrame()),
+      waitForImageElement(petFrame)
+    ]);
+    setPetHomeLoading(false);
+    renderPet();
+    playFrameSequence("idle", { loop: true });
+  }
 }
 
 function renderChildMissionData() {
@@ -1140,10 +1230,13 @@ async function restoreSession() {
     enterParent();
     await loadParentDashboard();
   } else if (session.role === "child") {
+    resetChildClientContext();
+    appState.child.childId = session.child?.childId || null;
+    appState.child.inviteCode = session.child?.inviteCode || "";
     if (session.child?.inviteCode) setCurrentInviteCode(session.child.inviteCode);
     if (session.setupComplete) {
       enterChild("homeScreen");
-      await loadChildHome();
+      await loadChildHome({ initial: true });
     } else {
       resetCharacterCreateState();
       enterChild("childCharacterCreateScreen");
@@ -1178,11 +1271,15 @@ async function loginChildFromInvite() {
     method: "POST",
     body: formData({ inviteCode, rememberMe: "on" })
   });
+  resetChildClientContext();
+  appState.child.childId = data.child.childId;
+  appState.child.inviteCode = data.child.inviteCode || "";
+  appState.child.frameType = data.child.frameType || "";
   setCurrentInviteCode(data.child.inviteCode);
   appState.child.nickname = data.child.nickname;
   if (data.setupComplete) {
     enterChild("homeScreen");
-    await loadChildHome();
+    await loadChildHome({ initial: true });
   } else {
     resetCharacterCreateState();
     childNicknameInput.value = "";
@@ -1198,6 +1295,7 @@ async function loginParent() {
     method: "POST",
     body: formData({ email, password, rememberMe: "on" })
   });
+  resetChildClientContext();
   enterParent();
   await loadParentDashboard();
 }
@@ -1258,6 +1356,7 @@ childInviteInput.addEventListener("keydown", event => {
 
 interceptClick("#backToEntryBtn", async () => {
   await apiRequest("/logout", { method: "POST" });
+  resetChildClientContext();
   window.__serverDashboardLoaded = false;
   serverDashboard = null;
   serverChildHome = null;
@@ -1983,7 +2082,7 @@ interceptClick(completeChildProfileBtn, async () => {
     profileImage: getCharacterProfileImageSource(refreshedCharacter),
     generatedCharacter: refreshedCharacter
   });
-  await loadChildHome();
+  await loadChildHome({ initial: true });
   enterChild("homeScreen");
   showToast("아이 프로필이 등록되었습니다.");
 });

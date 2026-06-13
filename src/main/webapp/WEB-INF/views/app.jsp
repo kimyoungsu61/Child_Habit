@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=pet-home-bg-20260613" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=child-frame-loading-20260613" />
   </head>
 
   <body>
@@ -108,8 +108,13 @@
       </section>
 
       <section class="screen active" id="homeScreen" data-title="오늘도 몽글과 함께해요" data-subtitle="좋은 습관을 만들면 함께 성장해요">
-        <article class="card pet-room state-normal" id="petCard">
+        <article class="card pet-room state-normal pet-data-loading" id="petCard"
+          aria-busy="true">
           <div class="effect-layer" id="effectLayer"></div>
+          <div class="pet-loading-state" id="petLoadingState" role="status" aria-live="polite">
+            <span class="pet-loading-spinner" aria-hidden="true"></span>
+            <span>아이의 펫 정보를 불러오는 중입니다.</span>
+          </div>
           <div class="pet-summary">
             <div>
               <h2>오늘의 대표 펫</h2>
@@ -129,9 +134,8 @@
               <img class="pet-frame" id="petFrame"
                 src="${pageContext.request.contextPath}/assets/pets/mongle/idle/frame_0001.webp" alt="몽글" />
             </div>
-            <img class="profile-frame-overlay" id="profileFrameOverlay"
-              src="${pageContext.request.contextPath}/assets/images/profile-frames/profile_frame_bronze.png" alt=""
-              aria-hidden="true" />
+            <img class="profile-frame-overlay" id="profileFrameOverlay" alt=""
+              aria-hidden="true" hidden />
           </div>
 
           <div class="exp-row">
@@ -911,13 +915,13 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=ying-roa-switch-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=ying-roa-switch-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=ying-roa-switch-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=child-frame-loading-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=ying-roa-switch-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=ying-roa-switch-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=child-frame-loading-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=ying-roa-switch-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=ying-roa-switch-20260612"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=child-frame-loading-20260613"></script>
   </body>
 
   </html>
