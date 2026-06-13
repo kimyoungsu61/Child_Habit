@@ -4,7 +4,7 @@
 // appState 초기값을 채우거나, 화면별 fetch 결과로 교체하면 됩니다.
 
 const DEFAULT_PET_ID = "mongle";
-const PET_FRAME_ASSET_VERSION = "roa-touch-20260612-3";
+const PET_FRAME_ASSET_VERSION = "roa-praise-play-magic-fixed-20260613-6";
 const PET_FRAME_ROOTS = {
   mongle: appPath("/assets/pets/mongle"),
   roa: appPath("/assets/pets/roa")
@@ -25,7 +25,10 @@ const PET_ANIMATION_SETS = {
   mongle: DEFAULT_PET_ANIMATIONS,
   roa: {
     idle: { frames: 121, fps: 24, loop: true },
-    touch: { frames: 121, fps: 24, loop: false }
+    touch: { frames: 121, fps: 24, loop: false },
+    praise: { frames: 121, fps: 24, loop: false },
+    play: { frames: 121, fps: 24, loop: false },
+    magic: { frames: 121, fps: 24, loop: false }
   }
 };
 const DEFAULT_PROFILE_IMAGE = appPath("/assets/images/profile.webp");
