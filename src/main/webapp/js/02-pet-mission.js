@@ -48,6 +48,15 @@ function activePetAnimations() {
   return PET_ANIMATION_SETS[activePetId()] || DEFAULT_PET_ANIMATIONS;
 }
 
+function activePetHomeBackground(petId = activePetId()) {
+  return PET_HOME_BACKGROUNDS[petId] || PET_HOME_BACKGROUNDS[DEFAULT_PET_ID];
+}
+
+function setPetHomeBackground(element, petId = activePetId()) {
+  if (!element) return;
+  element.style.setProperty("--pet-home-bg", `url("${activePetHomeBackground(petId)}")`);
+}
+
 function getAnimation(name) {
   const animations = activePetAnimations();
   return animations[name] || animations.idle || DEFAULT_PET_ANIMATIONS.idle;
@@ -273,8 +282,10 @@ function renderPet() {
   expFill.style.width = `${percent}%`;
   petCard.className = `card pet-room state-${pet.state}`;
   petCard.dataset.petId = currentPetId;
+  setPetHomeBackground(petCard, currentPetId);
   document.querySelectorAll(".pet-stage.profile-preview-frame-wrap").forEach(stage => {
     stage.dataset.petId = currentPetId;
+    setPetHomeBackground(stage, currentPetId);
   });
   if (profilePetLevel) profilePetLevel.textContent = `Lv.${pet.level}`;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);

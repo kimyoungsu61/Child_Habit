@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=front-ying-merge-20260612" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=pet-home-bg-20260613" />
   </head>
 
   <body>

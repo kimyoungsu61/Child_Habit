@@ -27,7 +27,11 @@
         <c:if test="${param.setup == '1'}">
             <p class="speech">프로필 설정이 완료되었습니다.</p>
         </c:if>
-        <article class="card pet-room state-normal">
+        <c:set var="petHomeBg" value="${pageContext.request.contextPath}/assets/backgrounds/pet_home_bg.png?v=pet-home-bg-20260613" />
+        <c:if test="${activePet.petId == 2}">
+            <c:set var="petHomeBg" value="${pageContext.request.contextPath}/assets/backgrounds/pet_home_bg_roa.png?v=pet-home-bg-20260613" />
+        </c:if>
+        <article class="card pet-room state-normal" style="--pet-home-bg: url('${petHomeBg}')">
             <div class="pet-summary">
                 <div>
                     <h2><c:out value="${activePet.pet.displayName}"/></h2>
