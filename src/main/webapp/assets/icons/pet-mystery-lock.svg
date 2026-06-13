@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" fill="none">
+  <defs>
+    <radialGradient id="badgeGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(31 22) rotate(54) scale(72)">
+      <stop stop-color="#FFFFFF"/>
+      <stop offset="0.58" stop-color="#FFF9E8"/>
+      <stop offset="1" stop-color="#E8F8F1"/>
+    </radialGradient>
+    <linearGradient id="lockBody" x1="28" y1="43" x2="68" y2="79" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD979"/>
+      <stop offset="1" stop-color="#F4A85B"/>
+    </linearGradient>
+    <linearGradient id="lockShackle" x1="33" y1="18" x2="63" y2="49" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8C8070"/>
+      <stop offset="1" stop-color="#5F564D"/>
+    </linearGradient>
+    <filter id="softShadow" x="7" y="8" width="82" height="84" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#4A3E32" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+  <circle cx="48" cy="48" r="42" fill="url(#badgeGlow)" fill-opacity="0.92"/>
+  <circle cx="48" cy="48" r="41" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2"/>
+  <g filter="url(#softShadow)">
+    <path d="M34 45V35.5C34 27.5 40.2 21 48 21C55.8 21 62 27.5 62 35.5V45H55.5V35.5C55.5 31.1 52.2 27.6 48 27.6C43.8 27.6 40.5 31.1 40.5 35.5V45H34Z" fill="url(#lockShackle)"/>
+    <rect x="26" y="42" width="44" height="34" rx="12" fill="url(#lockBody)"/>
+    <rect x="30" y="46" width="36" height="26" rx="9" fill="#FFE6A6" fill-opacity="0.26"/>
+    <path d="M48 53.5C45.8 53.5 44 55.2 44 57.4C44 58.8 44.8 60.1 46 60.8L45.3 66H50.7L50 60.8C51.2 60.1 52 58.8 52 57.4C52 55.2 50.2 53.5 48 53.5Z" fill="#6A5A48" fill-opacity="0.78"/>
+  </g>
+  <path d="M25 21L27 26L32 28L27 30L25 35L23 30L18 28L23 26L25 21Z" fill="#FFE493"/>
+  <path d="M73 26L74.5 29.5L78 31L74.5 32.5L73 36L71.5 32.5L68 31L71.5 29.5L73 26Z" fill="#9BE5D6"/>
+  <path d="M72 66L74 70L78 72L74 74L72 78L70 74L66 72L70 70L72 66Z" fill="#FFFFFF" fill-opacity="0.95"/>
+</svg>

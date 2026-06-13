@@ -326,28 +326,48 @@
   background: rgba(255, 255, 255, 0.78);
 }
 
-.dex-card.locked .dex-image {
-  filter: grayscale(1) brightness(0) opacity(0.34);
-  transform: scale(0.96);
-}
-
 .dex-card.locked .dex-thumb {
   position: relative;
   background:
-    radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.68), transparent 34%),
-    linear-gradient(180deg, #edf3ef, #f7f0df);
+    radial-gradient(circle at 50% 34%, rgba(255, 255, 255, 0.88), transparent 42%),
+    linear-gradient(180deg, #eef6f2, #f8f0df);
+}
+
+.dex-card.locked .dex-image {
+  position: relative;
+  z-index: 1;
+  filter: blur(3.5px) saturate(0.72) opacity(0.58);
+  transform: scale(0.98);
 }
 
 .dex-card.locked .dex-thumb::after {
   content: "";
   position: absolute;
-  inset: 16px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(50, 45, 40, 0.1), rgba(50, 45, 40, 0));
+  inset: 0;
+  z-index: 2;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.34) 36%, rgba(255, 255, 255, 0.12) 68%),
+    linear-gradient(180deg, rgba(245, 248, 242, 0.28), rgba(255, 246, 226, 0.38));
+  backdrop-filter: blur(1.2px);
   pointer-events: none;
 }
 
+.dex-lock-mark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 3;
+  width: 54px;
+  height: 54px;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(58, 50, 40, 0.18));
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
 .dex-thumb {
+  position: relative;
   min-height: 122px;
   border-radius: 20px;
   background:

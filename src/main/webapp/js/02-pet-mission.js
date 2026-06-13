@@ -411,7 +411,10 @@ function renderDex() {
 
     return `
       <article class="dex-card ${owned ? "owned" : "locked"}">
-        <div class="dex-thumb"><img class="dex-image" src="${imageSrc}" alt="${pet.name}" /></div>
+        <div class="dex-thumb">
+          <img class="dex-image" src="${imageSrc}" alt="${owned ? pet.name : "미보유 펫 실루엣"}" />
+          ${owned ? "" : `<img class="dex-lock-mark" src="${appPath("/assets/icons/pet-mystery-lock.svg")}" alt="" aria-hidden="true" />`}
+        </div>
         <div class="dex-copy">
           <h3>${pet.name} <small>${pet.type}</small></h3>
           <p>${pet.description}</p>
