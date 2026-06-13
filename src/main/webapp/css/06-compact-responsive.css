@@ -74,7 +74,7 @@
   }
 
   .pet-stage.profile-preview-frame-wrap[data-pet-id="roa"] {
-    --pet-wrap-y: -8px;
+    --pet-wrap-y: 10px;
     --pet-scale: 0.82;
   }
 

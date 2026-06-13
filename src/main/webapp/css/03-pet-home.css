@@ -91,7 +91,7 @@
 }
 
 .profile-preview-frame-wrap[data-pet-id="roa"] {
-  --pet-wrap-y: clamp(-10px, -2.2vw, -6px);
+  --pet-wrap-y: clamp(10px, 3vw, 18px);
   --pet-scale: 0.84;
 }
 
