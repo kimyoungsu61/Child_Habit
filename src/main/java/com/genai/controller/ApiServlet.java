@@ -850,6 +850,8 @@ public class ApiServlet extends HttpServlet {
             result.add(Map.of("childId", item.getChildId(),
                     "childNickname", item.getChildNickname(),
                     "assignedCount", item.getAssignedCount(),
+                    "dailyLimit", item.getDailyLimit(),
+                    "assignmentRemainingCount", item.getAssignmentRemainingCount(),
                     "pendingCount", item.getPendingCount(),
                     "approvedCount", item.getApprovedCount(),
                     "rejectedCount", item.getRejectedCount()));

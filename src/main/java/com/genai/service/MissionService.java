@@ -39,7 +39,7 @@ public class MissionService {
     public void createMission(Long parentId, Long childId, String title,
             String description, String grade, String mediaType) {
         validateMission(parentId, childId, title, grade, mediaType);
-        if (missionDAO.countActiveMissionsByChild(childId)
+        if (missionDAO.countTodayAssignedMissionsByChild(childId)
                 >= MAX_ACTIVE_MISSIONS_PER_CHILD) {
             throw new IllegalArgumentException("아이에게 등록할 수 있는 미션은 최대 5개입니다.");
         }

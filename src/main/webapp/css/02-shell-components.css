@@ -99,6 +99,11 @@ body.parent-mode .profile-open {
   color: transparent;
 }
 
+.profile-avatar.profile-photo.profile-avatar-empty {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(166, 126, 76, 0.22);
+}
+
 .profile-avatar-crop {
   position: absolute;
   left: var(--avatar-left, 0);

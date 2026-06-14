@@ -88,6 +88,16 @@
           AND mission_title != 'default_media_mission'
     </select>
 
+    <select id="countTodayAssignedMissionsByChild" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION
+        WHERE child_id = #{childId}
+          AND is_active = 'Y'
+          AND mission_title != 'default_media_mission'
+          AND created_at >= CAST(TRUNC(SYSDATE) AS TIMESTAMP)
+          AND created_at &lt; CAST(TRUNC(SYSDATE) + 1 AS TIMESTAMP)
+    </select>
+
     <update id="updateMission" parameterType="com.genai.model.Mission">
         UPDATE MISSION
         SET mission_title = #{missionTitle},
@@ -605,7 +615,10 @@
                   FROM MISSION m
                  WHERE m.child_id = c.child_id
                    AND m.parent_id = c.parent_id
-                   AND m.is_active = 'Y') assigned_count,
+                   AND m.is_active = 'Y'
+                   AND m.mission_title != 'default_media_mission'
+                   AND m.created_at >= CAST(TRUNC(SYSDATE) AS TIMESTAMP)
+                   AND m.created_at &lt; CAST(TRUNC(SYSDATE) + 1 AS TIMESTAMP)) assigned_count,
                (SELECT COUNT(*)
                   FROM MISSION_SUBMISSION ms
                  WHERE ms.child_id = c.child_id

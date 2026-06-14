@@ -35,14 +35,37 @@ class MissionServiceTest {
     }
 
     @Test
-    void rejectsMissionWhenChildAlreadyHasFiveActiveMissions() {
+    void rejectsMissionWhenChildAlreadyHasFiveTodayAssignedMissions() {
         FakeMissionDAO dao = new FakeMissionDAO();
-        dao.activeMissionCount = 5;
+        dao.todayAssignedMissionCount = 5;
         MissionService service = service(dao);
 
         assertThrows(IllegalArgumentException.class,
                 () -> service.createMission(10L, 20L, "Clean room", "", "low", "video"));
         assertEquals(0, dao.createMissionCalls);
+    }
+
+    @Test
+    void createsMissionWhenOnlyPastAssignmentsFillOldActiveCapacity() {
+        FakeMissionDAO dao = new FakeMissionDAO();
+        dao.activeMissionCount = 5;
+        dao.todayAssignedMissionCount = 0;
+        MissionService service = service(dao);
+
+        service.createMission(10L, 20L, "Clean room", "", "low", "video");
+
+        assertEquals(1, dao.createMissionCalls);
+    }
+
+    @Test
+    void createsMissionWhenTodayAssignedMissionsAreBelowLimit() {
+        FakeMissionDAO dao = new FakeMissionDAO();
+        dao.todayAssignedMissionCount = 4;
+        MissionService service = service(dao);
+
+        service.createMission(10L, 20L, "Clean room", "", "low", "video");
+
+        assertEquals(1, dao.createMissionCalls);
     }
 
     @Test
@@ -174,6 +197,7 @@ class MissionServiceTest {
 
     private static final class FakeMissionDAO extends MissionDAO {
         private int activeMissionCount;
+        private int todayAssignedMissionCount;
         private int openSubmissionCount;
         private int createMissionCalls;
         private int createSubmissionCalls;
@@ -193,6 +217,11 @@ class MissionServiceTest {
         @Override
         public int countActiveMissionsByChild(Long childId) {
             return activeMissionCount;
+        }
+
+        @Override
+        public int countTodayAssignedMissionsByChild(Long childId) {
+            return todayAssignedMissionCount;
         }
 
         @Override

@@ -13,7 +13,7 @@ function configureNavForRole(role) {
       ["parentScreen", "홈"],
       ["parentMissionsScreen", "미션"],
       ["parentChildScreen", "heart"],
-      ["parentSubmissionsScreen", "보상함"],
+      ["parentSubmissionsScreen", "인증"],
       ["parentNotificationsScreen", "알림"]
     ]
     : [
@@ -35,9 +35,10 @@ function configureNavForRole(role) {
     button.classList.toggle("has-count-badge",
       item[0] === "parentNotificationsScreen" || item[0] === "childNotificationsScreen");
     if (item[1] === "heart") {
+      const heartLabel = role === "parent" ? "아이 관리" : "펫";
       button.innerHTML = '<span class="pet-nav-heart" aria-hidden="true">♥</span>';
-      button.setAttribute("aria-label", "펫");
-      button.title = "펫";
+      button.setAttribute("aria-label", heartLabel);
+      button.title = heartLabel;
     } else {
       button.innerHTML = labelWithBadge(item[1]);
       button.removeAttribute("aria-label");

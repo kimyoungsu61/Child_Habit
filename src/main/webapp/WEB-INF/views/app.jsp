@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=invite-code-copy-20260613" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=guest-nav-hide-20260614" />
   </head>
 
   <body>
@@ -918,11 +918,11 @@
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
     <script src="${pageContext.request.contextPath}/js/01-state.js?v=invite-code-copy-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=mission-capture-type-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=empty-profile-avatar-20260614"></script>
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=invite-code-copy-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=parent-nav-label-20260614"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=mission-capture-type-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=invite-code-copy-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=daily-mission-assignment-20260614"></script>
   </body>
 
   </html>

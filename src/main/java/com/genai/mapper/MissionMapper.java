@@ -23,6 +23,8 @@ public interface MissionMapper {
 
     int countActiveMissionsByChild(Long childId);
 
+    int countTodayAssignedMissionsByChild(Long childId);
+
     int updateMission(Mission mission);
 
     int deactivateMission(@Param("missionId") Long missionId,

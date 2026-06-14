@@ -28,6 +28,12 @@ public class MissionDAO {
         }
     }
 
+    public int countTodayAssignedMissionsByChild(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(MissionMapper.class).countTodayAssignedMissionsByChild(childId);
+        }
+    }
+
     public boolean updateMission(Mission mission) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
             int updated = session.getMapper(MissionMapper.class).updateMission(mission);

@@ -120,6 +120,12 @@ function getProfileEditImageSource() {
     || DEFAULT_PROFILE_IMAGE;
 }
 
+function shouldRenderEmptyProfileAvatar() {
+  return appState.role === "child"
+    && typeof getActiveScreenId === "function"
+    && getActiveScreenId() === "childCharacterCreateScreen";
+}
+
 function getCharacterOptionLabels(options) {
   const labels = {
     expression: { smile: "웃음", focus: "집중", curious: "호기심" },
@@ -339,6 +345,10 @@ function renderCharacterPreview(characterData) {
 
 // 홈/상단/마이페이지에 보이는 프로필 이미지를 현재 캐릭터 기준으로 동기화합니다.
 function renderHomeProfileCharacter() {
+  if (shouldRenderEmptyProfileAvatar()) {
+    clearProfileAvatars();
+    return;
+  }
   const source = getHomeProfileImageSource();
   document.querySelectorAll(".profile-avatar.profile-photo").forEach(avatar => {
     setDefaultProfileAvatar(avatar, source);
@@ -432,9 +442,14 @@ function syncProfilePreviewFrame(frame = getCurrentProfileFrame()) {
 
 // 프로필 프레임 이미지를 현재 펫 레벨 기준으로 다시 입힙니다.
 function syncProfileFrames() {
+  if (shouldRenderEmptyProfileAvatar()) {
+    clearProfileAvatars();
+    return;
+  }
   const frame = getCurrentProfileFrame();
   document.querySelectorAll(".profile-avatar.profile-photo").forEach(avatar => {
     avatar.classList.add("profile-frame-wrap");
+    avatar.classList.remove("profile-avatar-empty");
     avatar.dataset.frame = frame.key;
     avatar.setAttribute("title", frame.label);
 
@@ -447,6 +462,7 @@ function syncProfileFrames() {
       avatar.appendChild(frameImage);
     }
     frameImage.classList.add("profile-frame-img");
+    frameImage.hidden = false;
     frameImage.src = frame.image;
   });
   syncProfilePreviewFrame(frame);
@@ -519,6 +535,33 @@ function resetStoredProfileImage() {
   }
 }
 
+function clearProfileAvatar(avatar) {
+  if (!avatar) return;
+  avatar.classList.add("profile-frame-wrap", "profile-avatar-empty");
+  avatar.style.backgroundImage = "none";
+  avatar.removeAttribute("title");
+  delete avatar.dataset.frame;
+
+  const avatarImage = avatar.querySelector(".profile-avatar-crop");
+  if (avatarImage) {
+    avatarImage.hidden = true;
+    avatarImage.onerror = null;
+    avatarImage.removeAttribute("src");
+    clearAvatarCropStyles(avatarImage);
+  }
+
+  const frameImage = avatar.querySelector(".profile-avatar-frame");
+  if (frameImage) {
+    frameImage.hidden = true;
+    frameImage.removeAttribute("src");
+  }
+}
+
+function clearProfileAvatars() {
+  document.querySelectorAll(".profile-avatar.profile-photo").forEach(clearProfileAvatar);
+  clearProfilePreviewFrame();
+}
+
 function getAvatarImage(avatar) {
   avatar.classList.add("profile-frame-wrap");
   let cropInner = avatar.querySelector(".profile-avatar-inner");
@@ -555,14 +598,21 @@ function clearAvatarCropStyles(avatarImage) {
 }
 
 function setDefaultProfileAvatar(avatar, source = DEFAULT_PROFILE_IMAGE) {
+  if (!source) {
+    clearProfileAvatar(avatar);
+    return;
+  }
   const avatarImage = getAvatarImage(avatar);
+  avatar.classList.remove("profile-avatar-empty");
   avatar.style.backgroundImage = "none";
   clearAvatarCropStyles(avatarImage);
+  avatarImage.hidden = false;
   avatarImage.src = source || DEFAULT_PROFILE_IMAGE;
   avatarImage.onerror = () => {
     resetStoredProfileImage();
     avatarImage.onerror = null;
     clearAvatarCropStyles(avatarImage);
+    avatarImage.hidden = false;
     avatarImage.src = source || DEFAULT_PROFILE_IMAGE;
   };
 }
@@ -602,6 +652,10 @@ function getSavedProfileCropStyle() {
 }
 
 function applySavedProfileCropStyle() {
+  if (shouldRenderEmptyProfileAvatar()) {
+    clearProfileAvatars();
+    return false;
+  }
   const cropStyle = getSavedProfileCropStyle();
   if (!cropStyle) return false;
 
@@ -627,7 +681,9 @@ function applySavedProfileCropStyle() {
     }
 
     avatar.style.backgroundImage = "none";
+    avatar.classList.remove("profile-avatar-empty");
     avatarImage.src = cropStyle.source;
+    avatarImage.hidden = false;
     avatarImage.onerror = () => setDefaultProfileAvatar(avatar, getHomeProfileImageSource());
     avatarImage.style.objectFit = "fill";
     avatarImage.style.setProperty("--avatar-width", `${avatarWidthValue}px`);

@@ -1041,16 +1041,19 @@ function renderParentDashboardData() {
 
   const childSelect = document.getElementById("newMissionChild");
   if (childSelect) {
-    const missionCounts = serverDashboard.missions.reduce((counts, mission) => {
-      counts[mission.childId] = (counts[mission.childId] || 0) + 1;
-      return counts;
+    const progressByChild = (serverDashboard.progress || []).reduce((items, progress) => {
+      items[progress.childId] = progress;
+      return items;
     }, {});
     const availableChildren = connectedChildren.filter(
-      child => (missionCounts[child.childId] || 0) < 5);
+      child => Number(progressByChild[child.childId]?.assignmentRemainingCount ?? 5) > 0);
     childSelect.innerHTML = connectedChildren.length
       ? connectedChildren.map(child => {
-        const count = missionCounts[child.childId] || 0;
-        return `<option value="${child.childId}" ${count >= 5 ? "disabled" : ""}>${escapeHtml(child.nickname)} (${count}/5)${count >= 5 ? " · 등록 완료" : ""}</option>`;
+        const progress = progressByChild[child.childId] || {};
+        const limit = Number(progress.dailyLimit) || 5;
+        const count = Number(progress.assignedCount) || 0;
+        const remaining = Number(progress.assignmentRemainingCount ?? Math.max(0, limit - count));
+        return `<option value="${child.childId}" ${remaining <= 0 ? "disabled" : ""}>${escapeHtml(child.nickname)} (${count}/${limit})${remaining <= 0 ? " · 등록 완료" : ""}</option>`;
       }).join("")
       : '<option value="">프로필 등록을 완료한 아이가 없습니다</option>';
     childSelect.value = availableChildren[0]?.childId || "";
@@ -1062,14 +1065,19 @@ function renderParentDashboardData() {
     "#parentChildProgressScreen .progress-list");
   if (progressList) {
     progressList.innerHTML = serverDashboard.progress.length
-      ? serverDashboard.progress.map(item => `
+      ? serverDashboard.progress.map(item => {
+        const limit = Number(item.dailyLimit) || 5;
+        const assigned = Number(item.assignedCount) || 0;
+        const remaining = Number(item.assignmentRemainingCount ?? Math.max(0, limit - assigned));
+        return `
         <div>
           <strong>${item.childNickname}</strong>
           <span class="status-badge ${item.pendingCount ? "waiting" : "approved"}">
-            완료 ${item.approvedCount} · 대기 ${item.pendingCount} · 남음 ${Math.max(0, item.assignedCount - item.approvedCount)}
+            완료 ${item.approvedCount} · 대기 ${item.pendingCount} · 배정 ${assigned}/${limit} · 추가 가능 ${remaining}
           </span>
         </div>
-      `).join("")
+      `;
+      }).join("")
       : '<div class="empty-dex">진행 정보가 없습니다.</div>';
   }
 
