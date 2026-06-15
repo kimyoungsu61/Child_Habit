@@ -272,6 +272,8 @@ public class ApiServlet extends HttpServlet {
                 missionService.findPendingForParent(parent.getParentId())));
         data.put("todaySubmissions", submissionMaps(
                 missionService.findTodayForParent(parent.getParentId())));
+        data.put("availableRewards", submissionMaps(
+                missionService.findAvailableRewardsForParent(parent.getParentId())));
         data.put("progress", progressMaps(
                 missionService.findTodayProgressForParent(parent.getParentId())));
         data.put("notifications", notificationMaps(
@@ -850,6 +852,8 @@ public class ApiServlet extends HttpServlet {
             result.add(Map.of("childId", item.getChildId(),
                     "childNickname", item.getChildNickname(),
                     "assignedCount", item.getAssignedCount(),
+                    "dailyLimit", item.getDailyLimit(),
+                    "assignmentRemainingCount", item.getAssignmentRemainingCount(),
                     "pendingCount", item.getPendingCount(),
                     "approvedCount", item.getApprovedCount(),
                     "rejectedCount", item.getRejectedCount()));

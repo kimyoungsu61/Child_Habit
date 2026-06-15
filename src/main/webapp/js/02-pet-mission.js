@@ -290,8 +290,10 @@ function renderPet() {
   });
   if (profilePetLevel) profilePetLevel.textContent = `Lv.${pet.level}`;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);
-  if (parentMissionSummary) parentMissionSummary.textContent = missionLabel(appState.missionStatus);
-  if (parentBoxSummary) {
+  if (parentMissionSummary && !window.__serverDashboardLoaded) {
+    parentMissionSummary.textContent = missionLabel(appState.missionStatus);
+  }
+  if (parentBoxSummary && !window.__serverDashboardLoaded) {
     const totalBoxes = Object.values(appState.rewardBoxCounts).reduce((sum, count) => sum + count, 0);
     parentBoxSummary.textContent = `${totalBoxes}개`;
   }
@@ -385,8 +387,10 @@ function renderMission() {
   if (reviewMode) reviewMode.textContent = isPhotoMode ? "사진" : "영상";
   if (rewardMessage) rewardMessage.textContent = appState.rewardMessage;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);
-  if (parentMissionSummary) parentMissionSummary.textContent = missionLabel(appState.missionStatus);
-  if (parentBoxSummary) {
+  if (parentMissionSummary && !window.__serverDashboardLoaded) {
+    parentMissionSummary.textContent = missionLabel(appState.missionStatus);
+  }
+  if (parentBoxSummary && !window.__serverDashboardLoaded) {
     const totalBoxes = Object.values(appState.rewardBoxCounts).reduce((sum, count) => sum + count, 0);
     parentBoxSummary.textContent = `${totalBoxes}개`;
   }

@@ -124,12 +124,13 @@ button {
 }
 
 .app:not(.is-entered) {
-  padding: 8px 12px calc(96px + env(safe-area-inset-bottom));
+  padding: 8px 12px max(8px, env(safe-area-inset-bottom));
   overflow: auto;
 }
 
 .app:not(.is-entered) .topbar,
-.app:not(.is-entered) .screen {
+.app:not(.is-entered) .screen,
+.app:not(.is-entered) .bottom-nav {
   display: none;
 }
 

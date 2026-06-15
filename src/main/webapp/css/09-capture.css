@@ -113,6 +113,7 @@
 
 .capture-stage {
   min-height: clamp(190px, 34dvh, 250px);
+  touch-action: pan-y;
   border-radius: 24px;
   color: var(--ink);
   border: 1.5px dashed rgba(66, 213, 176, 0.48);

@@ -463,8 +463,8 @@ function renderParentSubmissionDetail() {
   if (!submission) return;
   if (parentSubmissionPreview) {
     parentSubmissionPreview.textContent = submission.mediaType === "photo"
-      ? "사진 인증 preview placeholder"
-      : "영상 인증 preview placeholder";
+      ? "사진 인증 미리보기"
+      : "영상 인증 미리보기";
   }
   if (parentSubmissionChild) parentSubmissionChild.textContent = submission.childName;
   if (parentSubmissionMediaType) parentSubmissionMediaType.textContent = mediaTypeLabel(submission.mediaType);
@@ -506,7 +506,7 @@ function setCapturePlaceholder(text) {
 
 function cameraSupportMessage() {
   if (!window.isSecureContext) {
-    return "카메라는 HTTPS 또는 localhost에서만 사용할 수 있습니다. 현재 IP 주소를 HTTPS로 열어 주세요.";
+    return "카메라를 켤 수 없는 주소예요. 보호자에게 알려 주세요.";
   }
   return CAMERA_MESSAGES.notSupported;
 }
@@ -520,10 +520,12 @@ function selectedCameraVideoConstraints() {
 
 async function openSelectedCameraStream(audio = false) {
   try {
-    return await navigator.mediaDevices.getUserMedia({
+    const stream = await navigator.mediaDevices.getUserMedia({
       video: selectedCameraVideoConstraints(),
       audio
     });
+    cameraPermissionPrimed = true;
+    return stream;
   } catch (error) {
     if (!selectedCameraDeviceId
         || !["NotFoundError", "OverconstrainedError"].includes(error?.name)) {
@@ -531,11 +533,46 @@ async function openSelectedCameraStream(audio = false) {
     }
     selectedCameraDeviceId = "";
     if (cameraDeviceSelect) cameraDeviceSelect.value = "";
-    return navigator.mediaDevices.getUserMedia({
+    const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: "environment" } },
       audio
     });
+    cameraPermissionPrimed = true;
+    return stream;
   }
+}
+
+async function enumerateCameraDevices() {
+  const devices = (await navigator.mediaDevices.enumerateDevices())
+    .filter(device => device.kind === "videoinput");
+  cachedCameraDevices = devices;
+  return devices;
+}
+
+function hasUsableCameraDeviceLabels(devices) {
+  return devices.some(device => device.label);
+}
+
+function hasActiveCaptureStream() {
+  const activeVideoStream = typeof videoStream !== "undefined" ? videoStream : null;
+  const activeStream = photoStream || activeVideoStream || captureState.stream;
+  return Boolean(activeStream?.getVideoTracks?.().some(track => track.readyState === "live"));
+}
+
+function renderCameraDeviceOptions(devices) {
+  if (!cameraDeviceSelect) return;
+  const currentValue = selectedCameraDeviceId;
+  cameraDeviceSelect.innerHTML = [
+    '<option value="">기본 카메라</option>',
+    ...devices.map((device, index) => {
+      const label = cameraDeviceDisplayLabel(device, index, devices);
+      return `<option value="${escapeHtml(device.deviceId)}">${escapeHtml(label)}</option>`;
+    })
+  ].join("");
+  const selectedExists = devices.some(device => device.deviceId === currentValue);
+  selectedCameraDeviceId = selectedExists ? currentValue : "";
+  cameraDeviceSelect.value = selectedCameraDeviceId;
+  cameraDeviceSelect.disabled = devices.length === 0 || isVideoRecording;
 }
 
 async function refreshCameraDevices({ requestPermission = false } = {}) {
@@ -547,33 +584,103 @@ async function refreshCameraDevices({ requestPermission = false } = {}) {
   }
 
   let permissionStream = null;
-  if (requestPermission && !photoStream && !videoStream) {
-    permissionStream = await openSelectedCameraStream(false);
-  }
-
   try {
-    const devices = (await navigator.mediaDevices.enumerateDevices())
-      .filter(device => device.kind === "videoinput");
-    if (cameraDeviceSelect) {
-      const currentValue = selectedCameraDeviceId;
-      cameraDeviceSelect.innerHTML = [
-        '<option value="">기본 카메라</option>',
-        ...devices.map((device, index) => {
-          const label = device.label || `카메라 ${index + 1}`;
-          return `<option value="${escapeHtml(device.deviceId)}">${escapeHtml(label)}</option>`;
-        })
-      ].join("");
-      const selectedExists = devices.some(device => device.deviceId === currentValue);
-      selectedCameraDeviceId = selectedExists ? currentValue : "";
-      cameraDeviceSelect.value = selectedCameraDeviceId;
-      cameraDeviceSelect.disabled = devices.length === 0 || isVideoRecording;
+    let devices = await enumerateCameraDevices();
+    const needsPermissionProbe = requestPermission
+      && !cameraPermissionPrimed
+      && !hasActiveCaptureStream()
+      && (!devices.length || !hasUsableCameraDeviceLabels(devices));
+    if (needsPermissionProbe) {
+      permissionStream = await openSelectedCameraStream(false);
+      devices = await enumerateCameraDevices();
     }
+    renderCameraDeviceOptions(devices);
     if (refreshCameraDevicesBtn) {
       refreshCameraDevicesBtn.disabled = isVideoRecording;
     }
     return devices;
   } finally {
     stopCaptureStream(permissionStream);
+  }
+}
+
+function isRearCameraDevice(device) {
+  const label = String(device?.label || "").toLowerCase();
+  return /back|rear|environment|world|후면|후방|뒷/.test(label);
+}
+
+function isFrontCameraDevice(device) {
+  const label = String(device?.label || "").toLowerCase();
+  return /front|user|face|selfie|전면|앞/.test(label);
+}
+
+function cameraDeviceDisplayLabel(device, index, devices) {
+  const rear = isRearCameraDevice(device);
+  const front = isFrontCameraDevice(device);
+  const sameDirectionCount = devices.filter(candidate => (
+    isRearCameraDevice(candidate) === rear
+      && isFrontCameraDevice(candidate) === front
+  )).length;
+  const suffix = sameDirectionCount > 1 ? ` ${index + 1}` : "";
+  if (rear) return `후면 카메라${suffix}`;
+  if (front) return `전면 카메라${suffix}`;
+  return `카메라 ${index + 1}`;
+}
+
+function getCurrentCameraDeviceId() {
+  if (selectedCameraDeviceId) return selectedCameraDeviceId;
+  const activeVideoStream = typeof videoStream !== "undefined" ? videoStream : null;
+  const activeStream = photoStream || activeVideoStream || captureState.stream;
+  const [track] = activeStream?.getVideoTracks?.() || [];
+  return track?.getSettings?.().deviceId || "";
+}
+
+async function switchCameraBySwipe() {
+  if (isSwitchingCameraBySwipe) return;
+  if (isVideoRecording) {
+    setCaptureNotice("녹화 중에는 카메라를 바꿀 수 없어요.");
+    return;
+  }
+  if (!navigator.mediaDevices?.enumerateDevices) {
+    setCaptureNotice(cameraSupportMessage());
+    return;
+  }
+
+  isSwitchingCameraBySwipe = true;
+  try {
+    let devices = await refreshCameraDevices();
+    devices = devices.filter(device => device.kind === "videoinput");
+    if (!devices.length && !cachedCameraDevices.length) {
+      devices = await refreshCameraDevices({ requestPermission: true });
+    }
+    if (!devices.length) {
+      setCaptureNotice(CAMERA_MESSAGES.notFound);
+      return;
+    }
+
+    const currentId = getCurrentCameraDeviceId();
+    const currentIndex = devices.findIndex(device => device.deviceId === currentId);
+    const rearIndex = devices.findIndex(isRearCameraDevice);
+    const nextIndex = currentIndex >= 0
+      ? (currentIndex + 1) % devices.length
+      : (rearIndex >= 0 ? rearIndex : 0);
+    const nextDevice = devices[nextIndex];
+    if (!nextDevice?.deviceId) {
+      selectedCameraDeviceId = "";
+      if (cameraDeviceSelect) cameraDeviceSelect.value = "";
+      setCaptureNotice("기본 후면 카메라로 전환했어요.");
+      return;
+    }
+
+    await changeCameraDevice(nextDevice.deviceId);
+    const isRear = isRearCameraDevice(nextDevice);
+    const message = isRear ? "후면 카메라로 전환했어요." : "다른 카메라로 전환했어요.";
+    setCaptureNotice(message);
+    if (typeof showToast === "function") showToast(message);
+  } catch (error) {
+    setCaptureNotice(normalizeCameraError(error));
+  } finally {
+    isSwitchingCameraBySwipe = false;
   }
 }
 

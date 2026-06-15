@@ -4,7 +4,7 @@
 // appState 초기값을 채우거나, 화면별 fetch 결과로 교체하면 됩니다.
 
 const DEFAULT_PET_ID = "mongle";
-const PET_FRAME_ASSET_VERSION = "roa-praise-play-magic-fixed-20260613-6";
+const PET_FRAME_ASSET_VERSION = "roa-touch-play-magic-webp-20260614-1";
 const PET_FRAME_ROOTS = {
   mongle: appPath("/assets/pets/mongle"),
   roa: appPath("/assets/pets/roa")
@@ -410,6 +410,13 @@ let videoRecordingReady = false;
 let isVideoRecording = false;
 let discardVideoRecording = false;
 let selectedCameraDeviceId = "";
+let cachedCameraDevices = [];
+let cameraPermissionPrimed = false;
+let cameraSwipeStartX = 0;
+let cameraSwipeStartY = 0;
+let cameraSwipeStartTime = 0;
+let cameraSwipePointerId = null;
+let isSwitchingCameraBySwipe = false;
 const CAMERA_MESSAGES = {
   permission: "카메라 권한을 허용해 주세요.",
   notFound: "카메라 장치를 찾을 수 없습니다.",
