@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=child-frame-loading-20260613" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=guest-nav-hide-20260614" />
   </head>
 
   <body>
@@ -56,7 +56,7 @@
           <h2>보호자 회원가입</h2>
           <label class="entry-field" for="joinParentName">
             <span>보호자 이름</span>
-            <input id="joinParentName" type="text" placeholder="김보호자" autocomplete="off" />
+            <input id="joinParentName" type="text" placeholder="이름" autocomplete="off" />
           </label>
           <label class="entry-field" for="joinParentEmail">
             <span>이메일</span>
@@ -172,14 +172,13 @@
         <article class="card panel">
           <h2>습관 인증 미션</h2>
           <p>오늘 실천한 좋은 습관을 영상이나 사진으로 남기고 확인을 기다려요.</p>
-          <div class="verify-mode-tabs" aria-label="인증 방식 선택">
-            <button class="mode-btn active" type="button" data-verify-mode="video"><span
-                class="mode-icon">🎥</span><span>영상</span></button>
-            <button class="mode-btn" type="button" data-verify-mode="photo"><span
-                class="mode-icon">📷</span><span>사진</span></button>
+          <div class="verify-mode-tabs" aria-label="인증 방식">
+            <span class="mode-btn active" id="verifyModeIndicator">
+              <span class="mode-icon">🎥</span><span>영상</span>
+            </span>
           </div>
           <div class="camera-box" id="cameraBox">
-            <span class="rec-pill"><span class="rec-dot"></span><span id="recText">REC 00:00</span></span>
+            <span class="rec-pill"><span class="rec-dot"></span><span id="recText">녹화 00:00</span></span>
             <span id="previewText">카메라 미리보기</span>
           </div>
           <div class="action-row">
@@ -214,7 +213,6 @@
           <div class="dex-filters">
             <button class="filter-btn active" data-filter="all">전체</button>
             <button class="filter-btn" data-filter="owned">보유</button>
-            <button class="filter-btn" data-filter="badge">뱃지</button>
           </div>
           <div class="dex-list" id="petDexList"></div>
         </article>
@@ -280,7 +278,11 @@
           <p>아이 화면에서 초대코드를 입력하면 보호자와 연결돼요.</p>
           <div class="invite-code-box">
             <span>현재 초대코드</span>
-            <strong id="inviteCodeText">ABC123</strong>
+            <div class="invite-code-value">
+              <strong id="inviteCodeText"></strong>
+              <button class="invite-copy-btn" id="copyInviteCodeBtn" type="button"
+                aria-label="초대코드 복사" disabled>복사</button>
+            </div>
           </div>
           <button class="btn primary full" id="generateInviteBtn" type="button">초대코드 생성</button>
         </article>
@@ -411,7 +413,7 @@
       </section>
 
       <section class="screen parent-screen" id="parentSubmissionsScreen" data-title="제출 인증 목록 / 승인 대기"
-        data-subtitle="사진/영상 pending 제출물을 검토해요">
+        data-subtitle="사진/영상 승인 대기 제출물을 검토해요">
         <article class="card panel flow-panel">
           <h2>승인 대기 제출물</h2>
           <div class="mission-grade-list" id="parentSubmissionList"></div>
@@ -422,7 +424,7 @@
         data-subtitle="사진/영상 제출물을 승인하거나 거절해요">
         <article class="card panel review-card">
           <h2>제출 상세</h2>
-          <div class="review-preview" id="parentSubmissionPreview">영상/이미지 placeholder</div>
+          <div class="review-preview" id="parentSubmissionPreview">제출물을 선택해 주세요</div>
           <div class="info-row"><span>아이</span><span id="parentSubmissionChild">유리</span></div>
           <div class="info-row"><span>인증 유형</span><span id="parentSubmissionMediaType">영상 인증</span></div>
           <div class="info-row"><span>미션 등급</span><span id="parentSubmissionGrade">하급</span></div>
@@ -508,21 +510,20 @@
             <em>보호자 확인 후 보상</em>
           </div>
 
-          <div class="verify-mode-tabs capture-tabs" aria-label="촬영 방식 선택">
-            <button class="mode-btn active" type="button" data-capture-mode="video"><span
-                class="mode-icon">🎥</span><span>영상</span></button>
-            <button class="mode-btn" type="button" data-capture-mode="photo"><span
-                class="mode-icon">📷</span><span>사진</span></button>
+          <div class="verify-mode-tabs capture-tabs" aria-label="촬영 방식">
+            <span class="mode-btn active" id="captureModeIndicator">
+              <span class="mode-icon">🎥</span><span>영상</span>
+            </span>
           </div>
 
           <div class="camera-device-row">
             <label class="entry-field camera-device-field" for="cameraDeviceSelect">
-              <span>카메라 선택</span>
+              <span>사용할 카메라</span>
               <select id="cameraDeviceSelect">
                 <option value="">기본 카메라</option>
               </select>
             </label>
-            <button class="btn camera-refresh-btn" type="button" id="refreshCameraDevicesBtn">장치 새로고침</button>
+            <button class="btn camera-refresh-btn" type="button" id="refreshCameraDevicesBtn">카메라 다시 찾기</button>
           </div>
 
           <div class="capture-stage" id="childCaptureStage">
@@ -544,7 +545,7 @@
               <button class="btn" type="button" id="retakePhotoBtn">다시 찍기</button>
             </div>
             <div class="capture-action-row video-actions" id="videoCaptureActions">
-              <button class="btn primary" type="button" id="startMockVideoBtn">녹화 시작</button>
+              <button class="btn primary" type="button" id="startMockVideoBtn">영상 촬영</button>
             </div>
             <button class="btn mint full capture-submit" type="button" id="submitCaptureBtn" disabled>인증 제출</button>
           </div>
@@ -915,13 +916,13 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=ying-roa-switch-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=child-frame-loading-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=ying-roa-switch-20260612"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=child-frame-loading-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=camera-switch-permission-20260615"></script>
+    <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=mission-capture-type-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=empty-profile-avatar-20260614"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=camera-korean-labels-20260615"></script>
+    <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=parent-nav-label-20260614"></script>
+    <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=mission-capture-type-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=camera-korean-labels-20260615"></script>
   </body>
 
   </html>

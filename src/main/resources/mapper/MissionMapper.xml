@@ -88,6 +88,16 @@
           AND mission_title != 'default_media_mission'
     </select>
 
+    <select id="countTodayAssignedMissionsByChild" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION
+        WHERE child_id = #{childId}
+          AND is_active = 'Y'
+          AND mission_title != 'default_media_mission'
+          AND created_at >= CAST(TRUNC(SYSDATE) AS TIMESTAMP)
+          AND created_at &lt; CAST(TRUNC(SYSDATE) + 1 AS TIMESTAMP)
+    </select>
+
     <update id="updateMission" parameterType="com.genai.model.Mission">
         UPDATE MISSION
         SET mission_title = #{missionTitle},
@@ -360,6 +370,30 @@
         ORDER BY ms.submission_id DESC
     </select>
 
+    <select id="findAvailableRewardsByParentId" parameterType="long"
+            resultType="com.genai.model.MissionSubmission">
+        SELECT ms.submission_id,
+               ms.mission_id,
+               ms.child_id,
+               ms.mission_date,
+               ms.box_grade,
+               ms.media_type,
+               ms.media_url,
+               ms.status,
+               ms.submitted_at,
+               ms.reviewed_at,
+               ms.reward_given,
+               ms.media_deleted_at,
+               c.nickname child_nickname
+        FROM MISSION_SUBMISSION ms
+        JOIN CHILD c ON c.child_id = ms.child_id
+        WHERE c.parent_id = #{parentId}
+          AND ms.status = 'approved'
+          AND ms.reward_given = 'N'
+          AND ms.box_grade IS NOT NULL
+        ORDER BY ms.submission_id DESC
+    </select>
+
     <select id="findRewardBoxes" resultType="com.genai.model.RewardBox">
         SELECT box_grade, box_name, min_exp, max_exp, pet_drop_rate
         FROM REWARD_BOX
@@ -605,7 +639,10 @@
                   FROM MISSION m
                  WHERE m.child_id = c.child_id
                    AND m.parent_id = c.parent_id
-                   AND m.is_active = 'Y') assigned_count,
+                   AND m.is_active = 'Y'
+                   AND m.mission_title != 'default_media_mission'
+                   AND m.created_at >= CAST(TRUNC(SYSDATE) AS TIMESTAMP)
+                   AND m.created_at &lt; CAST(TRUNC(SYSDATE) + 1 AS TIMESTAMP)) assigned_count,
                (SELECT COUNT(*)
                   FROM MISSION_SUBMISSION ms
                  WHERE ms.child_id = c.child_id

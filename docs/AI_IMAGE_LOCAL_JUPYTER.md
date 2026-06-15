@@ -42,6 +42,127 @@ You can also pass the same value as a JVM system property:
 -DAI_IMAGE_API_TOKEN=optional-token
 ```
 
+## Sharing the web app with teammates
+
+The ngrok URL above is only for the AI image generation API (`/generate`).
+It is not the URL teammates should open in a browser.
+
+To let teammates access the Tomcat web app from outside your local network,
+open a separate ngrok tunnel for the Tomcat port:
+
+```powershell
+ngrok http 8081
+```
+
+If ngrok prints:
+
+```text
+Forwarding  https://xxxx.ngrok-free.app -> http://localhost:8081
+```
+
+share this browser URL with teammates:
+
+```text
+https://xxxx.ngrok-free.app/back/app
+```
+
+Do not share a private LAN URL such as `http://192.168.x.x:8081/back/app`
+with teammates outside the same network. That address only works on the same
+Wi-Fi/LAN.
+
+## 웹앱 외부 접속 트러블슈팅
+
+### 사용자가 로딩 화면만 계속 보는 경우
+
+먼저 어떤 URL을 공유했는지 확인합니다.
+
+아래처럼 `192.168.x.x`로 시작하는 사설 IP 주소는 외부 사용자에게 공유하면 안 됩니다.
+
+```text
+http://192.168.x.x:8081/back/app
+```
+
+이 주소는 개발자 PC와 같은 와이파이/LAN에 있는 기기에서만 접속할 수 있습니다.
+
+Colab AI 서버용 URL도 사용자에게 공유하면 안 됩니다.
+
+```text
+https://xxxx.ngrok-free.app/generate
+```
+
+`/generate` URL은 `AiImageService`가 AI 이미지 서버를 호출할 때만 사용하는 주소입니다.
+사용자가 브라우저에서 여는 주소가 아닙니다.
+
+사용자는 웹앱 터널 주소로 접속해야 합니다.
+
+```text
+https://<web-app-tunnel-domain>/back/app
+```
+
+### ngrok 설정이 안 되어 있는 경우
+
+`ngrok http 8081` 실행 시 ngrok authtoken 미설정 오류가 나면,
+Cloudflare quick tunnel을 대신 사용할 수 있습니다.
+
+```powershell
+cloudflared tunnel --url http://localhost:8081
+```
+
+실행 후 아래와 같은 URL이 출력되면:
+
+```text
+https://example.trycloudflare.com
+```
+
+사용자에게는 다음 주소를 공유합니다.
+
+```text
+https://example.trycloudflare.com/back/app
+```
+
+### 컴퓨터를 껐다가 다시 켠 경우
+
+임시 터널은 PC를 끄거나 재시작하거나 터널 프로세스를 종료하면 끊깁니다.
+컴퓨터를 다시 켠 뒤에는 아래 순서대로 다시 실행합니다.
+
+1. Tomcat을 실행하거나 배포 스크립트를 실행합니다.
+
+```powershell
+.\deploy.bat
+```
+
+2. 로컬에서 앱이 정상 접속되는지 확인합니다.
+
+```text
+http://localhost:8081/back/app
+```
+
+3. 웹앱용 외부 터널을 새로 엽니다.
+
+ngrok을 사용하는 경우:
+
+```powershell
+ngrok http 8081
+```
+
+Cloudflare quick tunnel을 사용하는 경우:
+
+```powershell
+cloudflared tunnel --url http://localhost:8081
+```
+
+4. 새로 출력된 HTTPS 도메인 뒤에 `/back/app`을 붙입니다.
+
+```text
+https://<new-public-domain>/back/app
+```
+
+5. 완성된 새 URL을 사용자에게 전달합니다.
+
+임시 터널은 새로 실행할 때마다 공개 도메인이 바뀔 수 있습니다.
+따라서 PC를 재시작한 뒤에는 예전에 사용하던 터널 URL을 재사용하지 말고,
+새로 생성된 URL을 다시 공유해야 합니다.
+
 ## Flask response contract
 
 The Java app sends JSON like this:

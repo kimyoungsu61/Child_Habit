@@ -69,9 +69,9 @@
 
             <div class="camera-actions">
                 <button id="startCameraButton" type="button">카메라 켜기</button>
-                <button id="takePhotoButton" type="button" hidden>사진 촬영</button>
-                <button id="startRecordingButton" type="button" hidden>영상 녹화 시작</button>
-                <button id="stopRecordingButton" type="button" hidden>녹화 종료</button>
+                <button id="takePhotoButton" type="button" hidden>사진 찍기</button>
+                <button id="startRecordingButton" type="button" hidden>영상 촬영</button>
+                <button id="stopRecordingButton" type="button" hidden>촬영 종료</button>
                 <button id="retakeButton" type="button" hidden>다시 촬영</button>
                 <button id="submitButton" type="button" disabled>인증 제출</button>
             </div>
@@ -173,6 +173,9 @@
         clearCapture();
         const isPhoto = selectedMediaType() === 'photo';
         mediaTypeLabel.textContent = isPhoto ? '사진 촬영' : '영상 촬영';
+        takePhotoButton.textContent = '사진 찍기';
+        startRecordingButton.textContent = '영상 촬영';
+        retakeButton.textContent = isPhoto ? '다시 찍기' : '다시 촬영';
         startCameraButton.hidden = false;
         takePhotoButton.hidden = true;
         startRecordingButton.hidden = true;
@@ -296,12 +299,20 @@
             setStatus('먼저 사진 또는 영상을 촬영해 주세요.');
             return;
         }
+        const requiredMediaType = selectedMediaType();
+        const validFileType = requiredMediaType === 'photo'
+            ? capturedBlob.type.startsWith('image/')
+            : capturedBlob.type.startsWith('video/');
+        if (!validFileType) {
+            setStatus('미션의 인증 방식과 촬영 파일 형식이 일치하지 않습니다.');
+            return;
+        }
         submitButton.disabled = true;
         setStatus('인증을 제출하고 있습니다.');
 
         const formData = new FormData();
         formData.append('missionId', missionSelect.value);
-        formData.append('mediaType', selectedMediaType());
+        formData.append('mediaType', requiredMediaType);
         formData.append('mediaFile', capturedBlob, capturedFileName);
 
         try {

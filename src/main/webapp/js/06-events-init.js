@@ -150,7 +150,7 @@ function handleQuickTabButton(button) {
   };
   if (missionMap[targetTab]) appState.currentMissionId = missionMap[targetTab];
   if (targetTab === "childCameraScreen") {
-    appState.captureMode = "video";
+    setCaptureMode(requiredCaptureMode || appState.captureMode || "video");
   }
   if (button.dataset.submissionIndex) {
     appState.currentSubmission = appState.submissions[Number(button.dataset.submissionIndex)];
@@ -181,15 +181,40 @@ document.querySelectorAll("[data-entry-target]").forEach(button => {
   });
 });
 
-// 촬영 방식을 영상/사진으로 전환하는 버튼입니다.
-document.querySelectorAll("[data-capture-mode]").forEach(button => {
-  button.addEventListener("click", () => setCaptureMode(button.dataset.captureMode));
-});
-
 cameraDeviceSelect?.addEventListener("change", event => {
   changeCameraDevice(event.target.value).catch(error => {
     setCaptureNotice(normalizeCameraError(error));
   });
+});
+
+childCaptureStage?.addEventListener("pointerdown", event => {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  cameraSwipeStartX = event.clientX;
+  cameraSwipeStartY = event.clientY;
+  cameraSwipeStartTime = Date.now();
+  cameraSwipePointerId = event.pointerId;
+});
+
+childCaptureStage?.addEventListener("pointerup", event => {
+  if (cameraSwipePointerId !== event.pointerId) return;
+  const deltaX = event.clientX - cameraSwipeStartX;
+  const deltaY = event.clientY - cameraSwipeStartY;
+  const elapsed = Date.now() - cameraSwipeStartTime;
+  cameraSwipePointerId = null;
+
+  const isHorizontalSwipe = Math.abs(deltaX) >= 56
+    && Math.abs(deltaX) > Math.abs(deltaY) * 1.35
+    && elapsed <= 900;
+  if (!isHorizontalSwipe) return;
+
+  event.preventDefault();
+  switchCameraBySwipe().catch(error => {
+    setCaptureNotice(normalizeCameraError(error));
+  });
+});
+
+childCaptureStage?.addEventListener("pointercancel", () => {
+  cameraSwipePointerId = null;
 });
 
 refreshCameraDevicesBtn?.addEventListener("click", () => {
@@ -252,14 +277,6 @@ submitCaptureBtn?.addEventListener("click", submitCapture);
 
 document.getElementById("goCertifyBtn")?.addEventListener("click", () => switchTab("certifyScreen"));
 document.getElementById("profileOpenBtn").addEventListener("click", openProfileModal);
-
-document.querySelectorAll("[data-verify-mode]").forEach(button => {
-  button.addEventListener("click", () => {
-    appState.missionMode = button.dataset.verifyMode;
-    appState.missionStatus = "none";
-    renderMission();
-  });
-});
 
 document.getElementById("generateInviteBtn").addEventListener("click", () => {
   appState.inviteCode = createInviteCode();

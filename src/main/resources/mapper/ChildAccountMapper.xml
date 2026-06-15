@@ -66,9 +66,9 @@
 
     <select id="countApprovedSubmissions" parameterType="long" resultType="int">
         SELECT COUNT(*)
-        FROM MISSION_SUBMISSION
+        FROM CHILD_PET
         WHERE child_id = #{childId}
-          AND status = 'approved'
+          AND badge_acquired = 'Y'
     </select>
 
     <insert id="insertChild" parameterType="com.genai.model.ChildProfile">

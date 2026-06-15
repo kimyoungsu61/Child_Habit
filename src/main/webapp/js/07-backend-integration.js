@@ -36,6 +36,16 @@ const shownMaxLevelCelebrations = new Set();
 const INTERACTION_COOLDOWN_MS = 30 * 60 * 1000;
 let interactionCooldownEnds = {};
 
+function getRequiredMissionMediaType() {
+  const missionId = Number(appState.currentMissionId);
+  const mission = serverChildHome?.missions?.find(
+    item => Number(item.missionId) === missionId);
+  const mediaType = mission?.mediaType
+    || requiredCaptureMode
+    || appState.currentSubmission?.mediaType;
+  return mediaType === "photo" ? "photo" : (mediaType === "video" ? "video" : "");
+}
+
 function clearChildContextStorage() {
   [window.localStorage, window.sessionStorage].forEach(storage => {
     try {
@@ -54,6 +64,7 @@ function resetChildClientContext() {
   petFrame.removeAttribute("src");
   serverChildHome = null;
   loadedServerDate = "";
+  requiredCaptureMode = "";
   interactionCooldownEnds = {};
   appState.child.childId = null;
   appState.child.inviteCode = "";
@@ -966,8 +977,21 @@ async function loadParentDashboard(options = {}) {
 function renderParentDashboardData() {
   if (!serverDashboard) return;
   const connectedChildren = getCompletedChildren(serverDashboard.children);
+  const connectedChildIds = new Set(connectedChildren.map(child => Number(child.childId)));
+  const availableBoxes = (serverDashboard.availableRewards || []).filter(submission => (
+    connectedChildIds.has(Number(submission.childId))
+    && submission.status === "approved"
+    && submission.rewardGiven !== "Y"
+    && submission.boxGrade
+  ));
+  const pendingReviews = (serverDashboard.todaySubmissions || []).filter(submission => (
+    connectedChildIds.has(Number(submission.childId))
+    && submission.status === "pending"
+  ));
   if (parentNameText) parentNameText.textContent = serverDashboard.parent.name;
   if (parentChildCount) parentChildCount.textContent = `${connectedChildren.length}명`;
+  if (parentMissionSummary) parentMissionSummary.textContent = pendingReviews.length ? "대기" : "대기 없음";
+  if (parentBoxSummary) parentBoxSummary.textContent = `${availableBoxes.length}개`;
   const childList = document.getElementById("parentChildList");
   if (childList) {
     childList.innerHTML = connectedChildren.length
@@ -1030,16 +1054,19 @@ function renderParentDashboardData() {
 
   const childSelect = document.getElementById("newMissionChild");
   if (childSelect) {
-    const missionCounts = serverDashboard.missions.reduce((counts, mission) => {
-      counts[mission.childId] = (counts[mission.childId] || 0) + 1;
-      return counts;
+    const progressByChild = (serverDashboard.progress || []).reduce((items, progress) => {
+      items[progress.childId] = progress;
+      return items;
     }, {});
     const availableChildren = connectedChildren.filter(
-      child => (missionCounts[child.childId] || 0) < 5);
+      child => Number(progressByChild[child.childId]?.assignmentRemainingCount ?? 5) > 0);
     childSelect.innerHTML = connectedChildren.length
       ? connectedChildren.map(child => {
-        const count = missionCounts[child.childId] || 0;
-        return `<option value="${child.childId}" ${count >= 5 ? "disabled" : ""}>${escapeHtml(child.nickname)} (${count}/5)${count >= 5 ? " · 등록 완료" : ""}</option>`;
+        const progress = progressByChild[child.childId] || {};
+        const limit = Number(progress.dailyLimit) || 5;
+        const count = Number(progress.assignedCount) || 0;
+        const remaining = Number(progress.assignmentRemainingCount ?? Math.max(0, limit - count));
+        return `<option value="${child.childId}" ${remaining <= 0 ? "disabled" : ""}>${escapeHtml(child.nickname)} (${count}/${limit})${remaining <= 0 ? " · 등록 완료" : ""}</option>`;
       }).join("")
       : '<option value="">프로필 등록을 완료한 아이가 없습니다</option>';
     childSelect.value = availableChildren[0]?.childId || "";
@@ -1051,14 +1078,19 @@ function renderParentDashboardData() {
     "#parentChildProgressScreen .progress-list");
   if (progressList) {
     progressList.innerHTML = serverDashboard.progress.length
-      ? serverDashboard.progress.map(item => `
+      ? serverDashboard.progress.map(item => {
+        const limit = Number(item.dailyLimit) || 5;
+        const assigned = Number(item.assignedCount) || 0;
+        const remaining = Number(item.assignmentRemainingCount ?? Math.max(0, limit - assigned));
+        return `
         <div>
           <strong>${item.childNickname}</strong>
           <span class="status-badge ${item.pendingCount ? "waiting" : "approved"}">
-            완료 ${item.approvedCount} · 대기 ${item.pendingCount} · 남음 ${Math.max(0, item.assignedCount - item.approvedCount)}
+            완료 ${item.approvedCount} · 대기 ${item.pendingCount} · 배정 ${assigned}/${limit} · 추가 가능 ${remaining}
           </span>
         </div>
-      `).join("")
+      `;
+      }).join("")
       : '<div class="empty-dex">진행 정보가 없습니다.</div>';
   }
 
@@ -1377,6 +1409,33 @@ interceptClick("#generateInviteBtn", async () => {
   showToast("새 초대코드가 생성됐어요.");
 });
 
+async function copyInviteCode() {
+  const inviteCode = String(appState.inviteCode || "").trim();
+  if (!inviteCode) {
+    showToast("복사할 초대코드가 없어요.");
+    return;
+  }
+
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(inviteCode);
+  } else {
+    const copyTarget = document.createElement("textarea");
+    copyTarget.value = inviteCode;
+    copyTarget.setAttribute("readonly", "");
+    copyTarget.style.position = "fixed";
+    copyTarget.style.opacity = "0";
+    document.body.appendChild(copyTarget);
+    copyTarget.select();
+    const copied = document.execCommand("copy");
+    copyTarget.remove();
+    if (!copied) throw new Error("초대코드를 복사하지 못했어요.");
+  }
+
+  showToast("초대코드를 복사했어요.");
+}
+
+interceptClick("#copyInviteCodeBtn", copyInviteCode);
+
 interceptClick("#saveMissionBtn", async () => {
   const message = document.getElementById("missionCreateMessage");
   await apiRequest("/parent/missions", {
@@ -1494,6 +1553,7 @@ document.addEventListener("click", event => {
     event.preventDefault();
     event.stopImmediatePropagation();
     appState.currentMissionId = Number(missionButton.dataset.serverMission);
+    appState.currentSubmission = null;
     requiredCaptureMode = missionButton.dataset.serverMedia === "photo" ? "photo" : "video";
     appState.captureMode = requiredCaptureMode;
     switchTab("childCameraScreen");
@@ -1632,6 +1692,9 @@ function showRecordedVideo(blob) {
 }
 
 async function startVideoRecording() {
+  if (getRequiredMissionMediaType() !== "video") {
+    throw new Error("이 미션은 사진 인증 미션입니다.");
+  }
   appState.captureMode = "video";
   captureState.mediaType = "video";
   if (videoRecorder?.state === "recording") {
@@ -1719,7 +1782,7 @@ async function startVideoRecording() {
     stopVideoCamera();
     if (videoRecordingReady) showRecordedVideo(capturedVideoBlob);
     setCaptureNotice(videoRecordingReady
-      ? `녹화 완료: ${Math.max(1, Math.round(capturedVideoBlob.size / 1024))} KB`
+      ? "녹화가 끝났어요. 이제 제출할 수 있어요."
       : "녹화된 영상이 없습니다. 다시 녹화해 주세요.");
     setCapturePlaceholder(videoRecordingReady
       ? "✅\n녹화가 완료되었어요"
@@ -1755,16 +1818,26 @@ document.getElementById("viewMaxLevelBadgeBtn")?.addEventListener("click", () =>
 });
 
 interceptClick("#submitCaptureBtn", async () => {
-  const mediaType = appState.captureMode;
+  const mediaType = getRequiredMissionMediaType();
+  if (!mediaType) throw new Error("현재 미션의 인증 방식을 확인할 수 없습니다.");
+  if (appState.captureMode !== mediaType || captureState.mediaType !== mediaType) {
+    throw new Error("미션의 인증 방식과 촬영 파일 형식이 일치하지 않습니다.");
+  }
   let blob;
   let fileName;
   if (mediaType === "photo") {
     if (!capturedPhotoDataUrl) throw new Error("사진을 먼저 촬영해 주세요.");
     blob = await fetch(capturedPhotoDataUrl).then(response => response.blob());
+    if (!blob.type.startsWith("image/")) {
+      throw new Error("사진 인증에는 이미지 파일만 제출할 수 있습니다.");
+    }
     fileName = "mission-photo.png";
   } else {
     if (!capturedVideoBlob) throw new Error("영상을 먼저 녹화해 주세요.");
     blob = capturedVideoBlob;
+    if (!blob.type.startsWith("video/")) {
+      throw new Error("영상 인증에는 영상 파일만 제출할 수 있습니다.");
+    }
     fileName = blob.type.includes("mp4") ? "mission-video.mp4" : "mission-video.webm";
   }
   const data = new FormData();

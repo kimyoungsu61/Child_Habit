@@ -272,6 +272,8 @@ public class ApiServlet extends HttpServlet {
                 missionService.findPendingForParent(parent.getParentId())));
         data.put("todaySubmissions", submissionMaps(
                 missionService.findTodayForParent(parent.getParentId())));
+        data.put("availableRewards", submissionMaps(
+                missionService.findAvailableRewardsForParent(parent.getParentId())));
         data.put("progress", progressMaps(
                 missionService.findTodayProgressForParent(parent.getParentId())));
         data.put("notifications", notificationMaps(
@@ -474,13 +476,27 @@ public class ApiServlet extends HttpServlet {
         if (!"true".equals(request.getHeader("X-Camera-Capture"))) {
             throw new IllegalArgumentException("미션 화면에서 직접 촬영해 주세요.");
         }
+        Long missionId = parseLong(request.getParameter("missionId"));
+        if (missionId == null) {
+            throw new IllegalArgumentException("제출할 미션을 선택해 주세요.");
+        }
+        Mission mission = missionService.findMissionForChild(
+                missionId, child.getChildId());
+        if (mission == null) {
+            throw new IllegalArgumentException("제출할 미션을 찾을 수 없습니다.");
+        }
         String mediaType = request.getParameter("mediaType");
+        String requiredMediaType = mission.getMediaType();
+        if (!requiredMediaType.equals(mediaType)) {
+            throw new IllegalArgumentException(
+                    "미션의 인증 방식과 제출 파일 형식이 일치하지 않습니다.");
+        }
         String mediaUrl = null;
         try {
             Part mediaFile = request.getPart("mediaFile");
-            mediaUrl = mediaStorage.save(mediaFile, mediaType);
+            mediaUrl = mediaStorage.save(mediaFile, requiredMediaType);
             missionService.submit(child.getChildId(),
-                    parseLong(request.getParameter("missionId")), mediaType, mediaUrl);
+                    missionId, requiredMediaType, mediaUrl);
         } catch (Exception exception) {
             if (mediaUrl != null) {
                 mediaStorage.deleteByUrl(mediaUrl);
@@ -836,6 +852,8 @@ public class ApiServlet extends HttpServlet {
             result.add(Map.of("childId", item.getChildId(),
                     "childNickname", item.getChildNickname(),
                     "assignedCount", item.getAssignedCount(),
+                    "dailyLimit", item.getDailyLimit(),
+                    "assignmentRemainingCount", item.getAssignmentRemainingCount(),
                     "pendingCount", item.getPendingCount(),
                     "approvedCount", item.getApprovedCount(),
                     "rejectedCount", item.getRejectedCount()));

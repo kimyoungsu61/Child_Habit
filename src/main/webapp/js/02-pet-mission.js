@@ -290,8 +290,10 @@ function renderPet() {
   });
   if (profilePetLevel) profilePetLevel.textContent = `Lv.${pet.level}`;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);
-  if (parentMissionSummary) parentMissionSummary.textContent = missionLabel(appState.missionStatus);
-  if (parentBoxSummary) {
+  if (parentMissionSummary && !window.__serverDashboardLoaded) {
+    parentMissionSummary.textContent = missionLabel(appState.missionStatus);
+  }
+  if (parentBoxSummary && !window.__serverDashboardLoaded) {
     const totalBoxes = Object.values(appState.rewardBoxCounts).reduce((sum, count) => sum + count, 0);
     parentBoxSummary.textContent = `${totalBoxes}개`;
   }
@@ -377,11 +379,18 @@ function renderMission() {
   setStatusBadge(reviewBadge, appState.missionStatus);
   setStatusBadge(rewardBadge, appState.missionStatus);
   const isPhotoMode = appState.missionMode === "photo";
+  if (verifyModeIndicator) {
+    verifyModeIndicator.innerHTML = isPhotoMode
+      ? '<span class="mode-icon">📷</span><span>사진</span>'
+      : '<span class="mode-icon">🎥</span><span>영상</span>';
+  }
   if (reviewMode) reviewMode.textContent = isPhotoMode ? "사진" : "영상";
   if (rewardMessage) rewardMessage.textContent = appState.rewardMessage;
   if (profileMissionStatus) profileMissionStatus.textContent = missionLabel(appState.missionStatus);
-  if (parentMissionSummary) parentMissionSummary.textContent = missionLabel(appState.missionStatus);
-  if (parentBoxSummary) {
+  if (parentMissionSummary && !window.__serverDashboardLoaded) {
+    parentMissionSummary.textContent = missionLabel(appState.missionStatus);
+  }
+  if (parentBoxSummary && !window.__serverDashboardLoaded) {
     const totalBoxes = Object.values(appState.rewardBoxCounts).reduce((sum, count) => sum + count, 0);
     parentBoxSummary.textContent = `${totalBoxes}개`;
   }
@@ -392,25 +401,23 @@ function renderMission() {
     ? (isPhotoMode ? "PHOTO 완료" : "REC 진행 중")
     : (isPhotoMode ? "PHOTO" : "REC 00:00");
   previewText.textContent = isPhotoMode ? "사진 미리보기" : "카메라 미리보기";
-  recordBtn.textContent = isPhotoMode ? "사진 촬영" : "녹화 시작";
+  recordBtn.textContent = isPhotoMode ? "사진 찍기" : "영상 촬영";
   cameraBox.classList.toggle("photo-mode", isPhotoMode);
-  document.querySelectorAll("[data-verify-mode]").forEach(button => {
-    button.classList.toggle("active", button.dataset.verifyMode === appState.missionMode);
-  });
   renderRewardCounts();
   renderMyPage();
 }
 
 // 펫 도감 목록을 현재 필터 상태에 맞춰 다시 그립니다.
 function renderDex() {
+  const dexFilter = appState.dexFilter === "owned" ? "owned" : "all";
+  appState.dexFilter = dexFilter;
   const filtered = petDex.filter(pet => {
-    if (appState.dexFilter === "owned") return pet.owned;
-    if (appState.dexFilter === "badge") return pet.badgeAcquired;
+    if (dexFilter === "owned") return pet.owned;
     return true;
   });
 
   if (!filtered.length) {
-    petDexList.innerHTML = '<div class="empty-dex">아직 획득한 뱃지가 없어요.</div>';
+    petDexList.innerHTML = '<div class="empty-dex">아직 보유한 펫이 없어요.</div>';
     return;
   }
 

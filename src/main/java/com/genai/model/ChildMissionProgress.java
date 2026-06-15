@@ -1,6 +1,8 @@
 package com.genai.model;
 
 public class ChildMissionProgress {
+    private static final int DAILY_ASSIGNMENT_LIMIT = 5;
+
     private Long childId;
     private String childNickname;
     private int assignedCount;
@@ -60,7 +62,15 @@ public class ChildMissionProgress {
         return approvedCount;
     }
 
+    public int getDailyLimit() {
+        return DAILY_ASSIGNMENT_LIMIT;
+    }
+
+    public int getAssignmentRemainingCount() {
+        return Math.max(0, DAILY_ASSIGNMENT_LIMIT - assignedCount);
+    }
+
     public int getRemainingCount() {
-        return Math.max(0, assignedCount - approvedCount);
+        return getAssignmentRemainingCount();
     }
 }
