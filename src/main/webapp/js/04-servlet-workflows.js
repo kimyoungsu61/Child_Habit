@@ -577,6 +577,65 @@ async function refreshCameraDevices({ requestPermission = false } = {}) {
   }
 }
 
+function isRearCameraDevice(device) {
+  const label = String(device?.label || "").toLowerCase();
+  return /back|rear|environment|world|후면|후방|뒷/.test(label);
+}
+
+function getCurrentCameraDeviceId() {
+  if (selectedCameraDeviceId) return selectedCameraDeviceId;
+  const activeVideoStream = typeof videoStream !== "undefined" ? videoStream : null;
+  const activeStream = photoStream || activeVideoStream || captureState.stream;
+  const [track] = activeStream?.getVideoTracks?.() || [];
+  return track?.getSettings?.().deviceId || "";
+}
+
+async function switchCameraBySwipe() {
+  if (isSwitchingCameraBySwipe) return;
+  if (isVideoRecording) {
+    setCaptureNotice("녹화 중에는 카메라를 바꿀 수 없어요.");
+    return;
+  }
+  if (!navigator.mediaDevices?.enumerateDevices) {
+    setCaptureNotice(cameraSupportMessage());
+    return;
+  }
+
+  isSwitchingCameraBySwipe = true;
+  try {
+    let devices = await refreshCameraDevices({ requestPermission: true });
+    devices = devices.filter(device => device.kind === "videoinput");
+    if (!devices.length) {
+      setCaptureNotice(CAMERA_MESSAGES.notFound);
+      return;
+    }
+
+    const currentId = getCurrentCameraDeviceId();
+    const currentIndex = devices.findIndex(device => device.deviceId === currentId);
+    const rearIndex = devices.findIndex(isRearCameraDevice);
+    const nextIndex = currentIndex >= 0
+      ? (currentIndex + 1) % devices.length
+      : (rearIndex >= 0 ? rearIndex : 0);
+    const nextDevice = devices[nextIndex];
+    if (!nextDevice?.deviceId) {
+      selectedCameraDeviceId = "";
+      if (cameraDeviceSelect) cameraDeviceSelect.value = "";
+      setCaptureNotice("기본 후면 카메라로 전환했어요.");
+      return;
+    }
+
+    await changeCameraDevice(nextDevice.deviceId);
+    const isRear = isRearCameraDevice(nextDevice);
+    const message = isRear ? "후면 카메라로 전환했어요." : "다른 카메라로 전환했어요.";
+    setCaptureNotice(message);
+    if (typeof showToast === "function") showToast(message);
+  } catch (error) {
+    setCaptureNotice(normalizeCameraError(error));
+  } finally {
+    isSwitchingCameraBySwipe = false;
+  }
+}
+
 async function changeCameraDevice(deviceId) {
   if (isVideoRecording) {
     setCaptureNotice("녹화를 종료한 뒤 카메라를 변경해 주세요.");

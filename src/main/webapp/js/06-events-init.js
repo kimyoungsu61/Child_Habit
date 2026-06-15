@@ -187,6 +187,36 @@ cameraDeviceSelect?.addEventListener("change", event => {
   });
 });
 
+childCaptureStage?.addEventListener("pointerdown", event => {
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  cameraSwipeStartX = event.clientX;
+  cameraSwipeStartY = event.clientY;
+  cameraSwipeStartTime = Date.now();
+  cameraSwipePointerId = event.pointerId;
+});
+
+childCaptureStage?.addEventListener("pointerup", event => {
+  if (cameraSwipePointerId !== event.pointerId) return;
+  const deltaX = event.clientX - cameraSwipeStartX;
+  const deltaY = event.clientY - cameraSwipeStartY;
+  const elapsed = Date.now() - cameraSwipeStartTime;
+  cameraSwipePointerId = null;
+
+  const isHorizontalSwipe = Math.abs(deltaX) >= 56
+    && Math.abs(deltaX) > Math.abs(deltaY) * 1.35
+    && elapsed <= 900;
+  if (!isHorizontalSwipe) return;
+
+  event.preventDefault();
+  switchCameraBySwipe().catch(error => {
+    setCaptureNotice(normalizeCameraError(error));
+  });
+});
+
+childCaptureStage?.addEventListener("pointercancel", () => {
+  cameraSwipePointerId = null;
+});
+
 refreshCameraDevicesBtn?.addEventListener("click", () => {
   refreshCameraDevices({ requestPermission: true })
     .then(devices => {

@@ -117,6 +117,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
+  touch-action: pan-y;
   border-radius: 22px;
   color: white;
   background: linear-gradient(145deg, #1c293b, #111c2b);

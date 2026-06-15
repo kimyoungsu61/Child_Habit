@@ -410,6 +410,11 @@ let videoRecordingReady = false;
 let isVideoRecording = false;
 let discardVideoRecording = false;
 let selectedCameraDeviceId = "";
+let cameraSwipeStartX = 0;
+let cameraSwipeStartY = 0;
+let cameraSwipeStartTime = 0;
+let cameraSwipePointerId = null;
+let isSwitchingCameraBySwipe = false;
 const CAMERA_MESSAGES = {
   permission: "카메라 권한을 허용해 주세요.",
   notFound: "카메라 장치를 찾을 수 없습니다.",
