@@ -977,8 +977,21 @@ async function loadParentDashboard(options = {}) {
 function renderParentDashboardData() {
   if (!serverDashboard) return;
   const connectedChildren = getCompletedChildren(serverDashboard.children);
+  const connectedChildIds = new Set(connectedChildren.map(child => Number(child.childId)));
+  const availableBoxes = (serverDashboard.availableRewards || []).filter(submission => (
+    connectedChildIds.has(Number(submission.childId))
+    && submission.status === "approved"
+    && submission.rewardGiven !== "Y"
+    && submission.boxGrade
+  ));
+  const pendingReviews = (serverDashboard.todaySubmissions || []).filter(submission => (
+    connectedChildIds.has(Number(submission.childId))
+    && submission.status === "pending"
+  ));
   if (parentNameText) parentNameText.textContent = serverDashboard.parent.name;
   if (parentChildCount) parentChildCount.textContent = `${connectedChildren.length}명`;
+  if (parentMissionSummary) parentMissionSummary.textContent = pendingReviews.length ? "대기" : "대기 없음";
+  if (parentBoxSummary) parentBoxSummary.textContent = `${availableBoxes.length}개`;
   const childList = document.getElementById("parentChildList");
   if (childList) {
     childList.innerHTML = connectedChildren.length

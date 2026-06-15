@@ -98,10 +98,13 @@ function updateBackNavigationControls() {
   if (!pageBackButton) return;
   const activeScreenId = getActiveScreenId();
   const isRootScreen = navigationRootScreens.has(activeScreenId);
-  const hasEntryFallback = entryFallbackScreens.has(activeScreenId);
-  const canGoBack = appRoot.classList.contains("is-entered") && !isRootScreen && (pageHistory.length > 0 || hasEntryFallback);
+  const canGoBack = appRoot.classList.contains("is-entered") && !isRootScreen;
   pageBackButton.hidden = !canGoBack;
   pageBackButton.disabled = !canGoBack;
+}
+
+function getRoleRootScreenId() {
+  return appState.role === "parent" ? "parentScreen" : "homeScreen";
 }
 
 function rememberPageHistory(targetScreenId) {
@@ -125,11 +128,46 @@ function goBackPage() {
     if (entryFallbackScreens.has(getActiveScreenId())) {
       backToEntry();
       showEntryPanel("childEntryCard", { skipHistory: true });
+      return;
+    }
+    const rootScreenId = getRoleRootScreenId();
+    if (getActiveScreenId() !== rootScreenId) {
+      switchTab(rootScreenId, { skipHistory: true });
     }
     return;
   }
   switchTab(previousScreenId, { skipHistory: true });
 }
+
+function isEditableBackspaceTarget(target) {
+  if (!target) return false;
+  const tagName = target.tagName;
+  return target.isContentEditable
+    || tagName === "INPUT"
+    || tagName === "TEXTAREA"
+    || tagName === "SELECT";
+}
+
+function handleBackspaceNavigation(event) {
+  if (event.key !== "Backspace" || event.altKey || event.ctrlKey || event.metaKey) return;
+  if (isEditableBackspaceTarget(event.target)) return;
+
+  const activeEntryPanel = document.querySelector(".entry-panel.active");
+  const isEntered = appRoot.classList.contains("is-entered");
+
+  if (isEntered && getActiveScreenId() !== getRoleRootScreenId()) {
+    event.preventDefault();
+    goBackPage();
+    return;
+  }
+
+  if (!isEntered && activeEntryPanel && activeEntryPanel.id !== "entryStartCard") {
+    event.preventDefault();
+    goBackEntryPanel();
+  }
+}
+
+document.addEventListener("keydown", handleBackspaceNavigation);
 
 // 짧은 안내 문구를 화면 아래 toast로 보여줍니다.
 function showToast(message) {

@@ -370,6 +370,30 @@
         ORDER BY ms.submission_id DESC
     </select>
 
+    <select id="findAvailableRewardsByParentId" parameterType="long"
+            resultType="com.genai.model.MissionSubmission">
+        SELECT ms.submission_id,
+               ms.mission_id,
+               ms.child_id,
+               ms.mission_date,
+               ms.box_grade,
+               ms.media_type,
+               ms.media_url,
+               ms.status,
+               ms.submitted_at,
+               ms.reviewed_at,
+               ms.reward_given,
+               ms.media_deleted_at,
+               c.nickname child_nickname
+        FROM MISSION_SUBMISSION ms
+        JOIN CHILD c ON c.child_id = ms.child_id
+        WHERE c.parent_id = #{parentId}
+          AND ms.status = 'approved'
+          AND ms.reward_given = 'N'
+          AND ms.box_grade IS NOT NULL
+        ORDER BY ms.submission_id DESC
+    </select>
+
     <select id="findRewardBoxes" resultType="com.genai.model.RewardBox">
         SELECT box_grade, box_name, min_exp, max_exp, pet_drop_rate
         FROM REWARD_BOX

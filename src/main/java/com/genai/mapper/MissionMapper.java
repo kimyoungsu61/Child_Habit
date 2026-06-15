@@ -67,6 +67,8 @@ public interface MissionMapper {
 
     List<MissionSubmission> findTodayByParentId(Long parentId);
 
+    List<MissionSubmission> findAvailableRewardsByParentId(Long parentId);
+
     List<RewardBox> findRewardBoxes();
 
     RewardBox findRewardBoxByGrade(String boxGrade);

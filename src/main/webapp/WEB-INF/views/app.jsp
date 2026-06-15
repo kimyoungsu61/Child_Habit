@@ -413,7 +413,7 @@
       </section>
 
       <section class="screen parent-screen" id="parentSubmissionsScreen" data-title="제출 인증 목록 / 승인 대기"
-        data-subtitle="사진/영상 pending 제출물을 검토해요">
+        data-subtitle="사진/영상 승인 대기 제출물을 검토해요">
         <article class="card panel flow-panel">
           <h2>승인 대기 제출물</h2>
           <div class="mission-grade-list" id="parentSubmissionList"></div>

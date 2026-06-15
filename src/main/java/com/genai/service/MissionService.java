@@ -170,6 +170,10 @@ public class MissionService {
         return missionDAO.findTodayByParentId(parentId);
     }
 
+    public List<MissionSubmission> findAvailableRewardsForParent(Long parentId) {
+        return missionDAO.findAvailableRewardsByParentId(parentId);
+    }
+
     public List<RewardBox> findRewardBoxes() {
         return missionDAO.findRewardBoxes();
     }

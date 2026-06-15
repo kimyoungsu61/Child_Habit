@@ -163,6 +163,12 @@ public class MissionDAO {
         }
     }
 
+    public List<MissionSubmission> findAvailableRewardsByParentId(Long parentId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
+            return session.getMapper(MissionMapper.class).findAvailableRewardsByParentId(parentId);
+        }
+    }
+
     public List<RewardBox> findRewardBoxes() {
         try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
             return session.getMapper(MissionMapper.class).findRewardBoxes();
