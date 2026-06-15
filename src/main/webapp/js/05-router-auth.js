@@ -59,6 +59,7 @@ function configureDefaultNav() {
 const pageHistory = [];
 const navigationRootScreens = new Set(["homeScreen", "parentScreen"]);
 const entryFallbackScreens = new Set(["childCharacterCreateScreen", "childProfileScreen"]);
+const APP_HISTORY_KEY = "dduuttnnScreen";
 
 function getActiveScreenId() {
   return document.querySelector(".screen.active")?.id || "";
@@ -107,6 +108,20 @@ function getRoleRootScreenId() {
   return appState.role === "parent" ? "parentScreen" : "homeScreen";
 }
 
+function syncBrowserScreenHistory(screenId, mode = "push") {
+  if (!window.history || !appRoot.classList.contains("is-entered")) return;
+  const state = {
+    ...(window.history.state || {}),
+    [APP_HISTORY_KEY]: screenId,
+    dduuttnnRole: appState.role
+  };
+  if (mode === "replace") {
+    window.history.replaceState(state, "", window.location.href);
+    return;
+  }
+  window.history.pushState(state, "", window.location.href);
+}
+
 function rememberPageHistory(targetScreenId) {
   const currentScreenId = getActiveScreenId();
   if (!currentScreenId || currentScreenId === targetScreenId) return;
@@ -132,11 +147,11 @@ function goBackPage() {
     }
     const rootScreenId = getRoleRootScreenId();
     if (getActiveScreenId() !== rootScreenId) {
-      switchTab(rootScreenId, { skipHistory: true });
+      switchTab(rootScreenId, { skipHistory: true, replaceBrowserHistory: true });
     }
     return;
   }
-  switchTab(previousScreenId, { skipHistory: true });
+  switchTab(previousScreenId, { skipHistory: true, replaceBrowserHistory: true });
 }
 
 function isEditableBackspaceTarget(target) {
@@ -168,6 +183,14 @@ function handleBackspaceNavigation(event) {
 }
 
 document.addEventListener("keydown", handleBackspaceNavigation);
+
+window.addEventListener("popstate", event => {
+  if (!appRoot.classList.contains("is-entered")) return;
+  const screenId = event.state?.[APP_HISTORY_KEY];
+  if (!screenId || !document.getElementById(screenId)) return;
+  if (navigationRootScreens.has(screenId)) pageHistory.length = 0;
+  switchTab(screenId, { skipHistory: true, skipBrowserHistory: true });
+});
 
 // 짧은 안내 문구를 화면 아래 toast로 보여줍니다.
 function showToast(message) {
@@ -251,6 +274,9 @@ function switchTab(screenId, options = {}) {
   if (screenId === "homeScreen" && typeof maybeShowMaxLevelCelebration === "function") {
     window.setTimeout(maybeShowMaxLevelCelebration, 0);
   }
+  if (!options.skipBrowserHistory) {
+    syncBrowserScreenHistory(screenId, options.replaceBrowserHistory ? "replace" : "push");
+  }
   updateBackNavigationControls();
   requestAnimationFrame(() => {
     appRoot.scrollTop = 0;
@@ -265,7 +291,7 @@ function enterChild(startScreenId = "homeScreen") {
   appRoot.classList.add("is-entered");
   configureNavForRole("child");
   pageHistory.length = 0;
-  switchTab(startScreenId, { skipHistory: true });
+  switchTab(startScreenId, { skipHistory: true, replaceBrowserHistory: true });
   renderPet();
   renderMission();
   renderDex();
@@ -280,7 +306,7 @@ function enterParent() {
   appRoot.classList.add("is-entered");
   configureNavForRole("parent");
   pageHistory.length = 0;
-  switchTab("parentScreen", { skipHistory: true });
+  switchTab("parentScreen", { skipHistory: true, replaceBrowserHistory: true });
   renderMission();
   renderInvite();
   renderMyPage();
