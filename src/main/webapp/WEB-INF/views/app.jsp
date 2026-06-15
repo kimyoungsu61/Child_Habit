@@ -56,7 +56,7 @@
           <h2>보호자 회원가입</h2>
           <label class="entry-field" for="joinParentName">
             <span>보호자 이름</span>
-            <input id="joinParentName" type="text" placeholder="김보호자" autocomplete="off" />
+            <input id="joinParentName" type="text" placeholder="이름" autocomplete="off" />
           </label>
           <label class="entry-field" for="joinParentEmail">
             <span>이메일</span>
