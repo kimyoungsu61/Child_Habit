@@ -1782,7 +1782,7 @@ async function startVideoRecording() {
     stopVideoCamera();
     if (videoRecordingReady) showRecordedVideo(capturedVideoBlob);
     setCaptureNotice(videoRecordingReady
-      ? `녹화 완료: ${Math.max(1, Math.round(capturedVideoBlob.size / 1024))} KB`
+      ? "녹화가 끝났어요. 이제 제출할 수 있어요."
       : "녹화된 영상이 없습니다. 다시 녹화해 주세요.");
     setCapturePlaceholder(videoRecordingReady
       ? "✅\n녹화가 완료되었어요"

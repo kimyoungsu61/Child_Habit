@@ -178,7 +178,7 @@
             </span>
           </div>
           <div class="camera-box" id="cameraBox">
-            <span class="rec-pill"><span class="rec-dot"></span><span id="recText">REC 00:00</span></span>
+            <span class="rec-pill"><span class="rec-dot"></span><span id="recText">녹화 00:00</span></span>
             <span id="previewText">카메라 미리보기</span>
           </div>
           <div class="action-row">
@@ -424,7 +424,7 @@
         data-subtitle="사진/영상 제출물을 승인하거나 거절해요">
         <article class="card panel review-card">
           <h2>제출 상세</h2>
-          <div class="review-preview" id="parentSubmissionPreview">영상/이미지 placeholder</div>
+          <div class="review-preview" id="parentSubmissionPreview">제출물을 선택해 주세요</div>
           <div class="info-row"><span>아이</span><span id="parentSubmissionChild">유리</span></div>
           <div class="info-row"><span>인증 유형</span><span id="parentSubmissionMediaType">영상 인증</span></div>
           <div class="info-row"><span>미션 등급</span><span id="parentSubmissionGrade">하급</span></div>
@@ -518,12 +518,12 @@
 
           <div class="camera-device-row">
             <label class="entry-field camera-device-field" for="cameraDeviceSelect">
-              <span>카메라 선택</span>
+              <span>사용할 카메라</span>
               <select id="cameraDeviceSelect">
                 <option value="">기본 카메라</option>
               </select>
             </label>
-            <button class="btn camera-refresh-btn" type="button" id="refreshCameraDevicesBtn">장치 새로고침</button>
+            <button class="btn camera-refresh-btn" type="button" id="refreshCameraDevicesBtn">카메라 다시 찾기</button>
           </div>
 
           <div class="capture-stage" id="childCaptureStage">
@@ -916,13 +916,13 @@
       window.APP_CONTEXT_PATH = window.APP_CONTEXT;
     </script>
     <script src="${pageContext.request.contextPath}/js/00-servlet-map.js?v=pet-stage-20260610-2"></script>
-    <script src="${pageContext.request.contextPath}/js/01-state.js?v=invite-code-copy-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/01-state.js?v=camera-switch-permission-20260615"></script>
     <script src="${pageContext.request.contextPath}/js/02-pet-mission.js?v=mission-capture-type-20260613"></script>
     <script src="${pageContext.request.contextPath}/js/03-profile-character.js?v=empty-profile-avatar-20260614"></script>
-    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=invite-code-copy-20260613"></script>
+    <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=camera-korean-labels-20260615"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=parent-nav-label-20260614"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=mission-capture-type-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=daily-mission-assignment-20260614"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=camera-korean-labels-20260615"></script>
   </body>
 
   </html>
