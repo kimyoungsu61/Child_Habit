@@ -117,7 +117,7 @@
           </div>
           <div class="pet-summary">
             <div>
-              <h2>오늘의 대표 펫</h2>
+              <h2>나의 펫</h2>
               <p id="petMeta">몽글 · Lv.1</p>
             </div>
             <button class="theme-chip" id="themeButton" type="button" aria-label="테마 선택">

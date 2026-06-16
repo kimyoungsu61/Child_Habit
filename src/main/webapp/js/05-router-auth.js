@@ -197,7 +197,7 @@ function showToast(message) {
   clearTimeout(toastTimer);
   toast.textContent = message;
   toast.classList.add("show");
-  toastTimer = setTimeout(() => toast.classList.remove("show"), 7000);
+  toastTimer = setTimeout(() => toast.classList.remove("show"), 5000);
 }
 
 // 상세 화면에 들어가도 하단 메뉴에서는 대표 탭이 active로 보이게 묶어줍니다.
