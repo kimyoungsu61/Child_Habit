@@ -805,16 +805,16 @@ function applyProfileAvatarCrop(point, size) {
   }
 
   // 3. object-fit: cover 기준 계산하기 (모달에서 보이는 이미지 위치와 크기를 계산하는 단계)
-  const coverScale = Math.max(viewRect.width / imageWidth, viewRect.height / imageHeight);
-  const renderedWidth = imageWidth * coverScale;
-  const renderedHeight = imageHeight * coverScale;
+  const fitScale = Math.min(viewRect.width / imageWidth, viewRect.height / imageHeight);
+  const renderedWidth = imageWidth * fitScale;
+  const renderedHeight = imageHeight * fitScale;
   const imageLeft = (viewRect.width - renderedWidth) / 2;
   const imageTop = (viewRect.height - renderedHeight) / 2;
   const cropLeft = selectorRect.left - viewRect.left;
   const cropTop = selectorRect.top - viewRect.top;
   const cropSize = selectorRect.width;
 
-  if (!hasSafeAvatarMetrics([coverScale, renderedWidth, renderedHeight, imageLeft, imageTop, cropLeft, cropTop, cropSize]) || cropSize <= 0) {
+  if (!hasSafeAvatarMetrics([fitScale, renderedWidth, renderedHeight, imageLeft, imageTop, cropLeft, cropTop, cropSize]) || cropSize <= 0) {
     document.querySelectorAll(".profile-avatar.profile-photo").forEach(avatar => {
       setDefaultProfileAvatar(avatar, fallbackImage);
     });

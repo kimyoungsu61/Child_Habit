@@ -13,6 +13,10 @@ public interface GameProfileMapper {
 
     Pet findStarterPetById(Long petId);
 
+    Pet findPetById(Long petId);
+
+    Pet findPetByName(String petName);
+
     int updateNickname(@Param("childId") Long childId, @Param("nickname") String nickname);
 
     int updateCharacterImage(@Param("childId") Long childId,

@@ -124,4 +124,17 @@ public interface MissionMapper {
     List<RewardInventoryItem> findRewardInventoryForChild(Long childId);
 
     List<ActivityRecord> findActivityHistoryForChild(Long childId);
+
+    int countAvailableRewardByGrade(@Param("childId") Long childId,
+            @Param("boxGrade") String boxGrade);
+
+    Long findAdminDemoMissionId(@Param("childId") Long childId,
+            @Param("boxGrade") String boxGrade);
+
+    int insertAdminDemoMission(@Param("childId") Long childId,
+            @Param("boxGrade") String boxGrade);
+
+    int insertAdminDemoApprovedSubmission(@Param("childId") Long childId,
+            @Param("missionId") Long missionId,
+            @Param("boxGrade") String boxGrade);
 }

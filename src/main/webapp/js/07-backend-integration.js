@@ -77,6 +77,7 @@ function isAdminDemoMode() {
 
 function resetChildClientContext() {
   clearChildContextStorage();
+  if (typeof finishPetAction === "function") finishPetAction();
   stopFrameAnimation();
   setPetHomeLoading(true);
   clearProfilePreviewFrame();
@@ -656,6 +657,31 @@ function applyOwnedPetStates(ownedPets = []) {
   });
 }
 
+function animateAdminDemoExpGauge(previousLevel, nextLevel) {
+  if (!isAdminDemoMode() || !expFill || !expText || !expPercent) return Promise.resolve();
+  if (nextLevel <= previousLevel) return Promise.resolve();
+
+  const startExp = Math.max(0, Math.min(300, Number(appState.pet.exp) || 0));
+  const startPercent = Math.round((startExp / 300) * 100);
+  expFill.style.transition = "none";
+  expFill.style.width = `${startPercent}%`;
+  expText.textContent = `EXP ${startExp} / 300`;
+  expPercent.textContent = `${startPercent}%`;
+
+  return new Promise(resolve => {
+    requestAnimationFrame(() => {
+      expFill.style.transition = "width 620ms ease-out";
+      expFill.style.width = "100%";
+      expText.textContent = "EXP 300 / 300";
+      expPercent.textContent = "100%";
+      window.setTimeout(() => {
+        expFill.style.transition = "";
+        resolve();
+      }, 680);
+    });
+  });
+}
+
 function applyInteractionCooldowns(cooldowns = {}) {
   interactionCooldownEnds = Object.fromEntries(
     Object.entries(cooldowns).map(([action, cooldownEndsAt]) => [
@@ -678,6 +704,15 @@ function formatInteractionCooldown(remainingMs) {
 
 function renderInteractionCooldowns(now = Date.now()) {
   document.querySelectorAll(".interaction-btn[data-action]").forEach(button => {
+    if (isAdminDemoMode()) {
+      button.disabled = false;
+      button.setAttribute("aria-disabled", "false");
+      button.classList.remove("cooling");
+      button.style.setProperty("--cooldown-progress", "100%");
+      const adminStatus = button.querySelector("small");
+      if (adminStatus) adminStatus.textContent = "EXP 준비 완료";
+      return;
+    }
     const action = button.dataset.action;
     const remaining = interactionCooldownRemaining(action, now);
     const elapsed = INTERACTION_COOLDOWN_MS - Math.min(
@@ -724,6 +759,30 @@ function maybeShowMaxLevelCelebration() {
 
   const modal = document.getElementById("maxLevelModal");
   if (!modal || modal.classList.contains("active")) return;
+
+  if (isAdminDemoMode()) {
+    const adminUnlockedPets = petDex.filter(pet => pet.owned && pet.badgeAcquired);
+    const adminCelebrationKey = `${MAX_LEVEL_CELEBRATION_KEY}:admin-demo-all`;
+    if (adminUnlockedPets.length >= 6 && !hasSeenMaxLevelCelebration(adminCelebrationKey)) {
+      const title = document.getElementById("maxLevelTitle");
+      const badgeImage = document.getElementById("maxLevelBadgeImage");
+      const badgeTitle = document.querySelector(".max-level-badge-title");
+      const message = document.querySelector("#maxLevelModal p");
+      if (title) title.textContent = "전체 해금 완료!";
+      if (badgeImage) {
+        badgeImage.src = petDex[0]?.badgeImage || "";
+        badgeImage.alt = "전체 뱃지 해금";
+      }
+      if (badgeTitle) badgeTitle.textContent = "펫 6종, 뱃지 6개, 액자가 모두 해금됐어요!";
+      if (message) message.textContent = "시연용 admin 계정에서 전체 보상을 한 번에 확인할 수 있어요.";
+      petDex.forEach(pet => rememberMaxLevelCelebration(maxLevelCelebrationStorageKey(pet)));
+      rememberMaxLevelCelebration(adminCelebrationKey);
+      modal.classList.add("active");
+      modal.setAttribute("aria-hidden", "false");
+    }
+    return;
+  }
+
   const celebrationPet = petDex.find(pet => {
     const maxed = pet.badgeAcquired || Number(pet.level) >= 10;
     return pet.owned && maxed
@@ -734,6 +793,14 @@ function maybeShowMaxLevelCelebration() {
 
   const petName = document.getElementById("maxLevelPetName");
   const badgeImage = document.getElementById("maxLevelBadgeImage");
+  const title = document.getElementById("maxLevelTitle");
+  const badgeTitle = document.querySelector(".max-level-badge-title");
+  const message = document.querySelector("#maxLevelModal p");
+  if (title) title.textContent = "최고 레벨 달성!";
+  if (badgeTitle) {
+    badgeTitle.innerHTML = `🏅 '<span id="maxLevelPetName">${escapeHtml(celebrationPet.name)}</span>' 성장 뱃지 획득`;
+  }
+  if (message) message.textContent = "뱃지 도감에 새롭게 등록됐어!";
   if (petName) petName.textContent = celebrationPet.name;
   if (badgeImage) {
     badgeImage.src = celebrationPet.badgeImage || "";
@@ -1628,6 +1695,7 @@ document.querySelectorAll(
 
 document.querySelectorAll("[data-action]").forEach(button => {
   interceptClick(button, async () => {
+    if (isAdminDemoMode() && typeof finishPetAction === "function") finishPetAction();
     if (!beginPetAction()) return;
     const action = button.dataset.action;
     try {
@@ -1636,6 +1704,8 @@ document.querySelectorAll("[data-action]").forEach(button => {
         body: formData({ action })
       });
       const previousLevel = appState.pet.level;
+      const nextLevel = Math.max(1, Number(interactionResult.currentLevel) || previousLevel);
+      await animateAdminDemoExpGauge(previousLevel, nextLevel);
       applyActivePetState(interactionResult);
       applyInteractionCooldowns(interactionResult.interactionCooldowns);
       applyOwnedPetStates(interactionResult.ownedPets);
@@ -1643,6 +1713,12 @@ document.querySelectorAll("[data-action]").forEach(button => {
         addExperience: false,
         lockAlreadyAcquired: true
       });
+      if (isAdminDemoMode()) {
+        window.setTimeout(() => {
+          if (typeof finishPetAction === "function") finishPetAction();
+          renderInteractionCooldowns();
+        }, 900);
+      }
       if (interactionResult.expGranted) {
         showToast(`EXP +${interactionResult.expAmount}를 받았어요!`);
       } else {

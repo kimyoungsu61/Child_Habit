@@ -678,6 +678,72 @@
         ORDER BY CASE rb.box_grade WHEN 'low' THEN 1 WHEN 'middle' THEN 2 ELSE 3 END
     </select>
 
+    <select id="countAvailableRewardByGrade" resultType="int">
+        SELECT COUNT(*)
+        FROM MISSION_SUBMISSION
+        WHERE child_id = #{childId}
+          AND box_grade = #{boxGrade}
+          AND status = 'approved'
+          AND reward_given = 'N'
+    </select>
+
+    <select id="findAdminDemoMissionId" resultType="long">
+        SELECT mission_id
+        FROM MISSION
+        WHERE child_id = #{childId}
+          AND mission_title = 'admin_demo_box_' || #{boxGrade}
+          AND ROWNUM = 1
+    </select>
+
+    <insert id="insertAdminDemoMission">
+        INSERT INTO MISSION (
+            mission_id,
+            parent_id,
+            child_id,
+            mission_title,
+            mission_description,
+            mission_grade,
+            media_type,
+            is_active
+        )
+        SELECT seq_mission.NEXTVAL,
+               c.parent_id,
+               c.child_id,
+               'admin_demo_box_' || #{boxGrade},
+               'Admin demo reward box seed',
+               #{boxGrade},
+               'photo',
+               'Y'
+        FROM CHILD c
+        WHERE c.child_id = #{childId}
+    </insert>
+
+    <insert id="insertAdminDemoApprovedSubmission">
+        INSERT INTO MISSION_SUBMISSION (
+            submission_id,
+            mission_id,
+            child_id,
+            mission_date,
+            box_grade,
+            media_type,
+            media_url,
+            status,
+            reviewed_at,
+            reward_given
+        ) VALUES (
+            seq_mission_submission.NEXTVAL,
+            #{missionId},
+            #{childId},
+            TRUNC(SYSDATE),
+            #{boxGrade},
+            'photo',
+            '/admin-demo/box-' || #{boxGrade},
+            'approved',
+            SYSTIMESTAMP,
+            'N'
+        )
+    </insert>
+
     <select id="findActivityHistoryForChild" parameterType="long"
             resultType="com.genai.model.ActivityRecord">
         SELECT activity_type,

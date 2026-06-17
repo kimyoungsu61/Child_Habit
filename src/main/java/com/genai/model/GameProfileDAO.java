@@ -126,6 +126,30 @@ public class GameProfileDAO {
         }
     }
 
+    public void ensureAdminDemoProfile(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            GameProfileMapper mapper = session.getMapper(GameProfileMapper.class);
+            Pet mongle = mapper.findPetById(1L);
+            if (mongle == null) {
+                throw new IllegalStateException("Admin demo pet mongle is missing.");
+            }
+            mapper.updateNickname(childId, "admin");
+            mapper.updateCharacterImage(childId, "/assets/characters/avatar-smile-none.svg");
+            if (mapper.countOwnedPet(childId, mongle.getPetId()) == 0) {
+                ChildPet childPet = new ChildPet();
+                childPet.setChildId(childId);
+                childPet.setPetId(mongle.getPetId());
+                mapper.insertChildPet(childPet);
+            }
+            mapper.deactivateChildPets(childId);
+            if (mapper.activateChildPet(childId, mongle.getPetId()) != 1) {
+                session.rollback();
+                throw new IllegalStateException("Admin demo pet could not be activated.");
+            }
+            session.commit();
+        }
+    }
+
     public PetInteractionResult interactWithActivePetForAdminDemo(
             Long childId, String actionType, int levelAmount) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {

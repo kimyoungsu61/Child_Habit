@@ -4,6 +4,8 @@ import java.util.Locale;
 
 import com.genai.model.ChildAccountDAO;
 import com.genai.model.ChildProfile;
+import com.genai.model.GameProfileDAO;
+import com.genai.model.MissionDAO;
 import com.genai.model.Parent;
 
 public class AdminDemoService {
@@ -14,17 +16,24 @@ public class AdminDemoService {
 
     private final ParentService parentService;
     private final ChildAccountDAO childAccountDAO;
+    private final GameProfileDAO gameProfileDAO;
+    private final MissionDAO missionDAO;
     private final PasswordHasher passwordHasher;
 
     public AdminDemoService() {
-        this(new ParentService(), new ChildAccountDAO(), new PasswordHasher());
+        this(new ParentService(), new ChildAccountDAO(),
+                new GameProfileDAO(), new MissionDAO(), new PasswordHasher());
     }
 
     AdminDemoService(ParentService parentService,
             ChildAccountDAO childAccountDAO,
+            GameProfileDAO gameProfileDAO,
+            MissionDAO missionDAO,
             PasswordHasher passwordHasher) {
         this.parentService = parentService;
         this.childAccountDAO = childAccountDAO;
+        this.gameProfileDAO = gameProfileDAO;
+        this.missionDAO = missionDAO;
         this.passwordHasher = passwordHasher;
     }
 
@@ -44,10 +53,17 @@ public class AdminDemoService {
         childAccountDAO.ensureInvite(parent.getParentId(), ADMIN_INVITE_CODE);
         ChildProfile child = childAccountDAO.findByInviteCode(ADMIN_INVITE_CODE);
         if (child != null) {
-            return child;
+            return prepareAdminChild(child);
         }
-        return childAccountDAO.createChildForExistingInvite(
+        child = childAccountDAO.createChildForExistingInvite(
                 parent.getParentId(), ADMIN_CHILD_NICKNAME, ADMIN_INVITE_CODE);
+        return prepareAdminChild(child);
+    }
+
+    private ChildProfile prepareAdminChild(ChildProfile child) {
+        gameProfileDAO.ensureAdminDemoProfile(child.getChildId());
+        missionDAO.ensureAdminDemoRewardBoxes(child.getChildId());
+        return childAccountDAO.findById(child.getChildId());
     }
 
     public void resetAdminChildDemo() {

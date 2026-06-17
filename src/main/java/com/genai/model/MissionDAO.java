@@ -1,6 +1,7 @@
 package com.genai.model;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ibatis.session.SqlSession;
 
@@ -9,6 +10,9 @@ import com.genai.mapper.GameProfileMapper;
 import com.genai.mapper.MissionMapper;
 
 public class MissionDAO {
+    private static final Set<String> ADMIN_DEMO_BOX_GRADES =
+            Set.of("low", "middle", "high");
+
     public void createMission(Mission mission) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
             MissionMapper mapper = session.getMapper(MissionMapper.class);
@@ -271,6 +275,28 @@ public class MissionDAO {
             ChildPet activePet = gameProfileMapper.findActivePet(childId);
             session.commit();
             return activePet;
+        }
+    }
+
+    public void ensureAdminDemoRewardBoxes(Long childId) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            MissionMapper mapper = session.getMapper(MissionMapper.class);
+            for (String boxGrade : ADMIN_DEMO_BOX_GRADES) {
+                if (mapper.countAvailableRewardByGrade(childId, boxGrade) > 0) {
+                    continue;
+                }
+                Long missionId = mapper.findAdminDemoMissionId(childId, boxGrade);
+                if (missionId == null) {
+                    mapper.insertAdminDemoMission(childId, boxGrade);
+                    missionId = mapper.findAdminDemoMissionId(childId, boxGrade);
+                }
+                if (missionId == null) {
+                    session.rollback();
+                    throw new IllegalStateException("Admin demo mission could not be created.");
+                }
+                mapper.insertAdminDemoApprovedSubmission(childId, missionId, boxGrade);
+            }
+            session.commit();
         }
     }
 

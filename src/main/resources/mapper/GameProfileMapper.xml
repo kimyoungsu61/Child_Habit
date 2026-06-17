@@ -42,6 +42,21 @@
           AND acquisition_type = 'default'
     </select>
 
+    <select id="findPetById" parameterType="long" resultType="com.genai.model.Pet">
+        SELECT pet_id, pet_name, pet_image_url, acquisition_type, max_level,
+               badge_name, badge_image_url, description
+        FROM PET
+        WHERE pet_id = #{petId}
+    </select>
+
+    <select id="findPetByName" parameterType="string" resultType="com.genai.model.Pet">
+        SELECT pet_id, pet_name, pet_image_url, acquisition_type, max_level,
+               badge_name, badge_image_url, description
+        FROM PET
+        WHERE pet_name = #{petName}
+          AND ROWNUM = 1
+    </select>
+
     <update id="updateNickname">
         UPDATE CHILD
         SET nickname = #{nickname}
@@ -243,7 +258,7 @@
         JOIN PET p ON p.pet_id = cp.pet_id
         WHERE cp.child_id = #{childId}
           AND cp.is_active = 'Y'
-          AND p.pet_name = 'mongle'
+          AND cp.pet_id = 1
           AND cp.is_maxed = 'Y'
     </select>
 
@@ -254,7 +269,7 @@
                    pet_id,
                    max_level
             FROM PET
-            WHERE pet_name IN ('mongle', 'pogeun', 'haeon', 'nuri', 'aro', 'roa')
+            WHERE pet_id BETWEEN 1 AND 6
         ) source
         ON (
             target.child_id = source.child_id
@@ -264,9 +279,7 @@
             target.current_level = source.max_level,
             target.current_exp = (source.max_level - 1) * 300,
             target.is_active = CASE
-                WHEN target.pet_id = (
-                    SELECT pet_id FROM PET WHERE pet_name = 'mongle' AND ROWNUM = 1
-                ) THEN 'Y'
+                WHEN target.pet_id = 1 THEN 'Y'
                 ELSE 'N'
             END,
             target.is_maxed = 'Y',
@@ -289,9 +302,7 @@
             source.max_level,
             (source.max_level - 1) * 300,
             CASE
-                WHEN source.pet_id = (
-                    SELECT pet_id FROM PET WHERE pet_name = 'mongle' AND ROWNUM = 1
-                ) THEN 'Y'
+                WHEN source.pet_id = 1 THEN 'Y'
                 ELSE 'N'
             END,
             'Y',
