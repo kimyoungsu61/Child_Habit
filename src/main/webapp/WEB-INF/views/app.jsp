@@ -104,6 +104,9 @@
             </div>
           </div>
           <button class="btn primary full" id="completeChildProfileBtn" type="button">완료</button>
+          <button class="btn ghost full admin-profile-skip" id="adminSkipProfileBtn" type="button" data-admin-profile-skip hidden>
+            admin 데모로 바로 시작
+          </button>
         </article>
       </section>
 
@@ -819,6 +822,9 @@
           </div>
           <div class="character-summary" id="characterSummary" hidden></div>
           <button class="btn mint full" id="startWithCharacterBtn" type="button" hidden>이 캐릭터로 시작하기</button>
+          <button class="btn ghost full admin-profile-skip" id="adminSkipCharacterBtn" type="button" data-admin-profile-skip hidden>
+            admin 데모로 바로 시작
+          </button>
         </article>
       </section>
 

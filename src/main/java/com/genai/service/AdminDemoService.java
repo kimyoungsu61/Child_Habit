@@ -53,10 +53,17 @@ public class AdminDemoService {
         childAccountDAO.ensureInvite(parent.getParentId(), ADMIN_INVITE_CODE);
         ChildProfile child = childAccountDAO.findByInviteCode(ADMIN_INVITE_CODE);
         if (child != null) {
-            return prepareAdminChild(child);
+            return child;
         }
-        child = childAccountDAO.createChildForExistingInvite(
+        return childAccountDAO.createChildForExistingInvite(
                 parent.getParentId(), ADMIN_CHILD_NICKNAME, ADMIN_INVITE_CODE);
+    }
+
+    public ChildProfile prepareAdminChild(Long childId) {
+        ChildProfile child = childAccountDAO.findById(childId);
+        if (child == null || !isAdminChild(child)) {
+            return child;
+        }
         return prepareAdminChild(child);
     }
 

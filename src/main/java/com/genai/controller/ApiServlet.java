@@ -176,8 +176,7 @@ public class ApiServlet extends HttpServlet {
         } else if (child != null) {
             data.put("role", "child");
             data.put("child", childMap(child));
-            data.put("setupComplete", adminDemoService.isAdminChild(child)
-                    || isSetupComplete(child.getChildId()));
+            data.put("setupComplete", isSetupComplete(child.getChildId()));
         } else {
             data.put("role", "guest");
         }
@@ -243,8 +242,7 @@ public class ApiServlet extends HttpServlet {
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("role", "child");
         data.put("child", childMap(child));
-        data.put("setupComplete", adminDemoService.isAdminChild(child)
-                || isSetupComplete(child.getChildId()));
+        data.put("setupComplete", isSetupComplete(child.getChildId()));
         data.put("starterPets", petMaps(gameProfileService.findStarterPets()));
         success(response, data);
     }
@@ -307,8 +305,7 @@ public class ApiServlet extends HttpServlet {
         ChildPet activePet = gameProfileService.findActivePet(child.getChildId());
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("child", childMap(child));
-        data.put("setupComplete", adminDemoService.isAdminChild(child)
-                || (child.getCharacterImageUrl() != null && activePet != null));
+        data.put("setupComplete", child.getCharacterImageUrl() != null && activePet != null);
         data.put("activePet", activePet == null ? null : childPetMap(activePet));
         data.put("interactionCooldowns",
                 interactionCooldownMap(
@@ -454,7 +451,9 @@ public class ApiServlet extends HttpServlet {
                 preset.isBlank() ? "forest" : preset,
                 characterImageUrl,
                 petId);
-        ChildProfile refreshed = childAccountService.findById(child.getChildId());
+        ChildProfile refreshed = adminDemoService.isAdminChild(child)
+                ? adminDemoService.prepareAdminChild(child.getChildId())
+                : childAccountService.findById(child.getChildId());
         request.getSession(false).setAttribute(SessionKeys.CHILD, refreshed);
         success(response, Map.of("child", childMap(refreshed)));
     }

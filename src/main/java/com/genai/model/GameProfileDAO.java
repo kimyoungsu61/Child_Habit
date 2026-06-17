@@ -133,8 +133,6 @@ public class GameProfileDAO {
             if (mongle == null) {
                 throw new IllegalStateException("Admin demo pet mongle is missing.");
             }
-            mapper.updateNickname(childId, "admin");
-            mapper.updateCharacterImage(childId, "/assets/characters/avatar-smile-none.svg");
             if (mapper.countOwnedPet(childId, mongle.getPetId()) == 0) {
                 ChildPet childPet = new ChildPet();
                 childPet.setChildId(childId);

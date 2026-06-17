@@ -75,6 +75,12 @@ function isAdminDemoMode() {
     || normalizeInviteCode(appState.child?.inviteCode) === "ADMIN";
 }
 
+function updateAdminProfileSkipButton() {
+  adminProfileSkipBtns?.forEach(button => {
+    button.hidden = !isAdminDemoMode();
+  });
+}
+
 function resetChildClientContext() {
   clearChildContextStorage();
   if (typeof finishPetAction === "function") finishPetAction();
@@ -1353,12 +1359,14 @@ async function restoreSession() {
     resetChildClientContext();
     appState.child.childId = session.child?.childId || null;
     appState.child.inviteCode = session.child?.inviteCode || "";
+    appState.child.adminDemoMode = Boolean(session.child?.adminDemoMode);
     if (session.child?.inviteCode) setCurrentInviteCode(session.child.inviteCode);
     if (session.setupComplete) {
       enterChild("homeScreen");
       await loadChildHome({ initial: true });
     } else {
       resetCharacterCreateState();
+      updateAdminProfileSkipButton();
       enterChild("childCharacterCreateScreen");
     }
   }
@@ -1395,6 +1403,7 @@ async function loginChildFromInvite() {
   appState.child.childId = data.child.childId;
   appState.child.inviteCode = data.child.inviteCode || "";
   appState.child.frameType = data.child.frameType || "";
+  appState.child.adminDemoMode = Boolean(data.child.adminDemoMode);
   setCurrentInviteCode(data.child.inviteCode);
   appState.child.nickname = data.child.nickname;
   if (data.setupComplete) {
@@ -1403,6 +1412,7 @@ async function loginChildFromInvite() {
   } else {
     resetCharacterCreateState();
     childNicknameInput.value = "";
+    updateAdminProfileSkipButton();
     enterChild("childCharacterCreateScreen");
   }
 }
@@ -2231,6 +2241,7 @@ interceptClick(startWithCharacterBtn, async () => {
   renderHomeProfileCharacter();
   childNicknameInput.value = "";
   switchTab("childProfileScreen");
+  updateAdminProfileSkipButton();
   childNicknameInput.focus();
 });
 
@@ -2264,6 +2275,32 @@ interceptClick(completeChildProfileBtn, async () => {
   enterChild("homeScreen");
   showToast("아이 프로필이 등록되었습니다.");
 });
+
+async function startAdminDemoWithDefaultProfile() {
+  if (!isAdminDemoMode()) return;
+  const nickname = childNicknameInput?.value.trim() || "admin";
+  await apiRequest("/child/setup", {
+    method: "POST",
+    body: formData({
+      nickname,
+      characterPreset: "forest",
+      characterImageUrl: "/assets/characters/avatar-smile-none.svg"
+    })
+  });
+  saveChildProfile({
+    childId: serverChildHome?.child?.childId || appState.child.childId || getCurrentInviteCode(),
+    inviteCode: getCurrentInviteCode(),
+    nickname,
+    profileImage: "/assets/characters/avatar-smile-none.svg",
+    generatedCharacter: null
+  });
+  await loadChildHome({ initial: true });
+  enterChild("homeScreen");
+  showToast("admin 데모 프로필로 시작합니다.");
+}
+
+interceptClick(adminSkipProfileBtn, startAdminDemoWithDefaultProfile);
+interceptClick(adminSkipCharacterBtn, startAdminDemoWithDefaultProfile);
 
 window.addEventListener("pageshow", () => {
   if (parentJoinCard?.classList.contains("active")) {
