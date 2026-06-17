@@ -761,7 +761,13 @@ function rememberMaxLevelCelebration(key) {
 }
 
 function maybeShowMaxLevelCelebration() {
-  if (appState.role !== "child" || getActiveScreenId() !== "homeScreen") return;
+  const activeScreenId = getActiveScreenId();
+  if (appState.role !== "child") return;
+  if (!isAdminDemoMode() && activeScreenId !== "homeScreen") return;
+  if (isAdminDemoMode()
+      && !["homeScreen", "childRewardOpenScreen", "childExpResultScreen"].includes(activeScreenId)) {
+    return;
+  }
 
   const modal = document.getElementById("maxLevelModal");
   if (!modal || modal.classList.contains("active")) return;
@@ -769,11 +775,19 @@ function maybeShowMaxLevelCelebration() {
   if (isAdminDemoMode()) {
     const adminUnlockedPets = petDex.filter(pet => pet.owned && pet.badgeAcquired);
     const adminCelebrationKey = `${MAX_LEVEL_CELEBRATION_KEY}:admin-demo-all`;
-    if (adminUnlockedPets.length >= 6 && !hasSeenMaxLevelCelebration(adminCelebrationKey)) {
+    if (adminUnlockedPets.length >= 6 && !shownMaxLevelCelebrations.has(adminCelebrationKey)) {
       const title = document.getElementById("maxLevelTitle");
       const badgeImage = document.getElementById("maxLevelBadgeImage");
+      const badgePreview = document.querySelector(".max-level-badge-preview");
       const badgeTitle = document.querySelector(".max-level-badge-title");
       const message = document.querySelector("#maxLevelModal p");
+      if (badgePreview) {
+        badgePreview.classList.add("all-badges");
+        badgePreview.innerHTML = adminUnlockedPets.slice(0, 6).map(pet => `
+          <img src="${escapeHtml(pet.badgeImage || "")}"
+            alt="${escapeHtml(pet.badgeName || `${pet.name} 뱃지`)}">
+        `).join("");
+      }
       if (title) title.textContent = "전체 해금 완료!";
       if (badgeImage) {
         badgeImage.src = petDex[0]?.badgeImage || "";
@@ -799,6 +813,7 @@ function maybeShowMaxLevelCelebration() {
 
   const petName = document.getElementById("maxLevelPetName");
   const badgeImage = document.getElementById("maxLevelBadgeImage");
+  const badgePreview = document.querySelector(".max-level-badge-preview");
   const title = document.getElementById("maxLevelTitle");
   const badgeTitle = document.querySelector(".max-level-badge-title");
   const message = document.querySelector("#maxLevelModal p");
@@ -808,6 +823,12 @@ function maybeShowMaxLevelCelebration() {
   }
   if (message) message.textContent = "뱃지 도감에 새롭게 등록됐어!";
   if (petName) petName.textContent = celebrationPet.name;
+  if (badgePreview) {
+    badgePreview.classList.remove("all-badges");
+    badgePreview.innerHTML = `<img id="maxLevelBadgeImage"
+      src="${escapeHtml(celebrationPet.badgeImage || "")}"
+      alt="${escapeHtml(celebrationPet.badgeName || `${celebrationPet.name} 뱃지`)}">`;
+  }
   if (badgeImage) {
     badgeImage.src = celebrationPet.badgeImage || "";
     badgeImage.alt = celebrationPet.badgeName || `${celebrationPet.name} 성장 뱃지`;
@@ -1281,7 +1302,9 @@ async function loadChildHome(options = {}) {
   renderMyPage();
   updateAppBadges();
   renderBadgeDex();
-  maybeShowMaxLevelCelebration();
+  if (options.suppressMaxLevelCelebration !== true) {
+    maybeShowMaxLevelCelebration();
+  }
   if (initialLoad) {
     await Promise.all([
       loadProfilePreviewFrame(getCurrentProfileFrame()),
@@ -2142,8 +2165,9 @@ async function openSelectedRewardBoxes(quantity = 1) {
     };
     appState.lastRewardExp = totalExp;
     renderExpResult(enrichedResult);
-    await loadChildHome();
+    await loadChildHome({ suppressMaxLevelCelebration: true });
     await motionPromise;
+    maybeShowMaxLevelCelebration();
     const remainingCount = openableRewardSubmissions(grade).length;
     const totalRemainingCount = availableRewardBoxCount();
     if (guide) {
@@ -2178,7 +2202,8 @@ async function openSelectedRewardBoxes(quantity = 1) {
         boxCount: openedCount,
         boxLabel: meta.label
       });
-      await loadChildHome().catch(() => {});
+      await loadChildHome({ suppressMaxLevelCelebration: true }).catch(() => {});
+      maybeShowMaxLevelCelebration();
       if (resultBox) resultBox.hidden = false;
       if (typeof playRewardOpenFanfare === "function") playRewardOpenFanfare();
       if (resultText) resultText.textContent = `${openedCount}개까지 열고 멈췄어요. EXP ${totalExp}를 획득했어요.`;

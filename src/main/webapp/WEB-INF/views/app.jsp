@@ -6,7 +6,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 펫 리워드 MVP</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=guest-nav-hide-20260614" />
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=admin-all-badges-20260617" />
   </head>
 
   <body>
@@ -928,7 +928,7 @@
     <script src="${pageContext.request.contextPath}/js/04-servlet-workflows.js?v=camera-korean-labels-20260615"></script>
     <script src="${pageContext.request.contextPath}/js/05-router-auth.js?v=parent-nav-label-20260614"></script>
     <script src="${pageContext.request.contextPath}/js/06-events-init.js?v=mission-capture-type-20260613"></script>
-    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=camera-korean-labels-20260615"></script>
+    <script src="${pageContext.request.contextPath}/js/07-backend-integration.js?v=max-level-badge-celebration-20260617"></script>
   </body>
 
   </html>

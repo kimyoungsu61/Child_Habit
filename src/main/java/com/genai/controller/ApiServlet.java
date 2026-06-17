@@ -297,11 +297,10 @@ public class ApiServlet extends HttpServlet {
 
     private void childHome(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        ChildProfile loginChild = requireChild(request, response);
-        if (loginChild == null) {
+        ChildProfile child = requireCurrentChild(request, response);
+        if (child == null) {
             return;
         }
-        ChildProfile child = childAccountService.findById(loginChild.getChildId());
         ChildPet activePet = gameProfileService.findActivePet(child.getChildId());
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("child", childMap(child));
@@ -327,11 +326,10 @@ public class ApiServlet extends HttpServlet {
 
     private void childFrames(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        ChildProfile loginChild = requireChild(request, response);
-        if (loginChild == null) {
+        ChildProfile child = requireCurrentChild(request, response);
+        if (child == null) {
             return;
         }
-        ChildProfile child = childAccountService.findById(loginChild.getChildId());
         success(response, frameStateMap(child));
     }
 
@@ -662,6 +660,29 @@ public class ApiServlet extends HttpServlet {
         if (child == null) {
             error(response, HttpServletResponse.SC_UNAUTHORIZED, "아이 로그인이 필요합니다.");
         }
+        return child;
+    }
+
+    private ChildProfile requireCurrentChild(HttpServletRequest request,
+            HttpServletResponse response) throws IOException {
+        ChildProfile loginChild = requireChild(request, response);
+        if (loginChild == null) {
+            return null;
+        }
+        ChildProfile child = childAccountService.findById(loginChild.getChildId());
+        if (child == null) {
+            HttpSession session = request.getSession(false);
+            if (session != null) {
+                session.invalidate();
+            }
+            persistentLoginService.revoke(
+                    RememberCookies.read(request, RememberCookies.CHILD));
+            RememberCookies.clear(request, response, RememberCookies.CHILD);
+            error(response, HttpServletResponse.SC_UNAUTHORIZED,
+                    "아이 로그인 정보가 만료되었습니다. 다시 로그인해 주세요.");
+            return null;
+        }
+        createSession(request, SessionKeys.CHILD, child);
         return child;
     }
 
