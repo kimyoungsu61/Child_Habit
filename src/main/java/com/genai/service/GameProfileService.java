@@ -20,13 +20,19 @@ public class GameProfileService {
             "magic", 20);
 
     private final GameProfileDAO gameProfileDAO;
+    private final AdminDemoService adminDemoService;
 
     public GameProfileService() {
-        this(new GameProfileDAO());
+        this(new GameProfileDAO(), new AdminDemoService());
     }
 
     GameProfileService(GameProfileDAO gameProfileDAO) {
+        this(gameProfileDAO, new AdminDemoService());
+    }
+
+    GameProfileService(GameProfileDAO gameProfileDAO, AdminDemoService adminDemoService) {
         this.gameProfileDAO = gameProfileDAO;
+        this.adminDemoService = adminDemoService;
     }
 
     public List<Pet> findStarterPets() {
@@ -69,6 +75,10 @@ public class GameProfileService {
         Integer expAmount = INTERACTION_EXP.get(action);
         if (expAmount == null) {
             throw new IllegalArgumentException("지원하지 않는 펫 상호작용입니다.");
+        }
+        if (adminDemoService.isAdminChild(childId)) {
+            // 2. admin 전용 성장 처리하기 (상호작용 시 빠르게 레벨업)
+            return gameProfileDAO.interactWithActivePetForAdminDemo(childId, action, 2);
         }
         return gameProfileDAO.interactWithActivePet(childId, action, expAmount);
     }

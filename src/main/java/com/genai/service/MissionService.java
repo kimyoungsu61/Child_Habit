@@ -22,14 +22,21 @@ public class MissionService {
 
     private final MissionDAO missionDAO;
     private final MissionMediaStorage mediaStorage;
+    private final AdminDemoService adminDemoService;
 
     public MissionService() {
-        this(new MissionDAO(), new MissionMediaStorage());
+        this(new MissionDAO(), new MissionMediaStorage(), new AdminDemoService());
     }
 
     MissionService(MissionDAO missionDAO, MissionMediaStorage mediaStorage) {
+        this(missionDAO, mediaStorage, new AdminDemoService());
+    }
+
+    MissionService(MissionDAO missionDAO, MissionMediaStorage mediaStorage,
+            AdminDemoService adminDemoService) {
         this.missionDAO = missionDAO;
         this.mediaStorage = mediaStorage;
+        this.adminDemoService = adminDemoService;
     }
 
     public void createMission(Long parentId, Long childId, String title, String description, String grade) {
@@ -233,6 +240,33 @@ public class MissionService {
 
         BoxOpenResult result = new BoxOpenResult();
         result.setSubmissionId(submissionId);
+        result.setBoxGrade(rewardBox.getBoxGrade());
+        result.setExpAmount(expAmount);
+        result.setCurrentLevel(activePet.getCurrentLevel());
+        result.setCurrentExp(activePet.getCurrentExp());
+        return result;
+    }
+
+    public BoxOpenResult openAdminDemoBox(Long childId, String boxGrade) {
+        // 1. admin 계정 여부 확인하기 (시연용 계정인지 확인)
+        if (!adminDemoService.isAdminChild(childId)) {
+            throw new IllegalArgumentException("Admin demo box opening is not available.");
+        }
+        if (boxGrade == null || !BOX_GRADES.contains(boxGrade.trim())) {
+            throw new IllegalArgumentException("?곸옄 ?깃툒???뺤씤??二쇱꽭??");
+        }
+        RewardBox rewardBox = missionDAO.findRewardBoxByGrade(boxGrade.trim());
+        if (rewardBox == null) {
+            throw new IllegalStateException("蹂댁긽 ?곸옄 湲곗? ?곗씠?곌? ?놁뒿?덈떎.");
+        }
+
+        int expAmount = ThreadLocalRandom.current()
+                .nextInt(rewardBox.getMinExp(), rewardBox.getMaxExp() + 1);
+        ChildPet activePet = missionDAO.openAdminDemoRewardBox(
+                childId, rewardBox.getBoxGrade(), expAmount);
+
+        BoxOpenResult result = new BoxOpenResult();
+        result.setSubmissionId(0L);
         result.setBoxGrade(rewardBox.getBoxGrade());
         result.setExpAmount(expAmount);
         result.setCurrentLevel(activePet.getCurrentLevel());

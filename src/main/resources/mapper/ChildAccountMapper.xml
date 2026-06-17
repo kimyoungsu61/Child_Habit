@@ -9,6 +9,12 @@
         WHERE invite_code = #{inviteCode}
     </select>
 
+    <select id="findInviteIdByCode" parameterType="string" resultType="long">
+        SELECT invite_id
+        FROM CHILD_INVITE
+        WHERE invite_code = #{inviteCode}
+    </select>
+
     <insert id="insertInvite" parameterType="com.genai.model.ChildInvite">
         <selectKey keyProperty="inviteId" resultType="long" order="BEFORE">
             SELECT seq_child_invite.NEXTVAL FROM dual
@@ -25,6 +31,12 @@
             #{qrUrl}
         )
     </insert>
+
+    <update id="updateInviteParent">
+        UPDATE CHILD_INVITE
+        SET parent_id = #{parentId}
+        WHERE invite_code = #{inviteCode}
+    </update>
 
     <select id="findFrameIdByType" parameterType="string" resultType="long">
         SELECT frame_id
@@ -186,4 +198,57 @@
               AND parent_id = #{parentId}
         )
     </update>
+
+    <delete id="deleteNotificationsForChild" parameterType="long">
+        DELETE FROM NOTIFICATION
+        WHERE child_id = #{childId}
+           OR submission_id IN (
+                SELECT submission_id FROM MISSION_SUBMISSION WHERE child_id = #{childId}
+           )
+           OR mission_id IN (
+                SELECT mission_id FROM MISSION WHERE child_id = #{childId}
+           )
+           OR reward_id IN (
+                SELECT reward_id FROM REWARD_HISTORY WHERE child_id = #{childId}
+           )
+    </delete>
+
+    <delete id="deleteRewardHistoryForChild" parameterType="long">
+        DELETE FROM REWARD_HISTORY
+        WHERE child_id = #{childId}
+    </delete>
+
+    <delete id="deleteSubmissionsForChild" parameterType="long">
+        DELETE FROM MISSION_SUBMISSION
+        WHERE child_id = #{childId}
+    </delete>
+
+    <delete id="deleteMissionsForChild" parameterType="long">
+        DELETE FROM MISSION
+        WHERE child_id = #{childId}
+    </delete>
+
+    <delete id="deleteInteractionCooldownsForChild" parameterType="long">
+        DELETE FROM PET_INTERACTION_COOLDOWN
+        WHERE child_pet_id IN (
+            SELECT child_pet_id
+            FROM CHILD_PET
+            WHERE child_id = #{childId}
+        )
+    </delete>
+
+    <delete id="deleteChildTokens" parameterType="long">
+        DELETE FROM AUTH_LOGIN_TOKEN
+        WHERE child_id = #{childId}
+    </delete>
+
+    <delete id="deleteChildPets" parameterType="long">
+        DELETE FROM CHILD_PET
+        WHERE child_id = #{childId}
+    </delete>
+
+    <delete id="deleteChild" parameterType="long">
+        DELETE FROM CHILD
+        WHERE child_id = #{childId}
+    </delete>
 </mapper>

@@ -196,34 +196,39 @@ function selectedBoxAvailableCount(boxType = appState.selectedBoxType || "beginn
   return Math.max(0, Number(appState.rewardBoxCounts[boxType]) || 0);
 }
 
+function isAdminDemoBoxOpenAllowed() {
+  return typeof isAdminDemoMode === "function" && isAdminDemoMode();
+}
+
 function updateBoxOpenQuantityControls(boxType = appState.selectedBoxType || "beginner") {
   const quantityInput = document.getElementById("boxOpenQuantity");
   const maxCount = document.getElementById("boxOpenMaxCount");
   const batchButton = document.getElementById("openBoxBatchBtn");
   const openButton = document.getElementById("playBoxOpenBtn");
   const available = selectedBoxAvailableCount(boxType);
+  const adminDemo = isAdminDemoBoxOpenAllowed();
   const max = Math.max(1, available);
 
   if (quantityInput) {
     quantityInput.max = String(max);
-    quantityInput.disabled = available <= 0;
+    quantityInput.disabled = available <= 0 && !adminDemo;
     const value = Math.min(max, Math.max(1, Number(quantityInput.value) || 1));
     quantityInput.value = String(value);
   }
   if (maxCount) maxCount.textContent = `보유 ${available}개`;
   if (batchButton) {
-    batchButton.disabled = available <= 0;
-    batchButton.hidden = available <= 1;
+    batchButton.disabled = available <= 0 && !adminDemo;
+    batchButton.hidden = adminDemo || available <= 1;
   }
-  if (openButton) openButton.disabled = available <= 0;
+  if (openButton) openButton.disabled = available <= 0 && !adminDemo;
 }
 
 function getBoxOpenQuantity() {
   const quantityInput = document.getElementById("boxOpenQuantity");
   const available = selectedBoxAvailableCount();
-  if (available <= 0) return 0;
+  if (available <= 0 && !isAdminDemoBoxOpenAllowed()) return 0;
   const requested = Math.max(1, Number(quantityInput?.value) || 1);
-  return Math.min(available, requested);
+  return isAdminDemoBoxOpenAllowed() ? requested : Math.min(available, requested);
 }
 
 function prepareBoxOpenScreen(boxType) {

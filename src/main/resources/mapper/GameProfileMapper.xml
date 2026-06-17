@@ -192,6 +192,114 @@
           AND cp.is_active = 'Y'
     </update>
 
+    <update id="addLevelsToActivePet">
+        UPDATE CHILD_PET cp
+        SET cp.current_level = LEAST(
+                (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                cp.current_level + #{levelAmount}
+            ),
+            cp.current_exp = LEAST(
+                ((SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id) - 1) * 300,
+                (LEAST(
+                    (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                    cp.current_level + #{levelAmount}
+                ) - 1) * 300
+            ),
+            cp.is_maxed =
+                CASE
+                    WHEN LEAST(
+                        (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                        cp.current_level + #{levelAmount}
+                    ) = (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id)
+                    THEN 'Y'
+                    ELSE cp.is_maxed
+                END,
+            cp.badge_acquired =
+                CASE
+                    WHEN LEAST(
+                        (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                        cp.current_level + #{levelAmount}
+                    ) = (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id)
+                    THEN 'Y'
+                    ELSE cp.badge_acquired
+                END,
+            cp.badge_acquired_at =
+                CASE
+                    WHEN cp.badge_acquired = 'N'
+                     AND LEAST(
+                        (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id),
+                        cp.current_level + #{levelAmount}
+                    ) = (SELECT p.max_level FROM PET p WHERE p.pet_id = cp.pet_id)
+                    THEN SYSTIMESTAMP
+                    ELSE cp.badge_acquired_at
+                END
+        WHERE cp.child_id = #{childId}
+          AND cp.is_active = 'Y'
+    </update>
+
+    <select id="countActiveMongleMaxed" parameterType="long" resultType="int">
+        SELECT COUNT(*)
+        FROM CHILD_PET cp
+        JOIN PET p ON p.pet_id = cp.pet_id
+        WHERE cp.child_id = #{childId}
+          AND cp.is_active = 'Y'
+          AND p.pet_name = 'mongle'
+          AND cp.is_maxed = 'Y'
+    </select>
+
+    <insert id="unlockAllPetsMaxedForAdminDemo" parameterType="long">
+        MERGE INTO CHILD_PET target
+        USING (
+            SELECT #{childId} child_id,
+                   pet_id,
+                   max_level
+            FROM PET
+            WHERE pet_name IN ('mongle', 'pogeun', 'haeon', 'nuri', 'aro', 'roa')
+        ) source
+        ON (
+            target.child_id = source.child_id
+            AND target.pet_id = source.pet_id
+        )
+        WHEN MATCHED THEN UPDATE SET
+            target.current_level = source.max_level,
+            target.current_exp = (source.max_level - 1) * 300,
+            target.is_active = CASE
+                WHEN target.pet_id = (
+                    SELECT pet_id FROM PET WHERE pet_name = 'mongle' AND ROWNUM = 1
+                ) THEN 'Y'
+                ELSE 'N'
+            END,
+            target.is_maxed = 'Y',
+            target.badge_acquired = 'Y',
+            target.badge_acquired_at = NVL(target.badge_acquired_at, SYSTIMESTAMP)
+        WHEN NOT MATCHED THEN INSERT (
+            child_pet_id,
+            child_id,
+            pet_id,
+            current_level,
+            current_exp,
+            is_active,
+            is_maxed,
+            badge_acquired,
+            badge_acquired_at
+        ) VALUES (
+            seq_child_pet.NEXTVAL,
+            source.child_id,
+            source.pet_id,
+            source.max_level,
+            (source.max_level - 1) * 300,
+            CASE
+                WHEN source.pet_id = (
+                    SELECT pet_id FROM PET WHERE pet_name = 'mongle' AND ROWNUM = 1
+                ) THEN 'Y'
+                ELSE 'N'
+            END,
+            'Y',
+            'Y',
+            SYSTIMESTAMP
+        )
+    </insert>
+
     <update id="claimInteractionReward">
         MERGE INTO PET_INTERACTION_COOLDOWN target
         USING (

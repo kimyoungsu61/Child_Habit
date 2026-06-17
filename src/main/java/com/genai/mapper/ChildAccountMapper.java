@@ -11,7 +11,12 @@ import com.genai.model.ProfileFrame;
 public interface ChildAccountMapper {
     int countInviteCode(String inviteCode);
 
+    Long findInviteIdByCode(String inviteCode);
+
     int insertInvite(ChildInvite invite);
+
+    int updateInviteParent(@Param("inviteCode") String inviteCode,
+            @Param("parentId") Long parentId);
 
     Long findFrameIdByType(String frameType);
 
@@ -38,4 +43,20 @@ public interface ChildAccountMapper {
     int regenerateInviteCode(@Param("childId") Long childId,
             @Param("parentId") Long parentId,
             @Param("inviteCode") String inviteCode);
+
+    int deleteNotificationsForChild(Long childId);
+
+    int deleteRewardHistoryForChild(Long childId);
+
+    int deleteSubmissionsForChild(Long childId);
+
+    int deleteMissionsForChild(Long childId);
+
+    int deleteInteractionCooldownsForChild(Long childId);
+
+    int deleteChildTokens(Long childId);
+
+    int deleteChildPets(Long childId);
+
+    int deleteChild(Long childId);
 }

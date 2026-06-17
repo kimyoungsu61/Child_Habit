@@ -126,6 +126,32 @@ public class GameProfileDAO {
         }
     }
 
+    public PetInteractionResult interactWithActivePetForAdminDemo(
+            Long childId, String actionType, int levelAmount) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            GameProfileMapper mapper = session.getMapper(GameProfileMapper.class);
+            if (mapper.addLevelsToActivePet(childId, levelAmount) != 1) {
+                session.rollback();
+                throw new IllegalStateException("Admin demo pet level could not be updated.");
+            }
+            // 3. 몽글 만렙 확인하기 (전체 해금 트리거 확인)
+            if (mapper.countActiveMongleMaxed(childId) > 0) {
+                // 4. 전체 펫/뱃지/액자 해금하기 (시연용 상태 반영)
+                mapper.unlockAllPetsMaxedForAdminDemo(childId);
+            }
+            ChildPet activePet = mapper.findActivePet(childId);
+            if (activePet == null) {
+                session.rollback();
+                throw new IllegalStateException("????レ쓣 李얠쓣 ???놁뒿?덈떎.");
+            }
+            List<PetInteractionCooldown> cooldowns =
+                    mapper.findInteractionCooldowns(childId);
+            session.commit();
+            return new PetInteractionResult(
+                    activePet, true, levelAmount * 300, cooldowns);
+        }
+    }
+
     public List<PetInteractionCooldown> findInteractionCooldowns(Long childId) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
             return session.getMapper(GameProfileMapper.class)

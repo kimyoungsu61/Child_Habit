@@ -41,4 +41,31 @@ public class ParentService {
         parent.setPasswordHash(null);
         return parent;
     }
+
+    public Parent findByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
+        }
+        return parentDAO.findByEmail(email.trim().toLowerCase(Locale.ROOT));
+    }
+
+    public Parent ensureParent(String email, String password, String name) {
+        String normalizedEmail = email.trim().toLowerCase(Locale.ROOT);
+        Parent parent = parentDAO.findByEmail(normalizedEmail);
+        String passwordHash = passwordHasher.hash(password);
+        if (parent == null) {
+            parent = new Parent();
+            parent.setEmail(normalizedEmail);
+            parent.setPasswordHash(passwordHash);
+            parent.setName(name.trim());
+            parentDAO.insert(parent);
+        } else {
+            parentDAO.updatePasswordAndName(normalizedEmail, passwordHash, name.trim());
+        }
+        Parent refreshed = parentDAO.findByEmail(normalizedEmail);
+        if (refreshed != null) {
+            refreshed.setPasswordHash(null);
+        }
+        return refreshed;
+    }
 }

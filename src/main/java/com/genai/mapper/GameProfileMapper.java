@@ -32,6 +32,9 @@ public interface GameProfileMapper {
 
     int addExpToActivePet(@Param("childId") Long childId, @Param("expAmount") int expAmount);
 
+    int addLevelsToActivePet(@Param("childId") Long childId,
+            @Param("levelAmount") int levelAmount);
+
     int claimInteractionReward(@Param("childId") Long childId,
             @Param("actionType") String actionType);
 
@@ -40,4 +43,8 @@ public interface GameProfileMapper {
     Long findNextPetIdAfterActiveMaxed(Long childId);
 
     int unlockNextPetAfterActiveMaxed(Long childId);
+
+    int countActiveMongleMaxed(Long childId);
+
+    int unlockAllPetsMaxedForAdminDemo(Long childId);
 }

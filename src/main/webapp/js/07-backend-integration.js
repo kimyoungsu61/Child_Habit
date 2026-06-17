@@ -50,10 +50,29 @@ function clearChildContextStorage() {
   [window.localStorage, window.sessionStorage].forEach(storage => {
     try {
       CHILD_CONTEXT_STORAGE_KEYS.forEach(key => storage.removeItem(key));
+      if (typeof getCharacterStorageKey === "function") {
+        storage.removeItem(getCharacterStorageKey("ADMIN"));
+      }
     } catch (error) {
       // Storage may be unavailable in privacy mode; runtime state is still cleared.
     }
   });
+  try {
+    const rawProfiles = localStorage.getItem(LOCAL_CHILD_PROFILES_KEY);
+    const profiles = rawProfiles ? JSON.parse(rawProfiles) : [];
+    if (Array.isArray(profiles)) {
+      localStorage.setItem(LOCAL_CHILD_PROFILES_KEY, JSON.stringify(
+        profiles.filter(profile => normalizeInviteCode(profile.inviteCode) !== "ADMIN")
+      ));
+    }
+  } catch (error) {
+    // Storage cleanup is best-effort; server state remains authoritative.
+  }
+}
+
+function isAdminDemoMode() {
+  return Boolean(serverChildHome?.child?.adminDemoMode)
+    || normalizeInviteCode(appState.child?.inviteCode) === "ADMIN";
 }
 
 function resetChildClientContext() {
@@ -70,6 +89,7 @@ function resetChildClientContext() {
   appState.child.inviteCode = "";
   appState.child.frameType = "";
   appState.child.petType = "";
+  appState.child.adminDemoMode = false;
   appState.selectedProfileFrameId = null;
   appState.selectedProfileFrameKey = "";
   appState.profileFrames = [];
@@ -1147,6 +1167,7 @@ async function loadChildHome(options = {}) {
   appState.child.childId = child.childId;
   appState.child.inviteCode = child.inviteCode || "";
   appState.child.frameType = child.frameType || "";
+  appState.child.adminDemoMode = Boolean(child.adminDemoMode);
   appState.child.nickname = child.nickname;
   appState.selectedProfileFrameId = child.frameId ?? appState.selectedProfileFrameId;
   appState.selectedProfileFrameKey = frameKeyForServerType(child.frameType, child.frameId);
@@ -1984,9 +2005,14 @@ async function openSelectedRewardBoxes(quantity = 1) {
     ? [preferred, ...openable.filter(item => item.submissionId !== currentId)]
     : openable;
   const requestedCount = Math.max(1, Number(quantity) || 1);
-  const openCount = Math.min(requestedCount, orderedSubmissions.length);
+  const adminDemo = isAdminDemoMode();
+  const openCount = adminDemo
+    ? Math.max(1, requestedCount)
+    : Math.min(requestedCount, orderedSubmissions.length);
   if (openCount <= 0) throw new Error("열 수 있는 상자가 없어요.");
-  const targets = orderedSubmissions.slice(0, openCount);
+  const targets = adminDemo && orderedSubmissions.length === 0
+    ? Array.from({ length: openCount }, () => ({ submissionId: 0, boxGrade: grade }))
+    : orderedSubmissions.slice(0, openCount);
 
   const openButton = document.getElementById("playBoxOpenBtn");
   const batchButton = document.getElementById("openBoxBatchBtn");
@@ -2012,7 +2038,10 @@ async function openSelectedRewardBoxes(quantity = 1) {
   try {
     for (const submission of targets) {
       const result = await apiRequest(`/child/boxes/${submission.submissionId}/open`, {
-        method: "POST"
+        method: "POST",
+        body: adminDemo && Number(submission.submissionId) === 0
+          ? formData({ boxGrade: grade })
+          : undefined
       });
       openedCount += 1;
       totalExp += Number(result.expAmount) || 0;

@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import com.genai.model.ChildProfile;
+import com.genai.service.AdminDemoService;
 import com.genai.service.ChildAccountService;
 import com.genai.service.PersistentLoginService;
 import com.genai.session.RememberCookies;
@@ -19,11 +20,13 @@ import com.genai.session.SessionKeys;
 public class ChildInviteLoginServlet extends HttpServlet {
     private ChildAccountService childAccountService;
     private PersistentLoginService persistentLoginService;
+    private AdminDemoService adminDemoService;
 
     @Override
     public void init() {
         childAccountService = new ChildAccountService();
         persistentLoginService = new PersistentLoginService();
+        adminDemoService = new AdminDemoService();
     }
 
     @Override
@@ -53,7 +56,9 @@ public class ChildInviteLoginServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
         String inviteCode = request.getParameter("inviteCode");
-        ChildProfile child = childAccountService.loginByInviteCode(inviteCode);
+        ChildProfile child = adminDemoService.isAdminInviteCode(inviteCode)
+                ? adminDemoService.findOrCreateAdminChild()
+                : childAccountService.loginByInviteCode(inviteCode);
         if (child == null) {
             request.setAttribute("inviteCode", inviteCode);
             request.setAttribute("error", "유효하지 않은 초대코드입니다.");

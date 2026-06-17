@@ -45,6 +45,94 @@ public class ChildAccountDAO {
         }
     }
 
+    public void ensureInvite(Long parentId, String inviteCode) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            ChildAccountMapper mapper = session.getMapper(ChildAccountMapper.class);
+            Long inviteId = mapper.findInviteIdByCode(inviteCode);
+            if (inviteId == null) {
+                ChildInvite invite = new ChildInvite();
+                invite.setParentId(parentId);
+                invite.setInviteCode(inviteCode);
+                mapper.insertInvite(invite);
+            } else {
+                mapper.updateInviteParent(inviteCode, parentId);
+            }
+            session.commit();
+        }
+    }
+
+    public ChildProfile createChildForExistingInvite(
+            Long parentId, String nickname, String inviteCode) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            ChildAccountMapper mapper = session.getMapper(ChildAccountMapper.class);
+            ChildProfile existing = mapper.findChildByInviteCode(inviteCode);
+            if (existing != null) {
+                return existing;
+            }
+
+            String frameType = "bronze";
+            Long frameId = mapper.findFrameIdByType(frameType);
+            if (frameId == null) {
+                frameType = "wood";
+                frameId = mapper.findFrameIdByType(frameType);
+            }
+            if (frameId == null) {
+                throw new IllegalStateException("Default profile frame data is missing.");
+            }
+
+            Long inviteId = mapper.findInviteIdByCode(inviteCode);
+            if (inviteId == null) {
+                ChildInvite invite = new ChildInvite();
+                invite.setParentId(parentId);
+                invite.setInviteCode(inviteCode);
+                mapper.insertInvite(invite);
+                inviteId = invite.getInviteId();
+            }
+
+            ChildProfile child = new ChildProfile();
+            child.setParentId(parentId);
+            child.setInviteId(inviteId);
+            child.setFrameId(frameId);
+            child.setNickname(nickname);
+            child.setCharacterLevel(1);
+            mapper.insertChild(child);
+            session.commit();
+
+            child.setInviteCode(inviteCode);
+            child.setFrameType(frameType);
+            return child;
+        }
+    }
+
+    public void resetChildByInviteCode(String inviteCode) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            ChildAccountMapper mapper = session.getMapper(ChildAccountMapper.class);
+            ChildProfile child = mapper.findChildByInviteCode(inviteCode);
+            if (child == null) {
+                session.commit();
+                return;
+            }
+            Long childId = child.getChildId();
+            mapper.deleteNotificationsForChild(childId);
+            mapper.deleteRewardHistoryForChild(childId);
+            mapper.deleteSubmissionsForChild(childId);
+            mapper.deleteMissionsForChild(childId);
+            try {
+                mapper.deleteInteractionCooldownsForChild(childId);
+            } catch (org.apache.ibatis.exceptions.PersistenceException ignored) {
+                // 5. admin 데모 상태 초기화하기 (로그아웃/서버 재시작 시 초기화)
+            }
+            try {
+                mapper.deleteChildTokens(childId);
+            } catch (org.apache.ibatis.exceptions.PersistenceException ignored) {
+                // 5. admin 데모 상태 초기화하기 (로그아웃/서버 재시작 시 초기화)
+            }
+            mapper.deleteChildPets(childId);
+            mapper.deleteChild(childId);
+            session.commit();
+        }
+    }
+
     public List<ProfileFrame> findAllFrames() {
         try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
             return session.getMapper(ChildAccountMapper.class).findAllFrames();

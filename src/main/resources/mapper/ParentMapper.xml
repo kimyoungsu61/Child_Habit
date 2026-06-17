@@ -26,4 +26,11 @@
             #{name}
         )
     </insert>
+
+    <update id="updatePasswordAndName">
+        UPDATE PARENT
+        SET password_hash = #{passwordHash},
+            name = #{name}
+        WHERE LOWER(email) = LOWER(#{email})
+    </update>
 </mapper>

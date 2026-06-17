@@ -252,6 +252,28 @@ public class MissionDAO {
         }
     }
 
+    public ChildPet openAdminDemoRewardBox(Long childId, String boxGrade, int expAmount) {
+        try (SqlSession session = SqlSessionManager.getFactory().openSession(false)) {
+            MissionMapper missionMapper = session.getMapper(MissionMapper.class);
+            GameProfileMapper gameProfileMapper = session.getMapper(GameProfileMapper.class);
+
+            int updatedPet = gameProfileMapper.addExpToActivePet(childId, expAmount);
+            if (updatedPet != 1) {
+                session.rollback();
+                throw new IllegalStateException("?쒖꽦 ??寃쏀뿕移섎? 媛깆떊?섏? 紐삵뻽?듬땲??");
+            }
+            if (gameProfileMapper.countActiveMongleMaxed(childId) > 0) {
+                gameProfileMapper.unlockAllPetsMaxedForAdminDemo(childId);
+            }
+            missionMapper.insertExpRewardHistory(childId, null, boxGrade, expAmount);
+            missionMapper.insertRewardPaidNotification(
+                    childId, null, null, boxGrade, expAmount);
+            ChildPet activePet = gameProfileMapper.findActivePet(childId);
+            session.commit();
+            return activePet;
+        }
+    }
+
     public List<Notification> findNotificationsForParent(Long parentId) {
         try (SqlSession session = SqlSessionManager.getFactory().openSession()) {
             return session.getMapper(MissionMapper.class).findNotificationsForParent(parentId);

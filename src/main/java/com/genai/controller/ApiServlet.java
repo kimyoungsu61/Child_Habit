@@ -33,6 +33,7 @@ import com.genai.model.ProfileFrame;
 import com.genai.model.RewardInventoryItem;
 import com.genai.service.AiImageGenerationResult;
 import com.genai.service.AiImageService;
+import com.genai.service.AdminDemoService;
 import com.genai.service.ChildAccountService;
 import com.genai.service.GameProfileService;
 import com.genai.service.GeneratedImageStorage;
@@ -61,6 +62,7 @@ public class ApiServlet extends HttpServlet {
     private PersistentLoginService persistentLoginService;
     private AiImageService aiImageService;
     private GeneratedImageStorage generatedImageStorage;
+    private AdminDemoService adminDemoService;
 
     @Override
     public void init() {
@@ -72,6 +74,7 @@ public class ApiServlet extends HttpServlet {
         persistentLoginService = new PersistentLoginService();
         aiImageService = new AiImageService();
         generatedImageStorage = new GeneratedImageStorage();
+        adminDemoService = new AdminDemoService();
     }
 
     @Override
@@ -220,8 +223,10 @@ public class ApiServlet extends HttpServlet {
 
     private void childLogin(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
-        ChildProfile child = childAccountService.loginByInviteCode(
-                request.getParameter("inviteCode"));
+        String inviteCode = request.getParameter("inviteCode");
+        ChildProfile child = adminDemoService.isAdminInviteCode(inviteCode)
+                ? adminDemoService.findOrCreateAdminChild()
+                : childAccountService.loginByInviteCode(inviteCode);
         if (child == null) {
             error(response, HttpServletResponse.SC_UNAUTHORIZED,
                     "유효하지 않은 초대코드입니다.");
@@ -244,13 +249,22 @@ public class ApiServlet extends HttpServlet {
 
     private void logout(HttpServletRequest request, HttpServletResponse response)
             throws IOException {
+        HttpSession session = request.getSession(false);
+        Parent parent = session == null ? null
+                : (Parent) session.getAttribute(SessionKeys.PARENT);
+        ChildProfile child = session == null ? null
+                : (ChildProfile) session.getAttribute(SessionKeys.CHILD);
+        if (adminDemoService.isAdminParent(parent)
+                || adminDemoService.isAdminChild(child)) {
+            // 5. admin 데모 상태 초기화하기 (로그아웃/서버 재시작 시 초기화)
+            adminDemoService.resetAdminChildDemo();
+        }
         persistentLoginService.revoke(
                 RememberCookies.read(request, RememberCookies.PARENT));
         persistentLoginService.revoke(
                 RememberCookies.read(request, RememberCookies.CHILD));
         RememberCookies.clear(request, response, RememberCookies.PARENT);
         RememberCookies.clear(request, response, RememberCookies.CHILD);
-        HttpSession session = request.getSession(false);
         if (session != null) {
             session.invalidate();
         }
@@ -538,7 +552,11 @@ public class ApiServlet extends HttpServlet {
             return;
         }
         Long submissionId = Long.valueOf(path.split("/")[3]);
-        BoxOpenResult result = missionService.openBox(child.getChildId(), submissionId);
+        BoxOpenResult result = adminDemoService.isAdminChild(child)
+                && (submissionId == 0L || submissionId < 0L)
+                ? missionService.openAdminDemoBox(
+                        child.getChildId(), value(request.getParameter("boxGrade")))
+                : missionService.openBox(child.getChildId(), submissionId);
         Map<String, Object> data = new LinkedHashMap<>();
         data.put("submissionId", result.getSubmissionId());
         data.put("boxGrade", result.getBoxGrade());
@@ -711,6 +729,7 @@ public class ApiServlet extends HttpServlet {
         map.put("inviteCode", child.getInviteCode());
         map.put("frameId", child.getFrameId());
         map.put("frameType", child.getFrameType());
+        map.put("adminDemoMode", adminDemoService.isAdminChild(child));
         return map;
     }
 
