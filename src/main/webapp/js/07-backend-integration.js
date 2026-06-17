@@ -76,7 +76,7 @@ function isAdminDemoMode() {
 }
 
 function updateAdminProfileSkipButton() {
-  adminProfileSkipBtns?.forEach(button => {
+  document.querySelectorAll("[data-admin-profile-skip]").forEach(button => {
     button.hidden = !isAdminDemoMode();
   });
 }
@@ -2299,8 +2299,8 @@ async function startAdminDemoWithDefaultProfile() {
   showToast("admin 데모 프로필로 시작합니다.");
 }
 
-interceptClick(adminSkipProfileBtn, startAdminDemoWithDefaultProfile);
-interceptClick(adminSkipCharacterBtn, startAdminDemoWithDefaultProfile);
+interceptClick("#adminSkipProfileBtn", startAdminDemoWithDefaultProfile);
+interceptClick("#adminSkipCharacterBtn", startAdminDemoWithDefaultProfile);
 
 window.addEventListener("pageshow", () => {
   if (parentJoinCard?.classList.contains("active")) {
