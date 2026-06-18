@@ -57,6 +57,25 @@ function setPetHomeBackground(element, petId = activePetId()) {
   element.style.setProperty("--pet-home-bg", `url("${activePetHomeBackground(petId)}")`);
 }
 
+function hasKoreanFinalConsonant(value) {
+  const text = String(value || "").trim();
+  if (!text) return false;
+  const lastChar = text.charAt(text.length - 1);
+  const code = lastChar.charCodeAt(0);
+  if (code < 0xac00 || code > 0xd7a3) return false;
+  return (code - 0xac00) % 28 !== 0;
+}
+
+function syncHomePetTitle(petName) {
+  const name = String(petName || "").trim() || "몽글";
+  const title = `오늘도 ${name}${hasKoreanFinalConsonant(name) ? "과" : "와"} 함께해요`;
+  const homeScreen = document.getElementById("homeScreen");
+  if (homeScreen) homeScreen.dataset.title = title;
+  if (document.querySelector(".screen.active")?.id === "homeScreen" && pageTitle) {
+    pageTitle.textContent = title;
+  }
+}
+
 function getAnimation(name) {
   const animations = activePetAnimations();
   return animations[name] || animations.idle || DEFAULT_PET_ANIMATIONS.idle;
@@ -273,6 +292,7 @@ function renderPet() {
   const displayExp = maxed ? pet.maxExp : pet.exp;
   const percent = maxed ? 100 : Math.min(100, Math.round((displayExp / pet.maxExp) * 100));
 
+  syncHomePetTitle(pet.name);
   if (levelPill) levelPill.textContent = `Lv.${pet.level}`;
   if (petMeta) petMeta.textContent = `${pet.name} · Lv.${pet.level}`;
   if (themeLabel) themeLabel.textContent = getThemeMeta(appState.theme).label;
