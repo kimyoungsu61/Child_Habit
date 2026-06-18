@@ -8,6 +8,7 @@
 - Fixed child session handling after invite-code login.
 - Updated the admin badge/profile modal behavior.
 - Added backend DAO/Mapper support for demo parent, child, mission, and game profile data lookup.
+- Preserved existing `origin/ying` updates, including mobile camera UX, reward layout, browser back navigation, and Roa animation asset updates.
 
 ## Local merge notes
 
