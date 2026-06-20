@@ -1,86 +1,49 @@
-# Back
+# Space Pipe
 
-어린이 행동 습관 형성 웹앱입니다.
-Java Servlet 백엔드와 `changsoo2609/Changsoo`의 HTML/CSS/JavaScript
-프론트엔드를 같은 WAR로 통합했습니다.
+스페이스 파이프는 우주 정거장 배관 수리공 테마의 정적 웹 게임 MVP입니다. 플레이어는 산소 공급기에서 시작해 배관 타일을 연결하고, 3개의 미확인 목적지 중 발전기 코어를 찾아 정거장 시스템을 되살리는 구조로 확장될 예정입니다.
 
-## 환경
+## 기술 스택
 
-- Java 21
-- Apache Tomcat 9
-- Oracle XE 11g
-- MyBatis 3.5
-- Maven
+- HTML
+- CSS
+- Vanilla JavaScript
+- ES Module
+- GitHub Pages 정적 배포
 
-## 현재 구현
+## 실행 방법
 
-```text
-부모 회원가입 및 로그인
--> 아이 프로필과 초대코드 생성
--> 초대코드 아이 로그인
--> 캐릭터 프리셋 및 기본 펫 선택
--> 아이 홈
--> 사진/영상 인증 메타데이터 제출
--> 부모 알림 생성
--> 부모 승인/거절 및 상자 등급 선택
--> 직접 사진 촬영/영상 녹화 제출
--> 부모 7일, 아이 30일 로그인 유지
--> 프론트 SPA와 `/api/*` JSON Servlet 연동
-```
+1. 저장소 루트의 `index.html`을 브라우저에서 엽니다.
+2. `방 만들기`를 누릅니다.
+3. `플레이어 추가`로 더미 플레이어를 넣습니다.
+4. `게임 시작`을 누른 뒤 손패의 배관 타일을 선택하고 보드 칸을 클릭합니다.
 
-AI 이미지 생성과 랜덤 펫 보상은 현재 화면용 임시 동작이며 다음 단계에서
-서버 저장 구조와 연결합니다.
+빌드 도구, npm, 서버 실행은 필요하지 않습니다.
 
-## DB 설정
+## GitHub Pages 배포 방법
 
-```properties
-# src/main/resources/db.properties
-db.driver=oracle.jdbc.OracleDriver
-db.url=jdbc:oracle:thin:@project-db-campus.smhrd.com:1524:xe
-db.username=...
-db.password=...
-```
+1. GitHub 저장소의 `Settings`로 이동합니다.
+2. `Pages` 메뉴를 엽니다.
+3. Source를 `Deploy from a branch`로 선택합니다.
+4. Branch는 `main`, 폴더는 `/root`를 선택합니다.
+5. 저장 후 Pages URL에서 `index.html`이 바로 열리는지 확인합니다.
 
-새 Oracle 계정으로 변경할 때 위 파일의 `db.username`, `db.password`를 수정합니다.
-환경변수 `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`를 설정하면 파일 값보다 우선합니다.
+## 현재 구현 범위
 
-새 계정에는 다음 SQL을 순서대로 실행합니다.
+- 방 상태 생성
+- 더미 플레이어 추가
+- 비밀 역할 배정
+- 덱 생성, 셔플, 손패 지급
+- 산소 공급기와 3개의 미확인 목적지 렌더링
+- 보드 좌표 표시
+- 배관 타일 선택, 회전, 배치
+- 기존 배관 또는 산소 공급기와 연결되는 위치만 배치 허용
+- 우주복 손상 상태인 플레이어의 배관 배치 제한
+- 행동 카드 함수 자리 준비
 
-```text
-database/01_parent_schema.sql
-database/02_login_child_schema.sql
-database/03_game_schema.sql
-database/04_frontend_gap_schema.sql
-database/05_persistent_login_schema.sql
-```
+## 다음 구현 예정
 
-## 실행
-
-```powershell
-mvn clean package
-```
-
-생성 파일:
-
-```text
-target/back.war
-```
-
-Tomcat 배포 후 접속:
-
-```text
-http://localhost:8090/back/
-```
-
-주요 주소:
-
-```text
-/back/
-/back/api/session
-/back/api/parent/login
-/back/api/parent/dashboard
-/back/api/child/login
-/back/api/child/home
-```
-
-Oracle XE가 `8080`을 사용하므로 Tomcat은 `8090` 포트를 사용합니다.
+- Firebase Realtime Database 연동
+- 방 코드 기반 접속
+- 실시간 턴 동기화
+- 행동 카드 세부 효과
+- 발전기 코어 확인 및 종료 조건

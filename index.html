@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <!-- 1. 문서 기본값 정하기 (GitHub Pages에서 바로 열리는 정적 HTML로 설정하는 단계) -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Space Pipe | 스페이스 파이프</title>
+    <link rel="stylesheet" href="./css/style.css" />
+  </head>
+  <body>
+    <!-- 2. 앱 시작점 만들기 (게임 화면 전체를 감싸는 단계) -->
+    <div class="app-shell">
+      <header class="top-bar">
+        <div>
+          <p class="eyebrow">정적 웹 게임 MVP</p>
+          <h1>Space Pipe <span>스페이스 파이프</span></h1>
+        </div>
+        <div class="control-row" aria-label="게임 기본 조작">
+          <button id="createRoomButton" type="button">방 만들기</button>
+          <button id="addPlayerButton" type="button">플레이어 추가</button>
+          <button id="startGameButton" type="button">게임 시작</button>
+        </div>
+      </header>
+
+      <!-- 3. 현재 상태 배치하기 (방, 턴, 덱 정보를 보여주는 단계) -->
+      <main class="game-layout">
+        <section class="panel status-panel" aria-labelledby="statusTitle">
+          <h2 id="statusTitle">현재 게임 상태</h2>
+          <div id="gameStatus" class="status-grid"></div>
+          <div id="currentTurn" class="turn-banner"></div>
+        </section>
+
+        <!-- 4. 플레이어 목록 배치하기 (공개 플레이어 상태를 확인하는 단계) -->
+        <section class="panel player-panel" aria-labelledby="playersTitle">
+          <h2 id="playersTitle">플레이어 목록</h2>
+          <ul id="playerList" class="player-list"></ul>
+        </section>
+
+        <!-- 5. 보드 배치하기 (산소 공급기와 목적지, 배관 타일을 렌더링하는 단계) -->
+        <section class="panel board-panel" aria-labelledby="boardTitle">
+          <div class="section-heading">
+            <h2 id="boardTitle">보드</h2>
+            <button id="passTurnButton" type="button" class="secondary-button">턴 넘기기</button>
+          </div>
+          <div class="board-scroll">
+            <div id="boardGrid" class="board-grid" aria-label="스페이스 파이프 보드"></div>
+          </div>
+        </section>
+
+        <!-- 6. 손패 배치하기 (현재 턴 플레이어의 카드를 선택하는 단계) -->
+        <section class="panel hand-panel" aria-labelledby="handTitle">
+          <div class="section-heading">
+            <h2 id="handTitle">손패</h2>
+            <button id="rotateTileButton" type="button" class="secondary-button">타일 회전</button>
+          </div>
+          <div id="selectedCardStatus" class="selected-card"></div>
+          <div id="handCards" class="hand-grid"></div>
+        </section>
+
+        <!-- 7. 로그 배치하기 (최근 진행 결과를 확인하는 단계) -->
+        <section class="panel log-panel" aria-labelledby="logTitle">
+          <h2 id="logTitle">로그</h2>
+          <ol id="logList" class="log-list"></ol>
+        </section>
+      </main>
+    </div>
+
+    <!-- 8. 모듈 불러오기 (Vanilla JavaScript ES Module로 앱을 시작하는 단계) -->
+    <script type="module" src="./js/main.js"></script>
+  </body>
+</html>
