@@ -136,15 +136,20 @@
 - HTML / CSS / JavaScript
 - `getUserMedia`, `MediaRecorder API` 기반 영상 촬영
 - 부모 / 아이 역할별 화면 구성
+- Figma 기반 화면 설계안을 바탕으로 UI 구현
 
 ### Backend
 
 ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Apache Tomcat](https://img.shields.io/badge/Tomcat_9-F8DC75?style=for-the-badge&logo=apachetomcat&logoColor=black)
 ![Maven](https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
+![MyBatis](https://img.shields.io/badge/MyBatis-000000?style=for-the-badge&logoColor=white)
+
 
 - Java Servlet / JSP
-- JDBC 기반 DB 연동
+- Apache Tomcat 9 기반 웹 애플리케이션 실행
+- Maven 기반 빌드 및 의존성 관리
+- MyBatis 기반 SQL Mapper를 통한 Oracle DB 연동
 - 미션, 인증 요청, 보상, 펫 성장 로직 처리
 - 세션 기반 로그인 상태 관리
 
@@ -169,11 +174,12 @@
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 ![VS Code](https://img.shields.io/badge/VS_Code-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white)
+![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
 
+- Figma 기반 화면 설계
 - Git / GitHub 협업
 - VS Code
-- Apache Tomcat 9
-- Maven
+
 
 ---
 
@@ -473,8 +479,8 @@ erDiagram
 
 ### 시연 영상
 
-> 시연 영상 경로를 추가하세요.  
-> 예: `docs/demo.mp4`
+
+`docs/시연 영상.mp4`
 
 ### 핵심 화면
 
