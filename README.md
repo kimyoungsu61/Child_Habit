@@ -184,7 +184,7 @@
 ---
 
 ## 6. 시스템 아키텍처
-
+(docs/시스템_아키텍처.png)
 ```mermaid
 flowchart LR
     subgraph Client["Browser"]
