@@ -480,7 +480,7 @@ erDiagram
 ### 시연 영상
 
 
-[시연 영상 보기]([docs/videos/demo.mp4](https://drive.google.com/file/d/1fxKaVg2gZ5Aw22fUztUQeQzf1zSx42Qa/view?usp=sharing))
+[시연 영상 보기](https://drive.google.com/file/d/1fxKaVg2gZ5Aw22fUztUQeQzf1zSx42Qa/view?usp=sharing)
 
 ### 핵심 화면
 
