@@ -186,34 +186,7 @@
 ## 6. 시스템 아키텍처
 
 ![시스템 아키텍처](docs/시스템_아키텍처.png)
-```mermaid
-flowchart LR
-    subgraph Client["Browser"]
-        Parent["Parent UI"]
-        Child["Child UI"]
-        Camera["Camera / MediaRecorder"]
-    end
 
-    subgraph Server["Tomcat Web Server"]
-        Servlet["Servlet / JSP"]
-        Mission["Mission & Reward Logic"]
-        File["Video / Image File Handling"]
-    end
-
-    subgraph AI["Flask AI Server"]
-        ImageGen["AI Profile Image Generation"]
-    end
-
-    DB[("Oracle DB")]
-
-    Parent --> Servlet
-    Child --> Camera --> Servlet
-    Servlet --> Mission
-    Servlet --> File
-    Servlet <--> DB
-    Servlet --> ImageGen
-    ImageGen --> Servlet
-```
 
 ---
 
