@@ -213,31 +213,49 @@ flowchart LR
 ## 7. 유스케이스
 
 ```mermaid
-flowchart TD
+flowchart LR
     Parent((부모))
     Child((아이))
 
-    UC1[회원가입 / 로그인]
-    UC2[아이 초대코드 생성]
-    UC3[미션 등록]
-    UC4[미션 영상 인증]
-    UC5[인증 승인 / 반려]
-    UC6[보상 상자 개봉]
-    UC7[펫 성장 확인]
-    UC8[AI 프로필 생성]
+    subgraph ParentUsecase["부모 유스케이스"]
+        direction TB
+        P1["회원가입 / 로그인"]
+        P2["아이 초대코드 생성"]
+        P3["미션 등록"]
+        P4["인증 영상 확인"]
+        P5["승인 / 반려"]
+        P6["알림 및 이력 확인"]
+    end
 
-    Parent --> UC1
-    Parent --> UC2
-    Parent --> UC3
-    Parent --> UC5
+    subgraph ChildUsecase["아이 유스케이스"]
+        direction TB
+        C1["초대코드 접속"]
+        C2["AI 프로필 생성"]
+        C3["미션 확인"]
+        C4["사진 / 영상 인증 제출"]
+        C5["보상 상자 개봉"]
+        C6["펫 성장 확인"]
+        C7["뱃지 / 프레임 확인"]
+    end
 
-    Child --> UC4
-    Child --> UC6
-    Child --> UC7
-    Child --> UC8
+    Parent --> P1
+    Parent --> P2
+    Parent --> P3
+    Parent --> P4
+    Parent --> P5
+    Parent --> P6
 
-    UC5 -.승인 시.-> UC6
-    UC6 -.경험치 지급.-> UC7
+    Child --> C1
+    Child --> C2
+    Child --> C3
+    Child --> C4
+    Child --> C5
+    Child --> C6
+    Child --> C7
+
+    C4 -.인증 요청.-> P4
+    P5 -.승인 시 보상 지급.-> C5
+    C5 -.경험치 획득.-> C6
 ```
 
 ---
@@ -281,25 +299,65 @@ sequenceDiagram
 erDiagram
     PARENT ||--o{ CHILD : owns
     PARENT ||--o{ CHILD_INVITE : creates
-    CHILD_INVITE ||--|| CHILD : connects
-    CHILD ||--o{ MISSION : receives
     PARENT ||--o{ MISSION : assigns
-    CHILD ||--o{ DAILY_MISSION_PROGRESS : tracks
-    CHILD ||--o{ MISSION_SUBMISSION : submits
-    MISSION ||--o{ MISSION_SUBMISSION : has
-    MISSION_SUBMISSION ||--o{ REWARD_HISTORY : rewards
-    CHILD ||--o{ REWARD_HISTORY : earns
-    CHILD ||--o{ CHILD_PET : owns
-    PET ||--o{ CHILD_PET : collected_as
-    FRAME ||--o{ CHILD : decorates
+    PARENT ||--o{ AUTH_LOGIN_TOKEN : has
     PARENT ||--o{ NOTIFICATION : receives
-    CHILD ||--o{ NOTIFICATION : triggers
+    CHILD_INVITE ||--|| CHILD : connects
+    FRAME ||--o{ CHILD : decorates
+    CHILD ||--o{ AUTH_LOGIN_TOKEN : has
+    CHILD ||--o{ MISSION : receives
+    CHILD ||--o{ MISSION_SUBMISSION : submits
+    CHILD ||--o{ CHILD_PET : owns
+    CHILD ||--o{ REWARD_HISTORY : earns
+    CHILD ||--o{ NOTIFICATION : receives
+    REWARD_BOX ||--o{ MISSION : grades
+    REWARD_BOX ||--o{ MISSION_SUBMISSION : planned_for
+    REWARD_BOX ||--o{ REWARD_HISTORY : paid_from
+    MISSION ||--o{ MISSION_SUBMISSION : has
+    MISSION ||--o{ NOTIFICATION : related_to
+    MISSION_SUBMISSION ||--o{ REWARD_HISTORY : rewards
+    MISSION_SUBMISSION ||--o{ NOTIFICATION : related_to
+    PET ||--o{ CHILD_PET : collected_as
+    PET ||--o{ REWARD_HISTORY : reward_item
+    CHILD_PET ||--o{ PET_INTERACTION_COOLDOWN : controls
+    CHILD_PET ||--o{ REWARD_HISTORY : gains
+    FRAME ||--o{ REWARD_HISTORY : unlocks
+    REWARD_HISTORY ||--o{ NOTIFICATION : notifies
 
     PARENT {
         number parent_id PK
         string email
         string password_hash
         string name
+        date created_at
+    }
+
+    CHILD_INVITE {
+        number invite_id PK
+        number parent_id FK
+        string invite_code UK
+        string qr_url
+        date created_at
+        date regenerated_at
+    }
+
+    AUTH_LOGIN_TOKEN {
+        number token_id PK
+        string token_hash UK
+        string subject_type
+        number parent_id FK
+        number child_id FK
+        date expires_at
+        date created_at
+        date last_used_at
+    }
+
+    FRAME {
+        number frame_id PK
+        string frame_type UK
+        string frame_name
+        string frame_image_url
+        number required_badge_count
         date created_at
     }
 
@@ -314,54 +372,13 @@ erDiagram
         date created_at
     }
 
-    CHILD_INVITE {
-        number invite_id PK
-        number parent_id FK
-        string invite_code UK
-        string qr_url
+    REWARD_BOX {
+        string box_grade PK
+        string box_name
+        number min_exp
+        number max_exp
+        number pet_drop_rate
         date created_at
-        date regenerated_at
-    }
-
-    MISSION {
-        number mission_id PK
-        number parent_id FK
-        number child_id FK
-        string mission_title
-        string mission_content
-        string mission_grade
-        string is_active
-        date created_at
-    }
-
-    DAILY_MISSION_PROGRESS {
-        number progress_id PK
-        number child_id FK
-        date progress_date
-        string low_completed
-        string middle_completed
-        number high_completed_count
-    }
-
-    MISSION_SUBMISSION {
-        number submission_id PK
-        number child_id FK
-        number mission_id FK
-        date submit_datetime
-        string video_url
-        string status
-        string reject_reason
-        date approved_at
-    }
-
-    REWARD_HISTORY {
-        number history_id PK
-        number child_id FK
-        string box_grade
-        number exp_gained
-        date opened_at
-        string source
-        number submission_id FK
     }
 
     PET {
@@ -372,31 +389,79 @@ erDiagram
         number max_level
         string badge_name
         string badge_image_url
+        string description
     }
 
     CHILD_PET {
         number child_pet_id PK
         number child_id FK
         number pet_id FK
-        number pet_level
-        number pet_exp
+        number current_level
+        number current_exp
         string is_active
+        string is_maxed
+        string badge_acquired
+        date badge_acquired_at
+        date acquired_at
     }
 
-    FRAME {
-        number frame_id PK
-        string frame_type
-        string frame_name
-        string frame_image_url
-        number required_badge_count
+    PET_INTERACTION_COOLDOWN {
+        number child_pet_id PK, FK
+        string action_type PK
+        date last_rewarded_at
+    }
+
+    MISSION {
+        number mission_id PK
+        number parent_id FK
+        number child_id FK
+        string mission_title
+        string mission_description
+        string mission_grade FK
+        string media_type
+        string is_active
+        date created_at
+    }
+
+    MISSION_SUBMISSION {
+        number submission_id PK
+        number mission_id FK
+        number child_id FK
+        string box_grade FK
+        string media_type
+        string media_url
+        string status
+        date submitted_at
+        date reviewed_at
+        string reward_given
+        date media_deleted_at
+    }
+
+    REWARD_HISTORY {
+        number reward_id PK
+        number child_id FK
+        number submission_id FK
+        string box_grade FK
+        number pet_id FK
+        number child_pet_id FK
+        number frame_id FK
+        string reward_type
+        string reward_source
+        number exp_amount
+        date created_at
     }
 
     NOTIFICATION {
-        number noti_id PK
+        number notification_id PK
         number parent_id FK
         number child_id FK
-        string type
-        string message
+        number mission_id FK
+        number submission_id FK
+        number reward_id FK
+        string notification_type
+        string title
+        string content
+        string is_read
         date created_at
         date read_at
     }
