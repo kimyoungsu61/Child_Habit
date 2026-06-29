@@ -480,7 +480,7 @@ erDiagram
 | 이름 | 역할 | 담당 업무 |
 | :---: | :---: | --- |
 | **서성찬** | PM / 문서화 | 프로젝트 일정 관리, 요구사항 정의서, 발표 자료 및 README 문서화 |
-| **한창수** | Frontend / UI/UX | 부모 / 아이 화면 구현, 미션 인증 UI, 보상 및 펫 화면 구현 |
+| **한창수** | Frontend / UI,UX | 부모 / 아이 화면 구현, 미션 인증 UI, 보상 및 펫 화면 구현 |
 | **윤성재** | AI / Backend | Flask AI 서버, AI 프로필 이미지 생성 연동 |
 | **김영수** | Backend / DB | Oracle DB 설계, Servlet/JSP 기반 서버 로직, DB 연동 |
 
